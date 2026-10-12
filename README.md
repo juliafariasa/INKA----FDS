@@ -1,13 +1,13 @@
-## ESGRise--FDS
+## INKA (ESGRise--FDS)
 Desafio Proposto: Como aumentar a percepção de importância para que PMEs invistam em ESG? (Empresa: Deloitte)
 
 ## DESCRIÇÃO DO PROJETO
 
-O **ESGRise** é um projeto acadêmico desenvolvido na disciplina de **Fundamentos de Desenvolvimento de Software (FDS)**, com foco em criar uma solução tecnológica que conecte **ESG** 🌱, **sustentabilidade** ♻️ e **gestão empresarial** 📊 de forma prática e acessível para **estúdios de tatuagem** 🖋️ — microempresas que representam bem o desafio das PMEs proposto pela Deloitte.
+O **INKA** é um projeto acadêmico desenvolvido na disciplina de **Fundamentos de Desenvolvimento de Software (FDS)**, com foco em criar uma solução tecnológica que conecte **ESG** 🌱, **sustentabilidade** ♻️ e **gestão empresarial** 📊 de forma prática e acessível para **estúdios de tatuagem** 🖋️ — microempresas que representam bem o desafio das PMEs proposto pela Deloitte.
 
 O setor de tatuagem deixou de ser um espaço marginalizado e hoje responde a padrões técnicos, fiscais e de biossegurança fiscalizados pela Vigilância Sanitária. Ainda assim, a rotina do estúdio concentra problemas estruturais em cada pilar do ESG: o descarte de um grande volume de material de uso único e de perfurocortantes contaminados (**Ambiental**), a ergonomia e a biossegurança de quem tatua e de quem é tatuado (**Social**) e as lacunas de licenciamento, documentação e transparência na gestão do negócio (**Governança**).
 
-Pensando nisso, o ESGRise nasce como uma proposta de software que traduz os três pilares do ESG em critérios objetivos que um estúdio consegue acompanhar no dia a dia, ampliando a percepção de valor dessas práticas e apoiando a tomada de decisão com base em dados ✅.
+Pensando nisso, o INKA nasce como uma proposta de software que traduz os três pilares do ESG em critérios objetivos que um estúdio consegue acompanhar no dia a dia, ampliando a percepção de valor dessas práticas e apoiando a tomada de decisão com base em dados ✅.
 
 Mais do que apresentar indicadores, o projeto pretende incentivar uma mudança de mentalidade: ESG não deve ser tratado apenas como tendência, mas como parte da estratégia do estúdio no longo prazo. Por isso a própria **tatuagem** é a metáfora central do projeto — algo que representa identidade, compromisso e permanência. Assim como uma tatuagem carrega significado duradouro, a sustentabilidade também deve ser incorporada à cultura do estúdio de forma autêntica e consistente.
 
@@ -25,7 +25,7 @@ Desenvolver uma plataforma que ajude estúdios de tatuagem a:
 
 ## 🧩 Relação com a disciplina (FDS)
 
-Por se tratar de um projeto da disciplina de **Fundamentos de Desenvolvimento de Software**, o ESGRise também tem como propósito aplicar, na prática, os principais conceitos estudados ao longo da formação, como:
+Por se tratar de um projeto da disciplina de **Fundamentos de Desenvolvimento de Software**, o INKA também tem como propósito aplicar, na prática, os principais conceitos estudados ao longo da formação, como:
 
 - 📌 levantamento e refinamento de requisitos;
 - 🧠 modelagem de solução orientada a problema real;
@@ -50,7 +50,7 @@ Essa stack foi escolhida por permitir desenvolvimento rápido, organizado e alin
 
 ## 🚀 Visão de Impacto
 
-O ESGRise busca gerar impacto em duas frentes:
+O INKA busca gerar impacto em duas frentes:
 
 1. **Impacto acadêmico** 🎓  
    Consolidar aprendizados de FDS por meio de um projeto completo, com problema real, planejamento, implementação e documentação.
@@ -61,7 +61,7 @@ O ESGRise busca gerar impacto em duas frentes:
 
 ## 🧭 Síntese
 
-Em resumo, o **ESGRise** propõe o desenvolvimento de uma plataforma que transforma conceitos de ESG em práticas de gestão aplicáveis à rotina de um estúdio de tatuagem. Com base em fundamentos de desenvolvimento de software e utilizando tecnologias modernas como Python, Django e SQL, o projeto une propósito, inovação e organização técnica para construir uma solução relevante, educativa e de valor duradouro. 🌱💼
+Em resumo, o **INKA** propõe o desenvolvimento de uma plataforma que transforma conceitos de ESG em práticas de gestão aplicáveis à rotina de um estúdio de tatuagem. Com base em fundamentos de desenvolvimento de software e utilizando tecnologias modernas como Python, Django e SQL, o projeto une propósito, inovação e organização técnica para construir uma solução relevante, educativa e de valor duradouro. 🌱💼
 
 ---
 

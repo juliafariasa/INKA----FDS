@@ -119,7 +119,7 @@ class FaleConoscoView(View):
         messages.success(
             request,
             f'Obrigado, {contato.nome}! Sua mensagem foi registrada e a '
-            'equipe do ESGRise responde em até 3 dias úteis.',
+            'equipe do INKA responde em até 3 dias úteis.',
         )
         return redirect(reverse('forum:fale_conosco'))
 

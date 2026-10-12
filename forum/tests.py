@@ -143,7 +143,7 @@ class FaleConoscoEscreveNoBancoTest(TestCase):
             'email': 'maria@pme.com.br',
             'empresa': 'PME Verde',
             'assunto': Contato.ASSUNTO_PARCERIA,
-            'mensagem': 'Gostaria de entender como o ESGRise funciona na prática.',
+            'mensagem': 'Gostaria de entender como o INKA funciona na prática.',
         }
 
     def test_get_exibe_o_formulario(self):

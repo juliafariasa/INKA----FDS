@@ -1,12 +1,12 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #f2f2f2;
+    color: #111;
 }
 
 header {
-    background-color: #2e7d4f;
+    background-color: #000000;
     color: white;
     padding: 20px 15px;
     text-align: center;
@@ -20,11 +20,11 @@ header h1 {
 .subtitulo {
     margin: 6px 0 0;
     font-size: 13px;
-    color: #cfe7d8;
+    color: #bbbbbb;
 }
 
 nav {
-    background-color: #24603d;
+    background-color: #222222;
     padding: 10px 15px;
     text-align: center;
 }
@@ -39,12 +39,12 @@ nav a {
 }
 
 nav a:hover {
-    background-color: #2e7d4f;
+    background-color: #000000;
 }
 
 nav a.ativo {
     background-color: white;
-    color: #24603d;
+    color: #222222;
     font-weight: bold;
 }
 
@@ -60,20 +60,20 @@ nav a.ativo {
 h2 {
     margin: 0 0 20px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #2e7d4f;
-    color: #24603d;
+    border-bottom: 2px solid #000000;
+    color: #222222;
     font-size: 22px;
 }
 
 h3 {
     margin: 28px 0 8px;
-    color: #2e7d4f;
+    color: #000000;
     font-size: 17px;
 }
 
 h4 {
     margin: 22px 0 6px;
-    color: #24603d;
+    color: #222222;
     font-size: 15px;
 }
 
@@ -83,14 +83,14 @@ p {
 }
 
 .container a {
-    color: #2e7d4f;
+    color: #000000;
 }
 
 .caixa {
     margin: 15px 0;
     padding: 15px 18px;
-    background-color: #f1f8f4;
-    border-left: 4px solid #2e7d4f;
+    background-color: #f5f5f5;
+    border-left: 4px solid #000000;
 }
 
 .caixa p:last-child {
@@ -111,8 +111,8 @@ th, td {
 }
 
 th {
-    background-color: #e8f5ec;
-    color: #24603d;
+    background-color: #e6e6e6;
+    color: #222222;
 }
 
 tr:nth-child(even) td {
@@ -151,7 +151,7 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #2e7d4f;
+    border-color: #000000;
     outline: none;
 }
 
@@ -159,7 +159,7 @@ input[type="submit"] {
     width: auto;
     margin-top: 20px;
     padding: 10px 24px;
-    background-color: #2e7d4f;
+    background-color: #000000;
     border: none;
     color: white;
     cursor: pointer;
@@ -167,13 +167,14 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {
-    background-color: #24603d;
+    background-color: #222222;
 }
 
 .erro {
     margin: 5px 0 0;
-    color: #cc0000;
+    color: #000000;
     font-size: 13px;
+    font-weight: bold;
 }
 
 .ajuda {
@@ -189,15 +190,61 @@ input[type="submit"]:hover {
 }
 
 .aviso-success {
-    background-color: #e8f5ec;
-    border: 1px solid #2e7d4f;
-    color: #24603d;
+    background-color: #e6e6e6;
+    border: 1px solid #000000;
+    color: #222222;
 }
 
 .aviso-error {
-    background-color: #fdecea;
-    border: 1px solid #cc0000;
-    color: #cc0000;
+    background-color: #ffffff;
+    border: 2px solid #000000;
+    color: #000000;
+    font-weight: bold;
+}
+
+.aviso {
+    transition: opacity 0.5s;
+}
+
+.aviso.sumindo {
+    opacity: 0;
+}
+
+.contador {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.contador.ok {
+    color: #000000;
+    font-weight: bold;
+}
+
+.voltar-topo {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 42px;
+    height: 42px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background-color: #000000;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.voltar-topo.visivel {
+    opacity: 1;
+    visibility: visible;
+}
+
+.voltar-topo:hover {
+    background-color: #333333;
 }
 
 footer {

@@ -1,4 +1,4 @@
-"""Configuração de URLs do projeto ESGRise.
+"""Configuração de URLs do projeto INKA.
 
 urlpatterns é a lista de rotas do projeto. A função include delega para o
 arquivo forum/urls.py todas as rotas da aplicação.
