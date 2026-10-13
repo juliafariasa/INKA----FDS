@@ -146,17 +146,16 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 ## ENTREGÁVEL 3
 
 <details>
-  <summary><b>Entregável 2</b></summary>
+  <summary><b>Entregável 3</b></summary>
   <br>
 
 
   ### Histórias de usuário:
   ARQUIVO EM MD
-
-   #HISTÓRIAS DE IMPLEMENTADAS 
+  
 
 <details>
-  <summary><b>Entregável 2</b></summary>
+  <summary><b>HISTÓRIAS DE IMPLEMENTADAS</b></summary>
   <br>
 
 ## História 1
@@ -171,19 +170,21 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   ### Link do deployment da infraestrutura:
  LINK
   
-  ### Link do screencast do uso do sistema:
-  (https://youtu.be/l3yzfyt5Xxw)
-
-  ### Link do screencast do código django:
-  (https://youtu.be/WJievnC4gsQ)
+  ### Link do screencast das funcionalidades desenvolvidas:
+  LINK
 
   ### Issue/Bug Tracker(Entregável 2):
-  <img width="1565" height="532" alt="WhatsApp Image 2026-09-21 at 08 59 12" src="https://github.com/user-attachments/assets/bd2f9ccf-2d28-4be4-ace6-60f6680ddf77" />
+  IMAGEM
+
+  ### Link do screencast do código django:
+  LINK
 
 
-  ### Quadro de sprint 2, atualizado e refletindo a entrega:
-  <img width="919" height="430" alt="sprint 2" src="https://github.com/user-attachments/assets/16b9f460-3c12-45d6-adb3-d20c6587e46d" />
+  ### Quadro de sprint 3:
+  IMAGEM
 
+  ### Backlog:
+  IMAGEM
 
 
 </details>
