@@ -10,6 +10,8 @@ do setor de tatuagem invistam em práticas de ESG. Além de analisar possíveis
 requisitos do produto que será criado pelo grupo . Os produtos/plataformas
 analisadas foras: DaySmart BodyArt, GestãoInk, Avec, Vertown e Tatto Manager.
 
+**2. Produtos Analisados**
+
 **2.1 DaySmart BodyArt**
 
 2.1.1 Visão geral
