@@ -151,7 +151,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
   ### Histórias de usuário:
-  ARQUIVO EM MD
+  [ARQUIVO EM MD](https://github.com/juliafariasa/INKA----FDS/blob/main/6%20hist%C3%B3rias%20de%20usu%C3%A1rio.md)
   
 
 <details>
