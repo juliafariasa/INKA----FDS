@@ -1,77 +1,84 @@
-### História 1 — Encontrar estúdios com práticas ESG
-
-**Como** cliente que procura um estúdio de tatuagem,  
-**quero** buscar estúdios por localização e práticas ESG,  
-**para** encontrar opções alinhadas aos meus valores.
-
-**Cenário: buscar estúdios por região**
-
-**Dado que** existem estúdios cadastrados na plataforma  
-**Quando** informo uma cidade ou região  
-**Então** a plataforma deve listar os estúdios encontrados  
-**E** mostrar um resumo das práticas ESG informadas por cada um.
-
-### História 2 — Consultar o ranking ESG dos estúdios
-
-**Como** cliente interessado em sustentabilidade e responsabilidade social,  
-**quero** consultar um ranking dos estúdios com melhor desempenho nas práticas ESG,  
-**para** comparar as opções e decidir onde fazer minha tatuagem.
-
-**Cenário: visualizar o ranking**
-
-**Dado que** existem estúdios com autoavaliações ESG preenchidas  
-**Quando** acesso a página de ranking  
-**Então** a plataforma deve ordenar os estúdios conforme os critérios ESG definidos  
-**E** exibir a posição e um resumo do desempenho de cada estúdio.
-
-### História 3 — Conhecer os critérios do ranking
-
-**Como** cliente que consulta o ranking ESG,  
-**quero** entender quais critérios são considerados na classificação,  
-**para** interpretar o resultado e fazer uma escolha consciente.
-
-**Cenário: consultar os critérios**
-
-**Dado que** estou visualizando o ranking de estúdios  
-**Quando** seleciono a opção de ver os critérios  
-**Então** a plataforma deve explicar quais práticas ambientais, sociais e de governança são avaliadas  
-**E** informar como elas influenciam a classificação.
-
-### História 4 — Cadastrar e apresentar um estúdio
+### História 1 — Avaliar a maturidade ESG do estúdio
 
 **Como** dono de um estúdio de tatuagem,  
-**quero** cadastrar meu estúdio e apresentar suas informações e práticas ESG,  
-**para** que os clientes possam conhecer meu espaço e encontrá-lo na plataforma.
+**quero** responder a um diagnóstico rápido sobre as práticas do meu estúdio,  
+**para** conhecer meu nível atual de maturidade ESG e receber sugestões de melhoria.
 
-**Cenário: cadastrar o estúdio**
+**Cenário: concluir o diagnóstico**
 
-**Dado que** estou autenticado como responsável pelo estúdio  
-**Quando** informo nome, localização, contato e descrição  
-**Então** a plataforma deve salvar o cadastro  
-**E** disponibilizar o perfil do estúdio para consulta pública.
+**Dado que** o responsável está cadastrado na plataforma  
+**Quando** responde às perguntas do diagnóstico ESG  
+**Então** a plataforma deve calcular um nível inicial de maturidade  
+**E** apresentar um plano de ação personalizado para o estúdio.
 
-### História 5 — Avaliar e melhorar as práticas ESG
+### História 2 — Verificar práticas de higiene, segurança e resíduos
+
+**Como** responsável por um estúdio de tatuagem,  
+**quero** usar um checklist para verificar regularmente as práticas de higiene, segurança e gestão de resíduos,  
+**para** acompanhar se o estúdio está seguindo os cuidados recomendados.
+
+**Cenário: preencher o checklist**
+
+**Dado que** o responsável iniciou uma verificação do estúdio  
+**Quando** responde aos itens do checklist  
+**Então** a plataforma deve registrar as respostas e a data da verificação  
+**E** destacar os itens que precisam de atenção.
+
+### História 3 — Calcular resíduos e receber recomendações
+
+**Como** tatuador ou responsável por um estúdio,  
+**quero** informar a quantidade aproximada de atendimentos e os materiais utilizados,  
+**para** estimar os resíduos gerados e receber recomendações para reduzir seu impacto.
+
+**Cenário: calcular a estimativa de resíduos**
+
+**Dado que** o usuário informa o número aproximado de atendimentos e os materiais utilizados no período  
+**Quando** solicita a estimativa  
+**Então** a plataforma deve calcular uma estimativa de resíduos gerados  
+**E** recomendar melhorias relacionadas às práticas ESG do estúdio.
+
+### História 4 — Definir metas e acompanhar a evolução ESG
 
 **Como** dono de um estúdio de tatuagem,  
-**quero** preencher uma autoavaliação sobre as práticas ESG do meu estúdio,  
-**para** entender meus pontos fortes e identificar o que posso melhorar.
+**quero** definir metas ESG e registrar ações e mudanças realizadas,  
+**para** acompanhar a evolução das práticas do meu estúdio ao longo do tempo.
 
-**Cenário: concluir a autoavaliação**
+**Cenário: registrar uma ação para uma meta**
 
-**Dado que** estou autenticado e iniciei a autoavaliação  
-**Quando** respondo às perguntas sobre as práticas do estúdio  
-**Então** a plataforma deve salvar minhas respostas  
-**E** apresentar um resumo dos pontos atendidos e dos que podem ser melhorados.
+**Dado que** o estúdio possui uma meta ESG cadastrada  
+**Quando** o responsável registra uma ação ou atualização relacionada à meta  
+**Então** a plataforma deve atualizar o histórico da meta  
+**E** exibir o progresso do estúdio em seu diário de evolução ESG.
 
-### História 6 — Aprender e capacitar a equipe
+### História 5 — Encontrar ações e projetos sociais
 
 **Como** dono de um estúdio de tatuagem,  
-**quero** acessar orientações sobre práticas ESG e acompanhar a capacitação da equipe,  
-**para** que todos saibam aplicar essas práticas no trabalho diário.
+**quero** encontrar campanhas, organizações e projetos sociais relacionados ao setor,  
+**para** participar de iniciativas que beneficiem a comunidade.
 
-**Cenário: consultar orientações e acompanhar a equipe**
+**Cenário: consultar iniciativas disponíveis**
 
-**Dado que** existem conteúdos sobre descarte de resíduos e outras práticas ESG  
-**Quando** acesso os conteúdos ou consulto o progresso da equipe  
-**Então** a plataforma deve apresentar as orientações disponíveis  
-**E** mostrar quais membros concluíram ou ainda precisam concluir a capacitação.
+**Dado que** existem campanhas ou projetos sociais cadastrados na plataforma  
+**Quando** o responsável acessa a vitrine de ações  
+**Então** a plataforma deve apresentar as iniciativas e suas informações  
+**E** permitir que o responsável manifeste interesse em participar ou entrar em contato.
+
+### História 6 — Consultar o selo ESG do estúdio
+
+**Como** cliente que está escolhendo um estúdio de tatuagem,  
+**quero** consultar o selo ESG e as informações sobre as práticas do estúdio,  
+**para** conhecer seu compromisso ambiental e social antes de agendar uma tatuagem.
+
+**Cenário: consultar o selo pelo QR Code**
+
+**Dado que** um estúdio possui um selo ESG e um QR Code associado  
+**Quando** o cliente escaneia o QR Code  
+**Então** a plataforma deve exibir o nível do selo e as informações que compõem o índice  
+**E** mostrar quando essas informações foram atualizadas.
+
+**Cenário: atualizar o índice do selo**
+
+**Dado que** o estúdio atualizou informações sobre materiais, insumos ou fornecedores  
+**Quando** a plataforma recalcula o índice ESG  
+**Então** o selo deve refletir os dados atualizados  
+**E** a plataforma deve indicar que o índice se baseia nas informações cadastradas pelo estúdio.
