@@ -1,8 +1,12 @@
 from django.contrib import admin
 
 from .models import (
+    CalculoResiduo,
     Contato,
+    Diagnostico,
+    Estudio,
     ItemLista,
+    Material,
     MembroEquipe,
     Pilar,
     PraticaEstudio,
@@ -55,3 +59,29 @@ class PraticaEstudioAdmin(admin.ModelAdmin):
     list_display = ['titulo', 'pilar', 'ordem']
     list_filter = ['pilar']
     search_fields = ['titulo', 'descricao']
+
+
+@admin.register(Estudio)
+class EstudioAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'cidade', 'criado_em']
+    search_fields = ['nome', 'cidade']
+
+
+@admin.register(Diagnostico)
+class DiagnosticoAdmin(admin.ModelAdmin):
+    list_display = ['estudio', 'data', 'nota_e', 'nota_s', 'nota_g']
+    list_filter = ['estudio']
+
+
+@admin.register(Material)
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'tipo', 'gramas_por_atendimento']
+    list_filter = ['tipo']
+
+
+@admin.register(CalculoResiduo)
+class CalculoResiduoAdmin(admin.ModelAdmin):
+    list_display = ['estudio', 'criado_em', 'atendimentos',
+                    'gramas_perfurocortante', 'gramas_contaminado',
+                    'gramas_comum']
+    list_filter = ['estudio']

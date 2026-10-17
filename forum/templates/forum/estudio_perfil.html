@@ -1,0 +1,67 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}{{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>{{ estudio.nome }}</h2>
+
+<p>Estúdio de tatuagem em {{ estudio.cidade }}.</p>
+
+{% if diagnostico %}
+    {% with selo=diagnostico.selo pilares=diagnostico.pilares_ativos %}
+    <div class="caixa">
+        {% if selo %}
+            <p><b>Selo Estúdio Consciente {{ selo }}</b></p>
+            <p>
+                {{ pilares|length }} de 3 pilares do ESG ativos, com nota 7 ou
+                mais no diagnóstico.
+            </p>
+        {% else %}
+            <p><b>Ainda sem selo</b></p>
+            <p>Nenhum pilar do ESG atingiu nota 7 no último diagnóstico.</p>
+        {% endif %}
+    </div>
+
+    <table class="tabela-itens">
+        <tr>
+            <td><b>Pilares ativos</b></td>
+            <td>
+                {% for pilar in pilares %}
+                    {{ pilar.nome }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                    Nenhum
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td><b>Índice de sustentabilidade</b></td>
+            <td>{{ diagnostico.indice|floatformat:0 }} de 100</td>
+        </tr>
+        <tr>
+            <td><b>Última avaliação</b></td>
+            <td>{{ diagnostico.data|date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+    {% endwith %}
+{% else %}
+    <div class="caixa">
+        <p><b>Ainda sem selo</b></p>
+        <p>Este estúdio ainda não fez o diagnóstico de maturidade ESG.</p>
+    </div>
+{% endif %}
+
+<h3>Sobre o selo</h3>
+<p>
+    O selo Estúdio Consciente é dado pelo diagnóstico do INKA. Cada pilar com
+    nota 7 ou mais conta como ativo: 3 pilares ativos dão o selo Ouro, 2 dão
+    Prata e 1 dá Bronze.
+</p>
+
+<p>
+    <a href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code do perfil</a>
+    |
+    <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">{% if diagnostico %}Refazer{% else %}Fazer{% endif %} diagnóstico</a>
+    |
+    <a href="{% url 'forum:estudio_residuos' estudio.id %}">Calculadora de resíduos</a>
+</p>
+{% endblock %}

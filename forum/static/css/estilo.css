@@ -48,6 +48,22 @@ nav a.ativo {
     font-weight: bold;
 }
 
+.botao-modo {
+    margin: 2px;
+    padding: 6px 14px;
+    border: 1px solid white;
+    border-radius: 4px;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.botao-modo:hover {
+    background-color: #000000;
+}
+
 .container {
     max-width: 850px;
     margin: 25px auto;
@@ -123,6 +139,16 @@ tr:nth-child(even) td {
     width: 28%;
 }
 
+.questionario td + td,
+.questionario th + th {
+    width: 70px;
+    text-align: center;
+}
+
+tr.pendente td {
+    background-color: #e6e6e6;
+}
+
 ul {
     margin: 12px 0;
     padding-left: 22px;
@@ -153,6 +179,11 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
     border-color: #000000;
     outline: none;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    width: auto;
 }
 
 input[type="submit"] {
@@ -270,4 +301,118 @@ footer {
     th, td {
         padding: 7px 8px;
     }
+}
+
+body.modo-noturno {
+    background-color: #000000;
+    color: #eeeeee;
+}
+
+body.modo-noturno header {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+body.modo-noturno .subtitulo {
+    color: #555555;
+}
+
+body.modo-noturno nav {
+    background-color: #e6e6e6;
+}
+
+body.modo-noturno nav a,
+body.modo-noturno .botao-modo {
+    border-color: #222222;
+    color: #222222;
+}
+
+body.modo-noturno nav a:hover,
+body.modo-noturno .botao-modo:hover {
+    background-color: #ffffff;
+}
+
+body.modo-noturno nav a.ativo {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+body.modo-noturno .container {
+    background-color: #1a1a1a;
+    box-shadow: none;
+}
+
+body.modo-noturno h2 {
+    border-bottom-color: #ffffff;
+    color: #ffffff;
+}
+
+body.modo-noturno h3,
+body.modo-noturno h4,
+body.modo-noturno .container a,
+body.modo-noturno .erro {
+    color: #ffffff;
+}
+
+body.modo-noturno .caixa {
+    background-color: #262626;
+    border-left-color: #ffffff;
+}
+
+body.modo-noturno th {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+body.modo-noturno th,
+body.modo-noturno td {
+    border-color: #444444;
+}
+
+body.modo-noturno tr:nth-child(even) td {
+    background-color: #222222;
+}
+
+body.modo-noturno tr.pendente td {
+    background-color: #444444;
+}
+
+body.modo-noturno input,
+body.modo-noturno select,
+body.modo-noturno textarea {
+    background-color: #000000;
+    border-color: #555555;
+    color: #eeeeee;
+}
+
+body.modo-noturno input:focus,
+body.modo-noturno select:focus,
+body.modo-noturno textarea:focus {
+    border-color: #ffffff;
+}
+
+body.modo-noturno input[type="submit"] {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+body.modo-noturno input[type="submit"]:hover {
+    background-color: #cccccc;
+}
+
+body.modo-noturno .ajuda,
+body.modo-noturno .contador,
+body.modo-noturno footer {
+    color: #aaaaaa;
+}
+
+body.modo-noturno .contador.ok {
+    color: #ffffff;
+}
+
+body.modo-noturno .aviso-success,
+body.modo-noturno .aviso-error {
+    background-color: #000000;
+    border-color: #ffffff;
+    color: #ffffff;
 }

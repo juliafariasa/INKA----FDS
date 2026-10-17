@@ -1,0 +1,43 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Estúdios - INKA{% endblock %}
+
+{% block content %}
+<h2>Estúdios</h2>
+
+<p>
+    Estúdios de tatuagem cadastrados no INKA. Cada estúdio responde um
+    diagnóstico com as práticas ESG da rotina e recebe uma nota por pilar.
+</p>
+
+<p><a href="{% url 'forum:estudio_novo' %}">Cadastrar um estúdio</a></p>
+
+<table>
+    <tr>
+        <th>Estúdio</th>
+        <th>Cidade</th>
+        <th>Índice de sustentabilidade</th>
+    </tr>
+    {% for estudio in estudios %}
+        {% with diagnostico=estudio.ultimo_diagnostico %}
+        <tr>
+            <td>
+                <a href="{% url 'forum:estudio_perfil' estudio.id %}">{{ estudio.nome }}</a>
+            </td>
+            <td>{{ estudio.cidade }}</td>
+            <td>
+                {% if diagnostico %}
+                    {{ diagnostico.indice|floatformat:0 }} de 100
+                {% else %}
+                    Ainda sem diagnóstico
+                {% endif %}
+            </td>
+        </tr>
+        {% endwith %}
+    {% empty %}
+        <tr>
+            <td colspan="3">Nenhum estúdio cadastrado.</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

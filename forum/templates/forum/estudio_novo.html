@@ -1,0 +1,28 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Cadastrar estúdio - INKA{% endblock %}
+
+{% block content %}
+<h2>Cadastrar estúdio</h2>
+
+<p>
+    Informe os dados do estúdio. Depois do cadastro você já segue para o
+    diagnóstico de maturidade ESG.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="nome">Nome do estúdio</label>
+    <input type="text" id="nome" name="nome" maxlength="120"
+           value="{{ dados.nome|default:'' }}">
+    {% if erros.nome %}<p class="erro">{{ erros.nome }}</p>{% endif %}
+
+    <label for="cidade">Cidade</label>
+    <input type="text" id="cidade" name="cidade" maxlength="80"
+           value="{{ dados.cidade|default:'' }}">
+    {% if erros.cidade %}<p class="erro">{{ erros.cidade }}</p>{% endif %}
+
+    <input type="submit" name="cadastrar" value="Cadastrar e fazer diagnóstico">
+</form>
+{% endblock %}

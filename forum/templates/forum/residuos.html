@@ -1,0 +1,87 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Resíduos de {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Calculadora de resíduos de {{ estudio.nome }}</h2>
+
+{% if calculo %}
+    <h3>Resultado do último cálculo</h3>
+    <p>
+        Calculado em {{ calculo.criado_em|date:"d/m/Y" }} para
+        {{ calculo.atendimentos }} atendimento(s).
+    </p>
+
+    {% with linhas=calculo.resultado %}
+    <table>
+        <tr>
+            <th>Tipo de resíduo</th>
+            <th>Gramas</th>
+            {% if linhas.0.situacao %}<th>Em relação ao cálculo anterior</th>{% endif %}
+        </tr>
+        {% for linha in linhas %}
+            <tr>
+                <td>{% if forloop.last %}<b>{{ linha.tipo }}</b>{% else %}{{ linha.tipo }}{% endif %}</td>
+                <td>{{ linha.gramas }} g</td>
+                {% if linha.situacao %}
+                    <td>
+                        {{ linha.situacao }}{% if linha.situacao != 'Igual' %} {{ linha.diferenca }} g{% endif %}
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% endwith %}
+
+    <h3>Recomendações para reduzir o impacto</h3>
+    <ul>
+        {% for pratica in recomendacoes %}
+            <li><b>{{ pratica.titulo }}.</b> {{ pratica.descricao }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Novo cálculo</h3>
+{% else %}
+    <p>
+        Informe quantos atendimentos o estúdio fez no período e marque os
+        materiais usados. A calculadora estima quanto resíduo de cada tipo foi
+        gerado.
+    </p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="atendimentos">Número de atendimentos</label>
+    <input type="number" id="atendimentos" name="atendimentos" min="1"
+           value="{{ dados.atendimentos|default:'' }}">
+    {% if erros.atendimentos %}<p class="erro">{{ erros.atendimentos }}</p>{% endif %}
+
+    <label>Materiais usados</label>
+    <table>
+        <tr>
+            <th>Usa?</th>
+            <th>Material</th>
+            <th>Tipo</th>
+            <th>Gramas por atendimento</th>
+        </tr>
+        {% for material in materiais %}
+            <tr>
+                <td>
+                    <input type="checkbox" name="materiais" value="{{ material.id }}"
+                           aria-label="{{ material.nome }}"
+                           {% if material.id in dados.materiais %}checked{% endif %}>
+                </td>
+                <td>{{ material.nome }}</td>
+                <td>{{ material.get_tipo_display }}</td>
+                <td>{{ material.gramas_por_atendimento }} g</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% if erros.materiais %}<p class="erro">{{ erros.materiais }}</p>{% endif %}
+
+    <input type="submit" name="calcular" value="Calcular resíduos">
+</form>
+
+<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil do estúdio</a></p>
+{% endblock %}

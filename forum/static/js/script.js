@@ -31,6 +31,25 @@ document.addEventListener('DOMContentLoaded', function () {
         atualizar();
     }
 
+    var botaoModo = document.createElement('button');
+    botaoModo.type = 'button';
+    botaoModo.className = 'botao-modo';
+    document.querySelector('nav').appendChild(botaoModo);
+
+    var aplicarModo = function (noturno) {
+        document.body.classList.toggle('modo-noturno', noturno);
+        botaoModo.textContent = noturno ? 'Modo claro' : 'Modo noturno';
+        botaoModo.setAttribute('aria-pressed', noturno);
+    };
+
+    aplicarModo(localStorage.getItem('modo') === 'noturno');
+
+    botaoModo.addEventListener('click', function () {
+        var noturno = !document.body.classList.contains('modo-noturno');
+        localStorage.setItem('modo', noturno ? 'noturno' : 'claro');
+        aplicarModo(noturno);
+    });
+
     var botaoTopo = document.createElement('button');
     botaoTopo.type = 'button';
     botaoTopo.className = 'voltar-topo';

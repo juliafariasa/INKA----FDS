@@ -1,0 +1,18 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}QR Code de {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>QR Code de {{ estudio.nome }}</h2>
+
+<p>
+    Imprima este QR Code e deixe no balcão do estúdio. Ao ler o código, o
+    cliente abre o perfil público com o selo Estúdio Consciente.
+</p>
+
+<p><img src="{{ qrcode }}" alt="QR Code do perfil de {{ estudio.nome }}"></p>
+
+<p class="ajuda">Endereço do perfil: <a href="{{ url_perfil }}">{{ url_perfil }}</a></p>
+
+<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil</a></p>
+{% endblock %}

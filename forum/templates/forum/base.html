@@ -23,6 +23,8 @@
            href="{% url 'forum:sobre_projeto' %}">Sobre o Projeto</a>
         <a class="{% if pagina == 'fale_conosco' %}ativo{% endif %}"
            href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
+        <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
+           href="{% url 'forum:estudios' %}">Estúdios</a>
     </nav>
     {% endwith %}
 
