@@ -94,7 +94,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   <br>
 
   ### ANÁLISE DE COMPETIDORES:
-  https://github.com/juliafariasa/ESGRise--FDS/blob/main/an%C3%A1lise_competidores.md
+  [ARQUIVO EM MD](https://github.com/juliafariasa/ESGRise--FDS/blob/main/an%C3%A1lise_competidores.md)
 
   ### BENCHMARK
   <img width="1600" height="767" alt="benchmark" src="https://github.com/user-attachments/assets/ee5738d3-22ba-4d74-bf4d-bbc48bfd68f5" />
@@ -151,7 +151,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
   ### Histórias de usuário:
-  ARQUIVO EM MD
+  [ARQUIVO EM MD](https://github.com/juliafariasa/INKA----FDS/blob/main/6%20hist%C3%B3rias%20de%20usu%C3%A1rio.md)
   
 
 <details>
