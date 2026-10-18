@@ -161,7 +161,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 ### História 1 - Selo "Estúdio Consciente"
 
 Como cliente que procura um estúdio de tatuagem, quero ver o selo ESG do estúdio no perfil e pelo QR Code na recepção, para verificar o compromisso social e ambiental do local antes de agendar.
-Prioridade: Média | Estimativa: 8 pontos
+Prioridade: Média | Estimativa: 6 pontos
 
 Cenário: visualizar o selo no perfil
 
@@ -172,9 +172,23 @@ Cenário: escanear o QR Code
 Dado que o estúdio gerou seu QR Code, Quando escaneio o código na recepção, Então a plataforma deve abrir a página de verificação de selos, E exibir o índice de sustentabilidade do estúdio.
 
 
-### História 2
+### História 2 - Diagnóstico de maturidade ESG**
 
-### História 4
+Como dono de estúdio recém-cadastrado, quero responder um questionário rápido sobre minhas práticas, para receber uma nota inicial e um plano de ação personalizado. 
+Prioridade: Alta| Estimativa: 7 pontos
+
+Cenário: responder o diagnóstico no cadastro
+
+Dado que acabei de criar a conta do meu estúdio, quando respondo o questionário de maturidade ESG, então a plataforma deve calcular minha nota inicial, e gerar um plano de ação com as práticas que preciso melhorar.
+
+### História 4 - Calculadora de resíduos
+
+Como tatuador, quero informar quantos atendimentos faço por mês e quais materiais uso, para saber quanto resíduo gero e como melhorar.
+Prioridade: Média | Estimativa: 4 pontos
+
+**Cenário: calcular resíduos do mês**
+
+Dado que informei o número de atendimentos e os materiais utilizados, quando solicito o cálculo, então a plataforma deve estimar a quantidade de resíduos por tipo, e recomendar melhorias com base nas boas práticas ESG.
   
 </details>
 
