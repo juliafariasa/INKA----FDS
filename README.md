@@ -158,11 +158,23 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   <summary><b>HISTÓRIAS DE IMPLEMENTADAS</b></summary>
   <br>
 
-## História 1
+### História 1 - Selo "Estúdio Consciente"
 
-## História 2
+Como cliente que procura um estúdio de tatuagem, quero ver o selo ESG do estúdio no perfil e pelo QR Code na recepção, para verificar o compromisso social e ambiental do local antes de agendar.
+Prioridade: Média | Estimativa: 8 pontos
 
-## História 4
+Cenário: visualizar o selo no perfil
+
+Dado que o estúdio tem vertentes ESG ativas registradas, Quando acesso o perfil do estúdio, Então a plataforma deve exibir o selo correspondente (Ouro = 3 vertentes, Prata = 2, Bronze = 1, sem selo = 0), E mostrar quais vertentes estão ativas.
+
+Cenário: escanear o QR Code
+
+Dado que o estúdio gerou seu QR Code, Quando escaneio o código na recepção, Então a plataforma deve abrir a página de verificação de selos, E exibir o índice de sustentabilidade do estúdio.
+
+
+### História 2
+
+### História 4
   
 </details>
 
