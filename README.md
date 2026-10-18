@@ -207,10 +207,12 @@ Dado que informei o número de atendimentos e os materiais utilizados, quando so
 
 
   ### Quadro de sprint 3:
-  IMAGEM
+  <img width="1600" height="813" alt="sprint 3" src="https://github.com/user-attachments/assets/84370e7b-c3b2-4fcd-88a5-3ad728bd8231" />
+
 
   ### Backlog:
-  IMAGEM
+  <img width="858" height="348" alt="backlog - entrega 3" src="https://github.com/user-attachments/assets/1cdff7b5-0aab-4956-b2b3-6c86f3124808" />
+
 
 
 </details>
