@@ -200,7 +200,8 @@ Dado que informei o número de atendimentos e os materiais utilizados, quando so
   LINK
 
   ### Issue/Bug Tracker:
-  IMAGEM
+  <img width="1917" height="426" alt="image" src="https://github.com/user-attachments/assets/114a1c81-369f-417c-a180-8d0e4cbc178e" />
+
 
   ### Link do screencast do código django:
   LINK
