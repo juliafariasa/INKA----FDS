@@ -199,7 +199,7 @@ Dado que informei o número de atendimentos e os materiais utilizados, quando so
   ### Link do screencast das funcionalidades desenvolvidas:
   LINK
 
-  ### Issue/Bug Tracker(Entregável 2):
+  ### Issue/Bug Tracker:
   IMAGEM
 
   ### Link do screencast do código django:
