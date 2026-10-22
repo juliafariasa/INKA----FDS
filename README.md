@@ -207,7 +207,7 @@ Dado que informei o número de atendimentos e os materiais utilizados, quando so
 
 
   ### Link do screencast do código django:
-  LINK
+  https://youtu.be/LnlcB09dtMc
 
 
   ### Quadro de sprint 3:
