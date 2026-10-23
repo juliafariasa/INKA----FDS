@@ -160,35 +160,77 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 ### História 1 - Selo "Estúdio Consciente"
 
-Como cliente que procura um estúdio de tatuagem, quero ver o selo ESG do estúdio no perfil e pelo QR Code na recepção, para verificar o compromisso social e ambiental do local antes de agendar.
-Prioridade: Média | Estimativa: 6 pontos
+**Como** cliente que procura um estúdio de tatuagem,
+**quero** ver o selo ESG do estúdio no perfil e pelo QR Code na recepção,
+**para** verificar o compromisso social e ambiental do local antes de agendar.
 
-Cenário: visualizar o selo no perfil
+**Cenário 1 (positivo): visualizar o selo no perfil**
 
-Dado que o estúdio tem vertentes ESG ativas registradas, Quando acesso o perfil do estúdio, Então a plataforma deve exibir o selo correspondente (Ouro = 3 vertentes, Prata = 2, Bronze = 1, sem selo = 0), E mostrar quais vertentes estão ativas.
+**Dado que** o estúdio tem vertentes ESG ativas registradas,
+**Quando** acesso o perfil do estúdio,
+**Então** a plataforma deve exibir o selo correspondente (Ouro = 3 vertentes, Prata = 2, Bronze = 1, sem selo = 0),
+**E** mostrar quais vertentes estão ativas.
 
-Cenário: escanear o QR Code
+**Cenário 2 (negativo): Estúdio sem vertentes ESG ativas**
 
-Dado que o estúdio gerou seu QR Code, Quando escaneio o código na recepção, Então a plataforma deve abrir a página de verificação de selos, E exibir o índice de sustentabilidade do estúdio.
+**Dado que** um estúdio possui 0 vertentes ESG ativas
+**Quando** o cliente acessa o perfil do estúdio
+**Então** nenhum selo é exibido
+**E** é exibida a mensagem “Este estúdio ainda não possui o selo Estúdio Consciente”.
 
+**Cenário 3 (positivo): escanear o QR Code**
+
+**Dado que** o estúdio gerou seu QR Code,
+**Quando** escaneio o código na recepção,
+**Então** a plataforma deve abrir a página de verificação de selos,
+**E** exibir o índice de sustentabilidade do estúdio.
+
+**Cenário 4 (negativo): QR Code inválido**
+
+**Dado que** o QR Code escaneado pertence a um estúdio que foi removido da plataforma
+**Quando** o cliente escaneia o QR Code
+**Então** a página de verificação NÃO exibe nenhum selo
+**E** é exibida a mensagem “Selo não encontrado ou inválido!”.
 
 ### História 2 - Diagnóstico de maturidade ESG**
 
-Como dono de estúdio recém-cadastrado, quero responder um questionário rápido sobre minhas práticas, para receber uma nota inicial e um plano de ação personalizado. 
-Prioridade: Alta| Estimativa: 7 pontos
+**Como** dono de estúdio recém-cadastrado,
+**quero** responder um questionário rápido sobre minhas práticas,
+**para** receber uma nota inicial e um plano de ação personalizado.
 
-Cenário: responder o diagnóstico no cadastro
+**Cenário 1 (positivo): responder o diagnóstico no cadastro**
 
-Dado que acabei de criar a conta do meu estúdio, quando respondo o questionário de maturidade ESG, então a plataforma deve calcular minha nota inicial, e gerar um plano de ação com as práticas que preciso melhorar.
+**Dado que** acabei de criar a conta do meu estúdio,
+**Quando** respondo o questionário de maturidade ESG,
+**Então** a plataforma deve calcular minha nota inicial,
+**E** gerar um plano de ação com as práticas que preciso melhorar.
+
+**Cenário 2 (negativo): Tentar responder o diagnóstico pela segunda vez**
+
+**Dado que** o estúdio “Tinta Verde” já respondeu o diagnóstico e recebeu nota 62
+**Quando** o dono tenta responder o questionário novamente
+**Então** um novo diagnóstico NÃO é registrado
+**E** é exibida a mensagem “Seu estúdio já realizou o diagnóstico inicial. Acompanhe sua evolução pelo painel!”.
 
 ### História 4 - Calculadora de resíduos
 
-Como tatuador, quero informar quantos atendimentos faço por mês e quais materiais uso, para saber quanto resíduo gero e como melhorar.
-Prioridade: Média | Estimativa: 4 pontos
+**Como** tatuador,
+**quero** informar quantos atendimentos faço por mês e quais materiais uso,
+**para** saber quanto resíduo gero e como melhorar.
 
-**Cenário: calcular resíduos do mês**
+**Cenário 1 (positivo): calcular resíduos do mês**
 
-Dado que informei o número de atendimentos e os materiais utilizados, quando solicito o cálculo, então a plataforma deve estimar a quantidade de resíduos por tipo, e recomendar melhorias com base nas boas práticas ESG.
+**Dado que** informei o número de atendimentos e os materiais utilizados,
+**Quando** solicito o cálculo,
+**Então** a plataforma deve estimar a quantidade de resíduos por tipo,
+**E** recomendar melhorias com base nas boas práticas ESG.
+
+**Cenário 2 (negativo): Nenhum material selecionado**
+
+**Dado que** o tatuador está logado e informou 40 atendimentos no mês
+**Quando** ele solicita o cálculo sem selecionar nenhum material
+**Então** o cálculo NÃO é realizado
+**E** é exibida a mensagem “Selecione pelo menos um material utilizado!”.
   
 </details>
 
