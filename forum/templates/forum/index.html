@@ -1,65 +1,177 @@
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}INKA{% endblock %}
 
+{% block head_extra %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;700&display=swap">
+{% endblock %}
+
+{% block classe_body %}pagina-inicial teste-navbar-b{% endblock %}
+
+{% block classe_container %}landing{% endblock %}
+
+{% block cabecalho %}
+    <h1 class="landing-marca">
+        <a href="{% url 'forum:index' %}">
+            <img src="{% static 'images/logo-inka.png' %}" alt="INKA">
+        </a>
+    </h1>
+{% endblock %}
+
+{% block nav_extra %}
+    <a class="landing-botao landing-botao-nav" href="{% url 'forum:estudios' %}">
+        <span class="landing-icone-caneta" aria-hidden="true"></span>
+        Área do Estúdio
+    </a>
+{% endblock %}
+
 {% block content %}
-<h2>Início</h2>
+<section class="landing-hero" id="hero-desenho">
+    <div class="landing-desenho" id="area-desenho">
+        <canvas class="landing-canvas" id="canvas-desenho"></canvas>
+        <img class="landing-cursor" id="cursor-caneta"
+             src="{% static 'images/caneta-inka.png' %}" alt="">
+    </div>
 
-<p>
-    O INKA ajuda pequenas e médias empresas a colocar práticas de ESG na
-    rotina de gestão, com foco em estúdios de tatuagem. A plataforma traduz os
-    três pilares do ESG em critérios objetivos que um estúdio consegue
-    acompanhar no dia a dia.
-</p>
+    <div class="landing-cena">
+        <svg class="landing-tinta" id="tinta-decorativa" viewBox="0 0 1280 806"
+             aria-hidden="true"></svg>
 
-<div class="caixa">
-    <p><b>Desafio do projeto</b></p>
-    <p>
-        Como aumentar a percepção de importância para que PMEs invistam em ESG?
-        Proposto pela empresa Deloitte.
+        <img class="landing-logo" src="{% static 'images/logo-inka.png' %}"
+             alt="INKA">
+
+        <button type="button" class="landing-botao landing-botao-desenhar"
+                id="iniciar-desenho">
+            <span class="landing-icone-caneta" aria-hidden="true"></span>
+            Desenhar
+        </button>
+        <p class="landing-convite">Clique no botão e solte sua criatividade</p>
+
+        <p class="landing-anotacao">
+            Ao clicar em "Desenhar", o cursor se transforma em uma caneta de
+            tatuagem e você pode desenhar na tela.
+        </p>
+        <svg class="landing-seta" viewBox="0 0 46 86" aria-hidden="true">
+            <path d="M44 2 C18 12 4 38 12 78"></path>
+            <path d="M3 62 L12 80 L24 66"></path>
+        </svg>
+
+        <img class="landing-caneta" src="{% static 'images/caneta-inka.png' %}"
+             alt="">
+    </div>
+
+    <div class="landing-controles" id="controles-desenho" role="toolbar"
+         aria-label="Controles de desenho" hidden>
+        <button type="button" data-acao="desfazer">Desfazer</button>
+        <button type="button" data-acao="refazer">Refazer</button>
+        <button type="button" data-acao="limpar">Limpar</button>
+        <button type="button" data-acao="finalizar"
+                class="landing-controle-principal">Finalizar</button>
+    </div>
+</section>
+
+<section class="landing-secao landing-apresentacao">
+    <div>
+        <p class="landing-rotulo">O propósito</p>
+        <h2>O que é o INKA</h2>
+        <p>
+            O INKA ajuda pequenas e médias empresas a colocar práticas de ESG na
+            rotina de gestão, com foco em estúdios de tatuagem. A plataforma
+            traduz os três pilares do ESG em critérios objetivos que um estúdio
+            consegue acompanhar no dia a dia.
+        </p>
+    </div>
+    <aside class="landing-desafio">
+        <p class="landing-rotulo">Desafio do projeto</p>
+        <p class="landing-desafio-texto">
+            Como aumentar a percepção de importância para que PMEs invistam em
+            ESG?
+        </p>
+        <p class="landing-desafio-autor">Proposto pela empresa Deloitte.</p>
+    </aside>
+</section>
+
+<section class="landing-secao">
+    <p class="landing-rotulo">Os três pilares do ESG</p>
+    <h2>Os pilares na rotina do estúdio</h2>
+    <p class="landing-intro">
+        Cada pilar do ESG se traduz em práticas concretas dentro do estúdio.
     </p>
-</div>
 
-{% for secao in secoes %}
-    <h3>{{ secao.titulo }}</h3>
-    <p>{{ secao.texto }}</p>
-{% endfor %}
+    <div class="landing-pilares">
+        {% for pilar in pilares %}
+            <article class="landing-pilar">
+                <div class="landing-pilar-topo">
+                    <span class="landing-pilar-sigla">{{ pilar.sigla }}</span>
+                    <svg class="landing-pilar-icone" viewBox="0 0 48 48"
+                         aria-hidden="true">
+                        {% if pilar.sigla == 'E' %}
+                            <path d="M9 39 C7 19 21 8 41 8 C42 28 30 41 12 38"></path>
+                            <path d="M9 41 C14 30 22 23 32 18"></path>
+                        {% elif pilar.sigla == 'S' %}
+                            <circle cx="17" cy="16" r="7"></circle>
+                            <circle cx="33" cy="19" r="5"></circle>
+                            <path d="M5 40 C5 30 10 26 17 26 C24 26 29 30 29 40"></path>
+                            <path d="M31 28 C38 28 43 32 43 40"></path>
+                        {% else %}
+                            <path d="M24 6 V42"></path>
+                            <path d="M14 42 H34"></path>
+                            <path d="M8 12 H40"></path>
+                            <path d="M8 12 L3 26 H13 Z"></path>
+                            <path d="M40 12 L35 26 H45 Z"></path>
+                        {% endif %}
+                    </svg>
+                </div>
+                <p class="landing-rotulo">
+                    {% if pilar.sigla == 'E' %}Environmental{% elif pilar.sigla == 'S' %}Social{% elif pilar.sigla == 'G' %}Governance{% endif %}
+                </p>
+                <h3>{{ pilar.nome }}</h3>
+                <p>{{ pilar.descricao }}</p>
 
-<h3>Os pilares na rotina do estúdio</h3>
-<p>
-    Cada pilar do ESG se traduz em práticas concretas dentro do estúdio. As
-    tabelas abaixo mostram o que entra em cada um.
-</p>
-
-{% for pilar in pilares %}
-    <h4>{{ pilar.sigla }} - {{ pilar.nome }}</h4>
-    <p>{{ pilar.descricao }}</p>
-    <table class="tabela-itens">
-        <tr>
-            <th>Prática</th>
-            <th>Por que importa para o estúdio</th>
-        </tr>
-        {% for pratica in pilar.praticas.all %}
-            <tr>
-                <td><b>{{ pratica.titulo }}</b></td>
-                <td>{{ pratica.descricao }}</td>
-            </tr>
+                <details class="landing-praticas">
+                    <summary>Práticas no estúdio</summary>
+                    <ul>
+                        {% for pratica in pilar.praticas.all %}
+                            <li>
+                                <b>{{ pratica.titulo }}</b>
+                                {{ pratica.descricao }}
+                            </li>
+                        {% empty %}
+                            <li>Nenhuma prática cadastrada para este pilar.</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </article>
         {% empty %}
-            <tr>
-                <td colspan="2">Nenhuma prática cadastrada para este pilar.</td>
-            </tr>
+            <p>Nenhum pilar cadastrado.</p>
         {% endfor %}
-    </table>
-{% empty %}
-    <p>Nenhum pilar cadastrado.</p>
-{% endfor %}
+    </div>
+</section>
 
-<h3>O que o estúdio ganha com isso</h3>
-<ul>
-    {% for beneficio in beneficios %}
-        <li>{{ beneficio.texto }}</li>
-    {% empty %}
-        <li>Nenhum ganho cadastrado.</li>
+{% if secoes %}
+<section class="landing-secao landing-secoes">
+    {% for secao in secoes %}
+        <article class="landing-bloco">
+            <span class="landing-numero">{{ forloop.counter|stringformat:"02d" }}</span>
+            <h3>{{ secao.titulo }}</h3>
+            <p>{{ secao.texto }}</p>
+        </article>
     {% endfor %}
-</ul>
+</section>
+{% endif %}
+
+<section class="landing-secao">
+    <p class="landing-rotulo">Na prática</p>
+    <h2>O que o estúdio ganha com isso</h2>
+    <ul class="landing-beneficios">
+        {% for beneficio in beneficios %}
+            <li>{{ beneficio.texto }}</li>
+        {% empty %}
+            <li>Nenhum ganho cadastrado.</li>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}

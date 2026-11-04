@@ -416,3 +416,734 @@ body.modo-noturno .aviso-error {
     border-color: #ffffff;
     color: #ffffff;
 }
+
+/* Landing page: tudo abaixo vale só para body.pagina-inicial.
+   Precisa ficar no fim do arquivo para vencer as regras de modo noturno. */
+body.pagina-inicial {
+    --landing-fonte: "Overpass", "Arial Narrow", Arial, sans-serif;
+    --landing-preto: #050505;
+    --landing-painel: #0d0f0d;
+    --landing-texto: #e8ebe8;
+    --landing-suave: #a3aaa3;
+    --landing-verde: #86f07f;
+    --landing-verde-escuro: #2f7a35;
+    --landing-brilho: rgba(110, 240, 105, 0.35);
+    --landing-topo: 78px;
+    /* A composição do hero é desenhada em 1280x806 e escala por --u. */
+    --cena: min(100vw, max(158.8svh, 900px));
+    --u: calc(var(--cena) / 1280);
+    --caneta-largura: calc(141 * var(--u));
+
+    background-color: var(--landing-preto);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+    color: var(--landing-texto);
+    font-family: var(--landing-fonte);
+}
+
+body.pagina-inicial header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 21;
+    padding: 7px 0 0 60px;
+    background: none;
+}
+
+.landing-marca img {
+    display: block;
+    width: 115px;
+    height: auto;
+}
+
+body.pagina-inicial nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 34px;
+    box-sizing: border-box;
+    height: var(--landing-topo);
+    padding: 0 44px 0 200px;
+    background: none;
+}
+
+body.pagina-inicial nav a {
+    margin: 0;
+    padding: 6px 0;
+    border-radius: 0;
+    background: none;
+    color: var(--landing-texto);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+body.pagina-inicial nav a:first-child {
+    margin-left: auto;
+}
+
+body.pagina-inicial nav a:hover,
+body.pagina-inicial nav a.ativo {
+    background: none;
+    color: var(--landing-verde);
+    font-weight: normal;
+}
+
+/* A landing é sempre preta, então o botão de modo não faz sentido aqui. */
+body.pagina-inicial .botao-modo {
+    display: none;
+}
+
+body.pagina-inicial nav .landing-botao-nav {
+    margin-left: auto;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(40, 110, 45, 0.08);
+    color: var(--landing-verde);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.landing-botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-sizing: border-box;
+    border: 2px solid var(--landing-verde);
+    border-radius: 999px;
+    background: rgba(40, 110, 45, 0.08);
+    box-shadow: 0 0 12px var(--landing-brilho),
+                inset 0 0 10px rgba(110, 240, 105, 0.12);
+    color: var(--landing-verde);
+    cursor: pointer;
+    font-family: var(--landing-fonte);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.landing-botao:hover {
+    background-color: rgba(60, 150, 65, 0.2);
+    box-shadow: 0 0 20px var(--landing-brilho),
+                inset 0 0 12px rgba(110, 240, 105, 0.2);
+}
+
+/* Recorte do PNG original da caneta, sem a margem transparente do arquivo. */
+.landing-icone-caneta {
+    --tamanho: 24px;
+    flex: none;
+    width: var(--tamanho);
+    height: var(--tamanho);
+    background: url("../images/caneta-inka.png") no-repeat;
+    background-position: calc(var(--tamanho) * -0.4507)
+                         calc(var(--tamanho) * -0.2981);
+    background-size: calc(var(--tamanho) * 1.7606) auto;
+}
+
+.landing .aviso {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    z-index: 30;
+    box-sizing: border-box;
+    width: min(560px, calc(100% - 32px));
+    margin: 0;
+    border: 1px solid var(--landing-verde);
+    background-color: var(--landing-painel);
+    color: var(--landing-texto);
+    transform: translateX(-50%);
+}
+
+.landing-hero {
+    position: relative;
+    isolation: isolate;
+    height: max(560px, min(100svh, 78vw));
+    overflow: hidden;
+}
+
+/* Limites do desenho: abaixo do menu e dentro do hero. */
+.landing-desenho {
+    position: absolute;
+    top: var(--landing-topo);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.landing-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.landing-cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--caneta-largura);
+    height: auto;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.landing-cursor.visivel {
+    visibility: visible;
+}
+
+.landing-hero.desenhando .landing-desenho {
+    outline: 1px dashed rgba(134, 240, 127, 0.4);
+    outline-offset: -8px;
+    pointer-events: auto;
+}
+
+.landing-hero.desenhando .landing-canvas {
+    cursor: none;
+    touch-action: none;
+}
+
+.landing-hero.desenhando .landing-botao-desenhar,
+.landing-hero.desenhando .landing-convite,
+.landing-hero.desenhando .landing-caneta,
+.landing-hero.desenhando .landing-cena::after {
+    visibility: hidden;
+}
+
+.landing-cena {
+    position: absolute;
+    top: calc(50% - var(--cena) * 0.3148);
+    left: calc(50% - var(--cena) / 2);
+    width: var(--cena);
+    aspect-ratio: 1280 / 806;
+}
+
+.landing-tinta {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 2px rgba(90, 220, 90, 0.3));
+    pointer-events: none;
+}
+
+.landing-tinta path {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.landing-logo {
+    position: absolute;
+    top: calc(128 * var(--u));
+    left: calc(437 * var(--u));
+    width: calc(405 * var(--u));
+    height: auto;
+}
+
+.landing-botao-desenhar {
+    position: absolute;
+    top: calc(368 * var(--u));
+    left: calc(547 * var(--u));
+    z-index: 3;
+    width: calc(186 * var(--u));
+    height: calc(47 * var(--u));
+    font-size: calc(14 * var(--u));
+}
+
+.landing-botao-desenhar .landing-icone-caneta {
+    --tamanho: calc(26 * var(--u));
+}
+
+body.pagina-inicial .landing-convite {
+    position: absolute;
+    top: calc(434 * var(--u));
+    left: 0;
+    width: 100%;
+    margin: 0;
+    color: var(--landing-texto);
+    font-size: calc(12 * var(--u));
+    letter-spacing: 0.2em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+body.pagina-inicial .landing-anotacao {
+    position: absolute;
+    top: calc(151 * var(--u));
+    left: calc(1038 * var(--u));
+    width: calc(200 * var(--u));
+    margin: 0;
+    color: var(--landing-texto);
+    font-size: calc(10.5 * var(--u));
+    letter-spacing: 0.16em;
+    line-height: 1.6;
+    text-transform: uppercase;
+}
+
+.landing-seta {
+    position: absolute;
+    top: calc(216 * var(--u));
+    left: calc(988 * var(--u));
+    width: calc(42 * var(--u));
+    height: calc(80 * var(--u));
+    fill: none;
+    stroke: var(--landing-texto);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.3;
+}
+
+/* A posição parte da ponta medida no PNG (25,60% / 58,98%), que encosta na tinta. */
+.landing-caneta {
+    position: absolute;
+    top: calc(378 * var(--u) - var(--caneta-largura) * 0.6897);
+    left: calc(985 * var(--u) - var(--caneta-largura) * 0.256);
+    width: var(--caneta-largura);
+    height: auto;
+    pointer-events: none;
+}
+
+
+.landing-cena::after {
+    content: "";
+    position: absolute;
+    top: calc(285 * var(--u));
+    left: calc(955 * var(--u));
+    z-index: -1;
+    width: calc(130 * var(--u));
+    height: calc(120 * var(--u));
+    background: radial-gradient(closest-side, rgba(100, 235, 95, 0.28), transparent);
+    pointer-events: none;
+}
+
+.landing-controles {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    z-index: 4;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    padding: 8px;
+    border: 1px solid var(--landing-verde-escuro);
+    border-radius: 28px;
+    background-color: rgba(5, 8, 5, 0.9);
+    transform: translateX(-50%);
+}
+
+.landing-controles[hidden] {
+    display: none;
+}
+
+.landing-controles button {
+    padding: 9px 16px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--landing-texto);
+    cursor: pointer;
+    font-family: var(--landing-fonte);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.landing-controles button:hover:not(:disabled) {
+    border-color: var(--landing-verde);
+    color: var(--landing-verde);
+}
+
+.landing-controles button:disabled {
+    color: #5c625c;
+    cursor: default;
+}
+
+.landing-controles .landing-controle-principal {
+    border-color: var(--landing-verde);
+    color: var(--landing-verde);
+}
+
+.landing-botao:focus-visible,
+.landing-controles button:focus-visible,
+.landing-praticas summary:focus-visible,
+body.pagina-inicial nav a:focus-visible {
+    outline: 2px solid var(--landing-verde);
+    outline-offset: 3px;
+}
+
+.landing-secao {
+    box-sizing: border-box;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 72px 32px;
+    border-top: 1px solid #1d221d;
+}
+
+body.pagina-inicial .landing-rotulo {
+    margin: 0 0 12px;
+    color: var(--landing-verde);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+body.pagina-inicial .landing h2 {
+    margin: 0 0 18px;
+    padding: 0;
+    border: none;
+    color: var(--landing-texto);
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+}
+
+body.pagina-inicial .landing h3 {
+    margin: 0 0 10px;
+    color: var(--landing-texto);
+    font-size: 22px;
+    font-weight: 400;
+}
+
+body.pagina-inicial .landing-secao p {
+    color: var(--landing-suave);
+    line-height: 1.7;
+}
+
+.landing-apresentacao {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 56px;
+    align-items: center;
+}
+
+.landing-desafio {
+    padding: 28px;
+    border: 1px solid var(--landing-verde-escuro);
+    border-left: 3px solid var(--landing-verde);
+    background-color: var(--landing-painel);
+}
+
+body.pagina-inicial .landing-secao .landing-rotulo {
+    color: var(--landing-verde);
+}
+
+body.pagina-inicial .landing-secao .landing-desafio-texto {
+    margin-bottom: 14px;
+    color: var(--landing-texto);
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1.4;
+}
+
+body.pagina-inicial .landing-desafio-autor {
+    margin: 0;
+    font-size: 14px;
+}
+
+.landing-intro {
+    max-width: 620px;
+}
+
+.landing-pilares {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: start;
+    margin-top: 36px;
+}
+
+.landing-pilar {
+    padding: 26px;
+    border: 1px solid #243024;
+    background-color: var(--landing-painel);
+    transition: border-color 0.2s;
+}
+
+.landing-pilar:hover {
+    border-color: var(--landing-verde);
+}
+
+.landing-pilar-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.landing-pilar-sigla {
+    color: var(--landing-verde);
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.landing-pilar-icone {
+    width: 48px;
+    height: 48px;
+    fill: none;
+    stroke: var(--landing-verde);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+}
+
+.landing-praticas {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #243024;
+}
+
+.landing-praticas summary {
+    color: var(--landing-verde);
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.landing-praticas ul {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.landing-praticas li {
+    margin-bottom: 12px;
+    color: var(--landing-suave);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.landing-praticas b {
+    display: block;
+    color: var(--landing-texto);
+    font-weight: 600;
+}
+
+.landing-bloco {
+    display: grid;
+    grid-template-columns: 70px 1fr 2fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid #1d221d;
+}
+
+.landing-bloco:first-child {
+    padding-top: 0;
+}
+
+.landing-bloco:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.landing-numero {
+    color: var(--landing-verde);
+    font-size: 26px;
+    font-weight: 300;
+    line-height: 1.2;
+}
+
+body.pagina-inicial .landing-bloco p {
+    margin: 0;
+}
+
+.landing-beneficios {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 40px;
+    margin: 24px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.landing-beneficios li {
+    margin: 0;
+    padding: 16px 0 16px 26px;
+    border-bottom: 1px solid #1d221d;
+    background: linear-gradient(var(--landing-verde), var(--landing-verde))
+                no-repeat 0 27px / 12px 2px;
+    color: var(--landing-texto);
+}
+
+body.pagina-inicial footer {
+    max-width: none;
+    margin: 0;
+    padding: 24px 30px;
+    border-top: 1px solid #1d221d;
+    color: var(--landing-suave);
+}
+
+body.pagina-inicial .voltar-topo {
+    z-index: 30;
+    border-color: var(--landing-verde);
+    background-color: var(--landing-preto);
+    color: var(--landing-verde);
+}
+
+body.pagina-inicial .voltar-topo:hover {
+    background-color: #142014;
+}
+
+@media (max-width: 1100px) {
+    body.pagina-inicial nav {
+        gap: 18px;
+        padding: 0 24px 0 160px;
+    }
+
+    body.pagina-inicial header {
+        padding-left: 24px;
+    }
+
+    body.pagina-inicial nav a {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+    }
+
+    body.pagina-inicial nav .landing-botao-nav {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .landing-pilares,
+    .landing-apresentacao {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Celular e tablet em pé: o hero vira coluna e a tinta fica no rodapé dele. */
+@media (max-width: 820px) {
+    body.pagina-inicial {
+        --landing-topo: 0px;
+        --caneta-largura: 150px;
+    }
+
+    body.pagina-inicial header {
+        position: static;
+        padding: 18px 0 0;
+    }
+
+    .landing-marca {
+        display: flex;
+        justify-content: center;
+    }
+
+    .landing-marca img {
+        width: 96px;
+    }
+
+    body.pagina-inicial nav {
+        position: static;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px 16px;
+        height: auto;
+        padding: 12px 16px;
+    }
+
+    body.pagina-inicial nav a:first-child,
+    body.pagina-inicial nav .landing-botao-nav {
+        margin-left: 0;
+    }
+
+    .landing-hero {
+        height: auto;
+        padding: 12px 16px 84vw;
+    }
+
+    .landing-cena {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        width: auto;
+        aspect-ratio: auto;
+    }
+
+    .landing-tinta {
+        inset: auto auto 0 -28vw;
+        width: 130vw;
+        height: auto;
+        aspect-ratio: 1280 / 806;
+    }
+
+    .landing-logo,
+    .landing-botao-desenhar,
+    body.pagina-inicial .landing-convite,
+    body.pagina-inicial .landing-anotacao {
+        position: static;
+    }
+
+    .landing-logo {
+        width: min(66vw, 300px);
+    }
+
+    .landing-botao-desenhar {
+        width: 190px;
+        height: 48px;
+        font-size: 14px;
+    }
+
+    .landing-botao-desenhar .landing-icone-caneta {
+        --tamanho: 26px;
+    }
+
+    body.pagina-inicial .landing-convite {
+        font-size: 11px;
+    }
+
+    body.pagina-inicial .landing-anotacao {
+        width: auto;
+        max-width: 300px;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .landing-seta,
+    .landing-cena::after {
+        display: none;
+    }
+
+    .landing-caneta {
+        top: auto;
+        bottom: calc(43.5vw - var(--caneta-largura) * 0.4796);
+        left: calc(72vw - var(--caneta-largura) * 0.256);
+    }
+
+    .landing-controles {
+        gap: 2px;
+        padding: 4px;
+    }
+
+    .landing-controles button {
+        padding: 9px 9px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+    }
+
+    .landing-secao {
+        padding: 52px 20px;
+    }
+
+    .landing-bloco {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .landing-beneficios {
+        grid-template-columns: 1fr;
+    }
+}

@@ -6,11 +6,14 @@
     <title>{% block titulo %}INKA{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
     <script src="{% static 'js/script.js' %}" defer></script>
+    {% block head_extra %}{% endblock %}
 </head>
-<body>
+<body class="{% block classe_body %}{% endblock %}">
     <header>
+        {% block cabecalho %}
         <h1>INKA</h1>
         <p class="subtitulo">Práticas de ESG para pequenas e médias empresas</p>
+        {% endblock %}
     </header>
 
     {% with pagina=request.resolver_match.url_name %}
@@ -25,10 +28,11 @@
            href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
         <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
            href="{% url 'forum:estudios' %}">Estúdios</a>
+        {% block nav_extra %}{% endblock %}
     </nav>
     {% endwith %}
 
-    <div class="container">
+    <div class="{% block classe_container %}container{% endblock %}">
         {% for message in messages %}
             <p class="aviso aviso-{{ message.tags }}">{{ message }}</p>
         {% endfor %}
