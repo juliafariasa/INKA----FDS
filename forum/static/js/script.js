@@ -67,6 +67,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     desenharTintaDecorativa();
     iniciarDesenho();
+    iniciarAnimacaoCaneta();
+    iniciarFormularioContato();
+    iniciarRevelacaoEquipe();
 });
 
 // Gera a mancha de tinta do hero em SVG. Cada faixa segue uma linha-guia e é
@@ -116,6 +119,8 @@ function desenharTintaDecorativa() {
 
     
     var semente = 7;
+    var corClara = corDaPaleta('--inka-verde-claro');
+    var corMedia = corDaPaleta('--inka-verde');
     var sortear = function () {
         semente = (semente * 16807) % 2147483647;
         return semente / 2147483647;
@@ -160,7 +165,7 @@ function desenharTintaDecorativa() {
 
             criar('path', {
                 d: caminho,
-                stroke: sortear() > 0.5 ? '#74dc6e' : '#2f8f3a',
+                stroke: sortear() > 0.5 ? corClara : corMedia,
                 'stroke-width': (0.45 + sortear() * 0.75).toFixed(2),
                 'stroke-dasharray': sortear() > 0.45 ?
                     Math.round(40 + sortear() * 110) + ' ' +
@@ -177,10 +182,16 @@ function desenharTintaDecorativa() {
                 cx: (centro[0] + (sortear() - 0.5) * 70).toFixed(1),
                 cy: (centro[1] + (sortear() - 0.5) * 50).toFixed(1),
                 r: (0.4 + sortear() * 1.2).toFixed(1),
-                fill: '#7fe878',
+                fill: corClara,
             });
         }
     });
+}
+
+// Lê uma cor da paleta definida em :root no estilo.css.
+function corDaPaleta(variavel) {
+    return getComputedStyle(document.documentElement)
+        .getPropertyValue(variavel).trim();
 }
 
 // Passa uma curva Catmull-Rom pelos pontos da guia.
@@ -213,7 +224,7 @@ function iniciarDesenho() {
     // Ponta da agulha dentro do PNG original, em proporção do arquivo.
     var PONTA_CANETA_X = 768 / 3000;
     var PONTA_CANETA_Y = 2069 / 3508;
-    var COR_TRACO = '#6dff6d';
+    var COR_TRACO = corDaPaleta('--inka-verde-claro');
     var ESPESSURA_TRACO = 3;
 
     var hero = document.getElementById('hero-desenho');
@@ -281,8 +292,8 @@ function iniciarDesenho() {
         contexto.lineCap = 'round';
         contexto.lineJoin = 'round';
         contexto.lineWidth = Math.max(ESPESSURA_TRACO * vista.escala, 1.5);
-        contexto.shadowColor = 'rgba(109, 255, 109, 0.75)';
-        contexto.shadowBlur = 8;
+        contexto.shadowColor = COR_TRACO;
+        contexto.shadowBlur = 2;
     };
 
     // Desenha um trecho curvo entre os pontos médios, o que evita quinas.
@@ -458,4 +469,134 @@ function iniciarDesenho() {
 
     new ResizeObserver(ajustarCanvas).observe(area);
     atualizarControles();
+}
+
+// Anima a ilustração de "O que é o INKA": a tinta se espalha a partir da ponta
+// enquanto a caneta faz pequenos movimentos de escrita. Toca quando a figura
+// aparece na tela e de novo quando o ponteiro passa sobre ela.
+function iniciarAnimacaoCaneta() {
+    var figura = document.getElementById('animacao-caneta');
+    if (!figura || !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    var DURACAO = 4200;
+    var REVELADO_INICIAL = -0.15;
+    var REVELADO_FINAL = 1.15;
+    var animando = false;
+
+    var aplicar = function (revelado, x, y, giro) {
+        figura.style.setProperty('--revelado', revelado.toFixed(3));
+        figura.style.setProperty('--caneta-x', x.toFixed(2) + 'px');
+        figura.style.setProperty('--caneta-y', y.toFixed(2) + 'px');
+        figura.style.setProperty('--caneta-giro', giro.toFixed(2) + 'deg');
+    };
+
+    var tocar = function () {
+        if (animando) {
+            return;
+        }
+        animando = true;
+        var inicio = null;
+        var amplitude = figura.clientWidth * 0.012;
+
+        var quadro = function (agora) {
+            if (inicio === null) {
+                inicio = agora;
+            }
+            var t = Math.min((agora - inicio) / DURACAO, 1);
+            var segundos = (agora - inicio) / 1000;
+            // O movimento começa e termina parado, como alguém que encosta e
+            // levanta a caneta. A tinta desacelera ao se espalhar.
+            var forca = Math.sin(Math.PI * t);
+            var espalhado = 1 - Math.pow(1 - t, 3);
+
+            aplicar(
+                REVELADO_INICIAL + espalhado * (REVELADO_FINAL - REVELADO_INICIAL),
+                Math.sin(segundos * 7) * amplitude * forca,
+                Math.sin(segundos * 14 + 1) * amplitude * 0.6 * forca,
+                Math.sin(segundos * 5) * 1.6 * forca
+            );
+
+            if (t < 1) {
+                requestAnimationFrame(quadro);
+            } else {
+                animando = false;
+            }
+        };
+
+        aplicar(REVELADO_INICIAL, 0, 0, 0);
+        requestAnimationFrame(quadro);
+    };
+
+    aplicar(REVELADO_INICIAL, 0, 0, 0);
+    new IntersectionObserver(function (entradas, observador) {
+        if (entradas[0].isIntersecting) {
+            observador.disconnect();
+            // Espera o PNG carregar para a tinta não se espalhar no vazio.
+            var imagens = Array.prototype.map.call(
+                figura.querySelectorAll('img'),
+                function (imagem) {
+                    return imagem.decode().catch(function () {});
+                }
+            );
+            Promise.all(imagens).then(tocar);
+        }
+    }, { threshold: 0.35 }).observe(figura);
+    figura.addEventListener('pointerenter', tocar);
+}
+
+// Fale Conosco: leva o foco ao primeiro campo com erro e evita envio duplo.
+function iniciarFormularioContato() {
+    var formulario = document.getElementById('formulario-contato');
+    if (!formulario) {
+        return;
+    }
+
+    var primeiroErro = formulario.querySelector('[aria-invalid="true"]');
+    if (primeiroErro) {
+        primeiroErro.focus();
+    }
+
+    var botao = formulario.querySelector('[type="submit"]');
+    var textoBotao = botao.querySelector('.landing-botao-texto');
+    var textoOriginal = textoBotao.textContent;
+
+    formulario.addEventListener('submit', function () {
+        botao.disabled = true;
+        textoBotao.textContent = 'Enviando…';
+    });
+
+    // Ao voltar pelo histórico, o navegador pode restaurar o botão travado.
+    window.addEventListener('pageshow', function () {
+        botao.disabled = false;
+        textoBotao.textContent = textoOriginal;
+    });
+}
+
+// Quem Somos: cada integrante aparece suavemente ao entrar na tela. Sem
+// JavaScript, ou com movimento reduzido, a equipe já aparece inteira.
+function iniciarRevelacaoEquipe() {
+    var grade = document.getElementById('equipe-grade');
+    if (!grade || !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    var observador = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (entrada) {
+            if (entrada.isIntersecting) {
+                entrada.target.classList.remove('equipe-oculto');
+                observador.unobserve(entrada.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    grade.querySelectorAll('.equipe-item').forEach(function (item, indice) {
+        // Pequeno atraso em cascata entre vizinhos da mesma linha.
+        item.style.transitionDelay = (indice % 4) * 90 + 'ms';
+        item.classList.add('equipe-oculto');
+        observador.observe(item);
+    });
 }

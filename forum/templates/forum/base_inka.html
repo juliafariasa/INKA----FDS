@@ -1,0 +1,33 @@
+{% extends "forum/base.html" %}
+{% load static %}
+
+{% comment %}
+    Base das páginas com a identidade escura do INKA: mesma fonte, logo e
+    menu da página inicial. As páginas que estendem este template recebem os
+    estilos de body.tema-inka em estilo.css.
+{% endcomment %}
+
+{% block head_extra %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;700&display=swap">
+{% endblock %}
+
+{% block classe_body %}tema-inka{% endblock %}
+
+{% block classe_container %}landing{% endblock %}
+
+{% block cabecalho %}
+    <h1 class="landing-marca">
+        <a href="{% url 'forum:index' %}">
+            <img src="{% static 'images/logo-inka.png' %}" alt="INKA">
+        </a>
+    </h1>
+{% endblock %}
+
+{% block nav_extra %}
+    <a class="landing-botao landing-botao-nav" href="{% url 'forum:estudios' %}">
+        <span class="landing-icone-caneta" aria-hidden="true"></span>
+        Área do Estúdio
+    </a>
+{% endblock %}

@@ -1,36 +1,69 @@
-{% extends "forum/base.html" %}
+{% extends "forum/base_inka.html" %}
+{% load static %}
 
 {% block titulo %}Quem Somos - INKA{% endblock %}
 
+{% block classe_body %}{{ block.super }} pagina-interna{% endblock %}
+
 {% block content %}
-<h2>Quem Somos</h2>
+<section class="landing-secao landing-pagina-topo">
+    <p class="landing-rotulo">Quem somos</p>
+    <h2>Quem Somos</h2>
+    <p class="landing-intro">
+        Somos estudantes do 2° período de Ciências da Computação da CESAR School, turma A.
+        Desenvolvemos o INKA na disciplina de Fundamentos de Desenvolvimento de
+        Software, a partir de um desafio proposto pela Deloitte.
+    </p>
+</section>
 
-<p>
-    Somos estudantes do 2° período de Ciências da Computação da CESAR School, turma A.
-    Desenvolvemos o INKA na disciplina de Fundamentos de Desenvolvimento de
-    Software, a partir de um desafio proposto pela Deloitte.
-</p>
-
-{% for secao in secoes %}
-    <h3>{{ secao.titulo }}</h3>
-    <p>{{ secao.texto }}</p>
-{% endfor %}
-
-<h3>Integrantes</h3>
-<table>
-    <tr>
-        <th>Nome</th>
-        <th>E-mail</th>
-    </tr>
-    {% for membro in membros %}
-        <tr>
-            <td>{{ membro.nome }}</td>
-            <td><a href="mailto:{{ membro.email }}">{{ membro.email }}</a></td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="2">Nenhum membro cadastrado.</td>
-        </tr>
+{% if secoes %}
+<section class="landing-secao landing-secoes">
+    {% for secao in secoes %}
+        <article class="landing-bloco">
+            <span class="landing-numero">{{ forloop.counter|stringformat:"02d" }}</span>
+            <h3>{{ secao.titulo }}</h3>
+            <p>{{ secao.texto }}</p>
+        </article>
     {% endfor %}
-</table>
+</section>
+{% endif %}
+
+<section class="landing-secao equipe" aria-labelledby="titulo-integrantes">
+    <div class="equipe-cabecalho">
+        <h2 id="titulo-integrantes">Integrantes</h2>
+        <span class="equipe-contagem" aria-hidden="true">{{ integrantes|length|stringformat:"02d" }}</span>
+    </div>
+
+    {# A coluna de cada item vem do cycle: credenciais nas laterais e fotos no centro. #}
+    <ol class="equipe-grade" id="equipe-grade">
+        {% for item in integrantes %}
+            {% if item.credencial %}
+                <li class="equipe-item equipe-credencial equipe-credencial--{% cycle 'esquerda' 'direita' %}">
+                    <span class="equipe-indice" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+                    <img src="{% static item.credencial %}" loading="lazy" decoding="async"
+                         alt="Credencial INKA. NAME: {{ item.nome }}. ROLE: {{ item.role }}. EMAIL: {{ item.email }}">
+                </li>
+            {% else %}
+                <li class="equipe-item equipe-membro equipe-membro--{% cycle 'a' 'b' %}">
+                    <figure class="equipe-foto">
+                        {% if item.foto %}
+                            <img src="{% static item.foto %}" alt="Foto de {{ item.membro.nome }}"
+                                 loading="lazy" decoding="async">
+                        {% else %}
+                            <span class="equipe-inicial" aria-hidden="true">{{ item.membro.inicial }}</span>
+                        {% endif %}
+                    </figure>
+                    <div class="equipe-dados">
+                        <span class="equipe-indice" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+                        <h3>{{ item.membro.nome }}</h3>
+                        <p class="equipe-curso">{{ item.membro.curso }}</p>
+                        <a class="equipe-email" href="mailto:{{ item.membro.email }}">{{ item.membro.email }}</a>
+                    </div>
+                </li>
+            {% endif %}
+        {% empty %}
+            <li class="equipe-vazio">Nenhum membro cadastrado.</li>
+        {% endfor %}
+    </ol>
+</section>
 {% endblock %}

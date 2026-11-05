@@ -1,32 +1,9 @@
-{% extends "forum/base.html" %}
+{% extends "forum/base_inka.html" %}
 {% load static %}
 
 {% block titulo %}INKA{% endblock %}
 
-{% block head_extra %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;700&display=swap">
-{% endblock %}
-
-{% block classe_body %}pagina-inicial teste-navbar-b{% endblock %}
-
-{% block classe_container %}landing{% endblock %}
-
-{% block cabecalho %}
-    <h1 class="landing-marca">
-        <a href="{% url 'forum:index' %}">
-            <img src="{% static 'images/logo-inka.png' %}" alt="INKA">
-        </a>
-    </h1>
-{% endblock %}
-
-{% block nav_extra %}
-    <a class="landing-botao landing-botao-nav" href="{% url 'forum:estudios' %}">
-        <span class="landing-icone-caneta" aria-hidden="true"></span>
-        Área do Estúdio
-    </a>
-{% endblock %}
+{% block classe_body %}{{ block.super }} pagina-inicial teste-navbar-b{% endblock %}
 
 {% block content %}
 <section class="landing-hero" id="hero-desenho">
@@ -83,15 +60,23 @@
             traduz os três pilares do ESG em critérios objetivos que um estúdio
             consegue acompanhar no dia a dia.
         </p>
+        <aside class="landing-desafio">
+            <p class="landing-rotulo">Desafio do projeto</p>
+            <p class="landing-desafio-texto">
+                Como aumentar a percepção de importância para que PMEs invistam
+                em ESG?
+            </p>
+            <p class="landing-desafio-autor">Proposto pela empresa Deloitte.</p>
+        </aside>
     </div>
-    <aside class="landing-desafio">
-        <p class="landing-rotulo">Desafio do projeto</p>
-        <p class="landing-desafio-texto">
-            Como aumentar a percepção de importância para que PMEs invistam em
-            ESG?
-        </p>
-        <p class="landing-desafio-autor">Proposto pela empresa Deloitte.</p>
-    </aside>
+
+    {# O mesmo PNG em duas camadas: a tinta se revela e a caneta se move. #}
+    <figure class="landing-animacao" id="animacao-caneta" aria-hidden="true">
+        <img class="landing-animacao-tinta" alt="" loading="lazy" decoding="async"
+             src="{% static 'images/Desenho animado caneta.png' %}">
+        <img class="landing-animacao-caneta" alt="" loading="lazy" decoding="async"
+             src="{% static 'images/Desenho animado caneta.png' %}">
+    </figure>
 </section>
 
 <section class="landing-secao">

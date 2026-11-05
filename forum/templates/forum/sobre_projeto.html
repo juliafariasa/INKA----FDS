@@ -1,61 +1,162 @@
-{% extends "forum/base.html" %}
+{% extends "forum/base_inka.html" %}
 
 {% block titulo %}Sobre o Projeto - INKA{% endblock %}
 
+{% block classe_body %}{{ block.super }} pagina-interna{% endblock %}
+
 {% block content %}
-<h2>Sobre o Projeto</h2>
-
-<div class="caixa">
-    <p><b>Desafio proposto</b></p>
-    <p>
-        Como aumentar a percepção de importância para que PMEs invistam em ESG?
-        Proposto pela empresa Deloitte.
+<section class="landing-secao landing-pagina-topo">
+    <p class="landing-rotulo">O projeto</p>
+    <h2>Sobre o Projeto</h2>
+    <p class="landing-intro">
+        Conheça a proposta do INKA, o problema que motivou a plataforma e como
+        ela leva o ESG para a rotina dos estúdios de tatuagem.
     </p>
-</div>
 
-{% for secao in secoes %}
-    <h3>{{ secao.titulo }}</h3>
-    <p>{{ secao.texto }}</p>
-{% endfor %}
+    <nav class="landing-sumario" aria-label="Nesta página">
+        <a href="#proposta">Proposta</a>
+        <a href="#problema">Problema</a>
+        <a href="#objetivos">Objetivos</a>
+        <a href="#contribuicao">ESG no estúdio</a>
+        <a href="#disciplina">Disciplina</a>
+        <a href="#tecnologias">Tecnologias</a>
+    </nav>
+</section>
 
-<h3>Objetivo principal</h3>
-<p>Desenvolver uma plataforma que ajude PMEs a:</p>
-<ul>
-    {% for objetivo in objetivos %}
-        <li>{{ objetivo.texto }}</li>
-    {% empty %}
-        <li>Nenhum objetivo cadastrado.</li>
-    {% endfor %}
-</ul>
+{% if secoes %}
+<section class="landing-secao" id="proposta">
+    <p class="landing-rotulo">A proposta</p>
+    <h2>O que o INKA se propõe a fazer</h2>
+    <div class="landing-secoes">
+        {% for secao in secoes %}
+            <article class="landing-bloco">
+                <span class="landing-numero">{{ forloop.counter|stringformat:"02d" }}</span>
+                <h3>{{ secao.titulo }}</h3>
+                <p>{{ secao.texto }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
-<h3>Relação com a disciplina</h3>
-<p>
-    O projeto aplica na prática os conceitos estudados em Fundamentos de
-    Desenvolvimento de Software:
-</p>
-<ul>
-    {% for pratica in praticas %}
-        <li>{{ pratica.texto }}</li>
-    {% empty %}
-        <li>Nenhum conceito cadastrado.</li>
-    {% endfor %}
-</ul>
+<section class="landing-secao landing-apresentacao" id="problema">
+    <div>
+        <p class="landing-rotulo">O problema</p>
+        <h2>Por que o INKA existe</h2>
+        <p>
+            Pequenas e médias empresas reconhecem a importância do ESG, mas têm
+            dificuldade de transformar o conceito em ações concretas na rotina
+            do negócio. Em um estúdio de tatuagem, isso aparece no descarte de
+            resíduos, na biossegurança e na organização de documentos.
+        </p>
+    </div>
+    <aside class="landing-desafio">
+        <p class="landing-rotulo">Desafio proposto</p>
+        <p class="landing-desafio-texto">
+            Como aumentar a percepção de importância para que PMEs invistam em
+            ESG?
+        </p>
+        <p class="landing-desafio-autor">Proposto pela empresa Deloitte.</p>
+    </aside>
+</section>
 
-<h3>Tecnologias usadas</h3>
-<table class="tabela-itens">
-    <tr>
-        <th>Tecnologia</th>
-        <th>Para que serve no projeto</th>
-    </tr>
-    {% for tecnologia in tecnologias %}
-        <tr>
-            <td><b>{{ tecnologia.nome }}</b></td>
-            <td>{{ tecnologia.descricao }}</td>
-        </tr>
-    {% empty %}
-        <tr>
-            <td colspan="2">Nenhuma tecnologia cadastrada.</td>
-        </tr>
-    {% endfor %}
-</table>
+<section class="landing-secao" id="objetivos">
+    <p class="landing-rotulo">Objetivo principal</p>
+    <h2>Desenvolver uma plataforma que ajude PMEs a:</h2>
+    <ol class="landing-cards">
+        {% for objetivo in objetivos %}
+            <li class="landing-card">
+                <span class="landing-numero">{{ forloop.counter|stringformat:"02d" }}</span>
+                <p>{{ objetivo.texto }}</p>
+            </li>
+        {% empty %}
+            <li class="landing-card"><p>Nenhum objetivo cadastrado.</p></li>
+        {% endfor %}
+    </ol>
+</section>
+
+<section class="landing-secao" id="contribuicao">
+    <p class="landing-rotulo">ESG no estúdio</p>
+    <h2>Como a plataforma ajuda o estúdio</h2>
+    <p class="landing-intro">
+        Cada ferramenta do INKA transforma um pilar do ESG em uma tarefa que o
+        estúdio consegue cumprir e acompanhar.
+    </p>
+
+    <ol class="landing-etapas">
+        <li class="landing-etapa">
+            <h3>Diagnóstico ESG</h3>
+            <p>
+                O estúdio responde se aplica cada prática ambiental, social e de
+                governança. As respostas viram uma nota de 0 a 10 por pilar.
+            </p>
+        </li>
+        <li class="landing-etapa">
+            <h3>Selo Estúdio Consciente</h3>
+            <p>
+                Pilares com nota a partir de 7 ficam ativos. Três pilares ativos
+                rendem o selo Ouro, dois o Prata e um o Bronze.
+            </p>
+        </li>
+        <li class="landing-etapa">
+            <h3>Plano de ação</h3>
+            <p>
+                As práticas que faltam nos pilares abaixo de 7 viram uma lista
+                do que o estúdio precisa ajustar primeiro.
+            </p>
+        </li>
+        <li class="landing-etapa">
+            <h3>Cálculo de resíduos</h3>
+            <p>
+                A partir dos atendimentos e materiais usados, o INKA estima os
+                resíduos por tipo e compara com o cálculo anterior.
+            </p>
+        </li>
+        <li class="landing-etapa">
+            <h3>Perfil público com QR code</h3>
+            <p>
+                O selo e o resultado ficam em um perfil que o cliente acessa
+                pelo QR code exposto no estúdio.
+            </p>
+        </li>
+    </ol>
+
+    <div class="landing-acoes">
+        <a class="landing-botao landing-botao-cta" href="{% url 'forum:estudio_novo' %}">
+            Cadastrar meu estúdio
+        </a>
+        <a class="landing-link" href="{% url 'forum:estudios' %}">Ver estúdios cadastrados</a>
+    </div>
+</section>
+
+<section class="landing-secao" id="disciplina">
+    <p class="landing-rotulo">Relação com a disciplina</p>
+    <h2>Fundamentos de Desenvolvimento de Software</h2>
+    <p class="landing-intro">
+        O projeto aplica na prática os conceitos estudados em Fundamentos de
+        Desenvolvimento de Software:
+    </p>
+    <ul class="landing-beneficios">
+        {% for pratica in praticas %}
+            <li>{{ pratica.texto }}</li>
+        {% empty %}
+            <li>Nenhum conceito cadastrado.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+<section class="landing-secao" id="tecnologias">
+    <p class="landing-rotulo">Tecnologias usadas</p>
+    <h2>Com o que o INKA foi construído</h2>
+    <ul class="landing-cards landing-cards-tecnologias">
+        {% for tecnologia in tecnologias %}
+            <li class="landing-card">
+                <h3>{{ tecnologia.nome }}</h3>
+                <p>{{ tecnologia.descricao }}</p>
+            </li>
+        {% empty %}
+            <li class="landing-card"><p>Nenhuma tecnologia cadastrada.</p></li>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}

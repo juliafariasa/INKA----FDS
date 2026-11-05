@@ -40,14 +40,52 @@ class IndexView(View):
 
 class QuemSomosView(View):
 
+    # Ordem de apresentação da equipe. Quem é de Computação vem do banco pelo
+    # e-mail e aparece com a foto; a equipe de design aparece pela credencial,
+    # com o texto da própria imagem repetido no alt.
+    APRESENTACAO = [
+        {'credencial': 'images/Brenda-oliveira.jpg', 'nome': 'Brenda Oliveira',
+         'role': 'Design', 'email': 'bro2@cesar.school'},
+        {'membro': 'lesm@cesar.school', 'foto': 'images/luiz eduardo.png'},
+        {'membro': 'thsm@cesar.school', 'foto': 'images/thiago-monte.png'},
+        {'credencial': 'images/Maria-Beatriz.png', 'nome': 'Maria Beatriz Leão',
+         'role': 'Design', 'email': 'mbldm@cesar.school'},
+        {'credencial': 'images/camila-dias.jpg', 'nome': 'Camila Dias',
+         'role': 'Design', 'email': 'cdsa@cesar.school'},
+        {'membro': 'br@cesar.school', 'foto': 'images/bruna.png'},
+        {'membro': 'mmd3@cesar.school', 'foto': 'images/miguel.png'},
+        {'credencial': 'images/eduardo-miranda.jpg', 'nome': 'Eduardo Miranda',
+         'role': 'Design', 'email': 'edcm@cesar.school'},
+        {'membro': 'jfa@cesar.school', 'foto': 'images/julia-farias.png'},
+        {'membro': 'afsb2@cesar.school', 'foto': 'images/burgos.png'},
+    ]
+
     def get(self, request):
+        membros = MembroEquipe.objects.filter(ativo=True)
         contexto = {
-            'membros': MembroEquipe.objects.filter(ativo=True),
+            'membros': membros,
+            'integrantes': self.integrantes(membros),
             'secoes': SecaoConteudo.objects.filter(
                 pagina=SecaoConteudo.PAGINA_QUEM_SOMOS
             ),
         }
         return render(request, 'forum/quem_somos.html', contexto)
+
+    def integrantes(self, membros):
+        por_email = {membro.email: membro for membro in membros}
+        integrantes = []
+        for item in self.APRESENTACAO:
+            if 'membro' not in item:
+                integrantes.append(item)
+            elif item['membro'] in por_email:
+                # Membro inativo ou removido no admin some da página.
+                integrantes.append({
+                    'membro': por_email.pop(item['membro']),
+                    'foto': item['foto'],
+                })
+        # Quem for cadastrado depois no admin aparece no fim, sem foto.
+        integrantes.extend({'membro': membro} for membro in por_email.values())
+        return integrantes
 
 
 class SobreProjetoView(View):
