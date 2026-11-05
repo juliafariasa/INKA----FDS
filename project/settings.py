@@ -13,6 +13,8 @@ import os
 import sys
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q)=ke&s=*rj4k9*k&c7mw*zd_-=a=1!5&h4no_bv!r3d_^1=#^'
+# A chave vem da variável de ambiente SECRET_KEY (configurada no painel do
+# Render). Sem ela, só rodamos localmente, com uma chave descartável de
+# desenvolvimento; no Render (que define RENDER) a ausência é um erro.
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if 'RENDER' in os.environ:
+        raise ImproperlyConfigured('Defina a variável de ambiente SECRET_KEY.')
+    SECRET_KEY = 'django-insecure-chave-apenas-para-desenvolvimento-local'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', str('runserver' in sys.argv)) == 'True'
@@ -38,6 +47,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Faz o WhiteNoise servir os estáticos também no runserver. Em DEBUG ele
+    # manda Cache-Control: max-age=0, e o navegador não fica preso a uma
+    # versão antiga do script.js ou do estilo.css.
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
 ]
 
