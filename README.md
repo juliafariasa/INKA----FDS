@@ -264,3 +264,54 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 </details>
 
 
+---
+
+## ENTREGÁVEL 4
+
+<details>
+  <summary><b>Entregável 4</b></summary>
+  <br>
+  
+
+<details>
+  <summary><b>HISTÓRIAS DE IMPLEMENTADAS</b></summary>
+  <br>
+
+### História 3 - 
+
+### História 5 - 
+
+### História 6 - 
+  
+</details>
+
+
+  ### Link do deployment da infraestrutura:
+LINK
+  
+  ### Link do screencast das funcionalidades desenvolvidas:
+LINK
+
+  ### Link do CONTRIBUTING.md
+  LINK
+
+  ### Link do screencast dos Testes de Sistema (E2E) automatizados com selenium
+  LINK
+
+  ### Link do screencast CI/CD (integração contínua / deployment contínuo) com build e deployment automatizados
+  LINK
+
+  ### Link do screencast do código django:
+ LINK
+
+  ### Quadro de sprint 3:
+  IMAGE
+
+  ### Backlog:
+ IMAGEM
+
+
+</details>
+
+
+
