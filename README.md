@@ -334,8 +334,9 @@ LINK
   ### Link do screencast do código django:
  LINK
 
-  ### Quadro de sprint 3:
-  IMAGE
+  ### Quadro de sprint 4:
+  <img width="1667" height="847" alt="image" src="https://github.com/user-attachments/assets/e951e31e-76cc-406e-bd5b-c87f61dcd485" />
+
 
   ### Backlog:
  <img width="1218" height="496" alt="image" src="https://github.com/user-attachments/assets/af91fe1e-9a5f-4c9d-aced-6633ec45e3fa" />
