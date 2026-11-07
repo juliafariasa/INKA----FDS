@@ -1,0 +1,13 @@
+# Dependências só para desenvolvimento e testes (não vão para o deploy).
+# Instale junto com as do projeto:
+#   pip install -r requirements.txt -r requirements-dev.txt
+
+# Testes E2E (o Selenium Manager baixa o ChromeDriver sozinho)
+selenium==4.52.0
+
+# Screencast com narração (opcionais: só para o screencast/gravar_screencast.py
+# e para E2E_NARRAR=voz)
+gTTS==2.5.4
+mutagen==1.48.1
+pyttsx3==2.99
+imageio-ffmpeg==0.8.1

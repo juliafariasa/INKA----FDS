@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Saída do screencast dos testes E2E
+screencast/saida/
