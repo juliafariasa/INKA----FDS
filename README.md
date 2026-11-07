@@ -277,11 +277,41 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   <summary><b>HISTÓRIAS DE IMPLEMENTADAS</b></summary>
   <br>
 
-### História 3 - 
+### História 3 - **Gerenciamento de estoque e equipamentos**
 
-### História 5 - 
+**Como** dono de estúdio, **quero** cadastrar e controlar meu estoque de materiais e equipamentos, **para** saber o que tenho e o que uso.
 
-### História 6 - 
+**Cenário 1 (positivo): cadastrar material**
+
+**Dado que** estou logado no painel do estúdio, **Quando** cadastro um material ou equipamento com quantidade e fornecedor, **Então** a plataforma deve adicioná-lo ao meu estoque, **E** permitir editar ou remover o item depois.
+
+**Cenário 2 (negativo): Material já cadastrado**
+
+**Dado que** o estoque do estúdio “Tinta Verde” já possui o material “Copinho de tinta” do fornecedor “EcoTattoo” **Quando** o dono tenta cadastrar novamente “Copinho de tinta” do mesmo fornecedor **Então** um novo item NÃO é criado **E** é exibida a mensagem “Este material já está no seu estoque. Edite a quantidade do item existente!”.
+
+### História 5 - **Conteúdo sobre descarte de resíduos**
+
+**Como** dono de estúdio, **quero** acessar vídeos, podcasts e slides sobre descarte de resíduos e as empresas que fazem esse serviço, **para** descartar meus resíduos da forma adequada.
+
+**Cenário 1 (positivo): acessar conteúdo**
+
+**Dado que** existem conteúdos cadastrados na plataforma, **Quando** acesso a área de descarte, **Então** a plataforma deve listar os conteúdos por formato (vídeo, podcast, slides), **E** exibir as empresas de descarte com seus contatos.
+
+**Cenário 2 (negativo): Conteúdo com link indisponível**
+
+**Dado que** o vídeo “Como descartar agulhas corretamente” está com o link fora do ar **Quando** o dono do estúdio tenta abrir esse vídeo **Então** o vídeo NÃO é reproduzido **E** é exibida a mensagem “Este conteúdo está indisponível no momento. Tente outro conteúdo da lista!”.
+
+### História 6 - **Aulas de inclusão e acessibilidade**
+
+**Como** tatuador, **quero** assistir aulas sobre inclusão e acessibilidade, **para** atender melhor pessoas com deficiência e outros grupos minoritários.
+
+**Cenário 1 (positivo): assistir uma aula**
+
+**Dado que** existem aulas cadastradas, **Quando** acesso a área de aulas sociais, **Então** a plataforma deve listar as aulas disponíveis, **E** permitir assistir ao conteúdo escolhido.
+
+**Cenário 2 (negativo): Marcar aula como concluída sem assistir**
+
+**Dado que** o tatuador assistiu apenas 10 dos 15 minutos da aula “Acolhimento de pessoas LGBTQIA+” **Quando** ele clica em “Marcar como concluída” **Então** a aula NÃO é marcada como concluída **E** é exibida a mensagem “Assista à aula até o final para concluí-la!”.
   
 </details>
 
@@ -308,7 +338,8 @@ LINK
   IMAGE
 
   ### Backlog:
- IMAGEM
+ <img width="1218" height="496" alt="image" src="https://github.com/user-attachments/assets/af91fe1e-9a5f-4c9d-aced-6633ec45e3fa" />
+
 
 
 </details>
