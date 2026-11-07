@@ -1,0 +1,14 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Verificação de selo - INKA{% endblock %}
+
+{% block content %}
+<h2>Verificação de selo</h2>
+
+<p>
+    O QR Code lido não corresponde a nenhum estúdio cadastrado no INKA. O
+    estúdio pode ter sido removido da plataforma.
+</p>
+
+<p><a href="{% url 'forum:estudios' %}">Ver os estúdios cadastrados</a></p>
+{% endblock %}

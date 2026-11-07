@@ -1,0 +1,22 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Remover aula - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Remover aula</h2>
+
+<div class="caixa">
+    <p>
+        Tem certeza que quer remover a aula <b>{{ aula.titulo }}</b> de
+        {{ estudio.nome }}?
+    </p>
+    <p>O progresso registrado nela também será apagado.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="remover" value="Remover aula">
+</form>
+
+<p><a href="{% url 'forum:estudio_aula' estudio.id aula.id %}">Cancelar e voltar à aula</a></p>
+{% endblock %}

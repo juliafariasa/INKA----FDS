@@ -1,0 +1,51 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Estoque de {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Estoque de {{ estudio.nome }}</h2>
+
+<p>
+    Materiais e equipamentos do estúdio, com a quantidade disponível e o
+    fornecedor de cada item.
+</p>
+
+<p><a href="{% url 'forum:estudio_estoque_novo' estudio.id %}">Cadastrar item</a></p>
+
+{% if itens %}
+    <div class="tabela-rolagem">
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Tipo</th>
+                <th>Quantidade</th>
+                <th>Fornecedor</th>
+                <th>Ações</th>
+            </tr>
+            {% for item in itens %}
+                <tr{% if item.quantidade == 0 %} class="pendente"{% endif %}>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.get_tipo_display }}</td>
+                    <td>{{ item.quantidade }}{% if item.quantidade == 0 %} (em falta){% endif %}</td>
+                    <td>{{ item.fornecedor }}</td>
+                    <td>
+                        <a href="{% url 'forum:estudio_estoque_editar' estudio.id item.id %}">Editar</a>
+                        |
+                        <a href="{% url 'forum:estudio_estoque_remover' estudio.id item.id %}">Remover</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <p class="ajuda">Itens com quantidade zero aparecem destacados como em falta.</p>
+{% else %}
+    <div class="caixa">
+        <p>
+            Nenhum item no estoque ainda. Cadastre o primeiro material ou
+            equipamento do estúdio.
+        </p>
+    </div>
+{% endif %}
+
+<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil do estúdio</a></p>
+{% endblock %}

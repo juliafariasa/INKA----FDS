@@ -1,4 +1,50 @@
+import re
+from urllib.parse import parse_qs, urlparse
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Value
+from django.db.models.functions import Greatest
+
+EXTENSOES_VIDEO = ('.mp4', '.webm', '.ogg', '.ogv')
+EXTENSOES_AUDIO = ('.mp3', '.m4a', '.oga', '.ogg', '.wav')
+
+
+def id_youtube(url):
+    """Devolve o id do vídeo de um link do YouTube, ou '' se não for um."""
+    partes = urlparse(url)
+    host = partes.netloc.lower().removeprefix('www.').removeprefix('m.')
+    video_id = ''
+
+    if host == 'youtu.be':
+        video_id = partes.path.strip('/').split('/')[0]
+    elif host in ('youtube.com', 'youtube-nocookie.com'):
+        if partes.path == '/watch':
+            video_id = parse_qs(partes.query).get('v', [''])[0]
+        elif partes.path.startswith(('/embed/', '/shorts/', '/live/')):
+            video_id = partes.path.split('/')[2]
+
+    # Ids do YouTube só têm letras sem acento, números, _ e -. (\w aceitaria
+    # qualquer letra Unicode.)
+    return video_id if re.fullmatch(r'[A-Za-z0-9_-]{11}', video_id) else ''
+
+
+def embed_spotify(url):
+    """Devolve o endereço do player do Spotify para um episódio ou podcast."""
+    partes = urlparse(url)
+    if partes.netloc.lower() != 'open.spotify.com':
+        return ''
+    achado = re.search(r'/(episode|show)/([A-Za-z0-9]+)', partes.path)
+    if not achado:
+        return ''
+    return f'https://open.spotify.com/embed/{achado[1]}/{achado[2]}'
+
+
+def formatar_tempo(segundos):
+    """Escreve segundos como minutos:segundos, por exemplo 905 -> '15:05'."""
+    return f'{segundos // 60}:{segundos % 60:02d}'
 
 
 class SecaoConteudo(models.Model):
@@ -166,6 +212,15 @@ class Estudio(models.Model):
     nome = models.CharField('Nome', max_length=120)
     cidade = models.CharField('Cidade', max_length=80)
     criado_em = models.DateTimeField('Criado em', auto_now_add=True)
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='estudio',
+        verbose_name='Conta de acesso',
+        help_text='Conta que entra na área exclusiva deste estúdio.',
+    )
 
     class Meta:
         verbose_name = 'Estúdio'
@@ -183,7 +238,6 @@ class Estudio(models.Model):
 
 
 class Diagnostico(models.Model):
-    PONTOS_MAXIMOS_PILAR = 8
     NOTA_MINIMA_ATIVO = 7
     SELOS = {3: 'Ouro', 2: 'Prata', 1: 'Bronze'}
 
@@ -207,14 +261,24 @@ class Diagnostico(models.Model):
         return f'{self.estudio} - {self.data:%d/%m/%Y}'
 
     def calcular_notas(self):
+        # O máximo de cada pilar sai das práticas respondidas, porque o admin
+        # pode cadastrar ou remover práticas.
         pontos = {'E': 0, 'S': 0, 'G': 0}
+        maximo = {'E': 0, 'S': 0, 'G': 0}
         for resposta in self.respostas.select_related('pratica__pilar'):
-            pontos[resposta.pratica.pilar.sigla] += resposta.valor
+            sigla = resposta.pratica.pilar.sigla
+            pontos[sigla] += resposta.valor
+            maximo[sigla] += Resposta.SIM
 
-        self.nota_e = pontos['E'] / self.PONTOS_MAXIMOS_PILAR * 10
-        self.nota_s = pontos['S'] / self.PONTOS_MAXIMOS_PILAR * 10
-        self.nota_g = pontos['G'] / self.PONTOS_MAXIMOS_PILAR * 10
+        self.nota_e = self.calcular_nota(pontos['E'], maximo['E'])
+        self.nota_s = self.calcular_nota(pontos['S'], maximo['S'])
+        self.nota_g = self.calcular_nota(pontos['G'], maximo['G'])
         self.save()
+
+    def calcular_nota(self, pontos, maximo):
+        if maximo == 0:
+            return 0
+        return pontos / maximo * 10
 
     def nota_do_pilar(self, sigla):
         notas = {'E': self.nota_e, 'S': self.nota_s, 'G': self.nota_g}
@@ -330,6 +394,12 @@ class CalculoResiduo(models.Model):
         'Gramas de contaminado', default=0
     )
     gramas_comum = models.PositiveIntegerField('Gramas de comum', default=0)
+    materiais = models.ManyToManyField(
+        Material,
+        related_name='calculos',
+        verbose_name='Materiais usados',
+        blank=True,
+    )
 
     class Meta:
         verbose_name = 'Cálculo de resíduo'
@@ -390,3 +460,233 @@ class CalculoResiduo(models.Model):
             linhas.append(linha)
 
         return linhas
+
+
+class ItemEstoque(models.Model):
+    MATERIAL = 'material'
+    EQUIPAMENTO = 'equipamento'
+
+    TIPO_CHOICES = [
+        (MATERIAL, 'Material'),
+        (EQUIPAMENTO, 'Equipamento'),
+    ]
+
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='itens_estoque',
+        verbose_name='Estúdio',
+    )
+    nome = models.CharField('Nome', max_length=120)
+    tipo = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES)
+    quantidade = models.PositiveIntegerField('Quantidade', default=0)
+    fornecedor = models.CharField('Fornecedor', max_length=120)
+
+    class Meta:
+        verbose_name = 'Item de estoque'
+        verbose_name_plural = 'Itens de estoque'
+        ordering = ['tipo', 'nome']
+
+    def __str__(self):
+        return f'{self.nome} ({self.fornecedor})'
+
+    def chave(self):
+        return (self.nome.strip().casefold(),
+                self.fornecedor.strip().casefold())
+
+    @classmethod
+    def existe_no_estudio(cls, estudio, nome, fornecedor, exceto=None):
+        # A comparação é feita em Python porque no SQLite o iexact só ignora
+        # maiúsculas em letras sem acento: "LÂMINA" e "lâmina" passariam.
+        chave = (nome.strip().casefold(), fornecedor.strip().casefold())
+        outros = estudio.itens_estoque.exclude(id=exceto)
+        return any(item.chave() == chave for item in outros)
+
+
+class ConteudoDescarte(models.Model):
+    VIDEO = 'video'
+    PODCAST = 'podcast'
+    SLIDES = 'slides'
+
+    FORMATO_CHOICES = [
+        (VIDEO, 'Vídeo'),
+        (PODCAST, 'Podcast'),
+        (SLIDES, 'Slides'),
+    ]
+
+    titulo = models.CharField('Título', max_length=150)
+    formato = models.CharField('Formato', max_length=10,
+                               choices=FORMATO_CHOICES)
+    url = models.URLField('URL', max_length=500)
+    descricao = models.TextField('Descrição', blank=True)
+    disponivel = models.BooleanField(
+        'Disponível', default=True,
+        help_text='Desmarque quando o link estiver fora do ar.',
+    )
+
+    class Meta:
+        verbose_name = 'Conteúdo sobre descarte'
+        verbose_name_plural = 'Conteúdos sobre descarte'
+        ordering = ['formato', 'titulo']
+
+    def __str__(self):
+        return f'{self.get_formato_display()}: {self.titulo}'
+
+    def exibicao(self):
+        """Diz como a página do conteúdo mostra o link.
+
+        Devolve o tipo ('youtube', 'spotify', 'video', 'audio' ou 'link') e o
+        endereço que o template usa.
+        """
+        caminho = urlparse(self.url).path.lower()
+
+        if self.formato == self.VIDEO:
+            video_id = id_youtube(self.url)
+            if video_id:
+                return 'youtube', f'https://www.youtube.com/embed/{video_id}'
+            if caminho.endswith(EXTENSOES_VIDEO):
+                return 'video', self.url
+
+        if self.formato == self.PODCAST:
+            player = embed_spotify(self.url)
+            if player:
+                return 'spotify', player
+            if caminho.endswith(EXTENSOES_AUDIO):
+                return 'audio', self.url
+
+        return 'link', self.url
+
+
+class EmpresaDescarte(models.Model):
+    nome = models.CharField('Nome', max_length=150)
+    cidade = models.CharField('Cidade', max_length=80)
+    telefone = models.CharField('Telefone', max_length=30)
+    email = models.EmailField('E-mail', blank=True)
+    site = models.URLField('Site', blank=True)
+    tipos_residuo = models.CharField(
+        'Tipos de resíduo que recolhe', max_length=200,
+        help_text='Ex.: perfurocortante, contaminado, comum.',
+    )
+
+    class Meta:
+        verbose_name = 'Empresa de descarte'
+        verbose_name_plural = 'Empresas de descarte'
+        ordering = ['cidade', 'nome']
+
+    def __str__(self):
+        return f'{self.nome} ({self.cidade})'
+
+    def telefone_link(self):
+        return re.sub(r'[^\d+]', '', self.telefone)
+
+
+class Aula(models.Model):
+    MENSAGEM_URL_VIDEO = (
+        'Use um link do YouTube ou de um arquivo de vídeo '
+        '(.mp4, .webm ou .ogg).'
+    )
+
+    titulo = models.CharField('Título', max_length=150)
+    descricao = models.TextField('Descrição', blank=True)
+    url_video = models.URLField('URL do vídeo', max_length=500,
+                                help_text=MENSAGEM_URL_VIDEO)
+    duracao_segundos = models.PositiveIntegerField(
+        'Duração em segundos', validators=[MinValueValidator(1)],
+        help_text='Ex.: 900 para uma aula de 15 minutos.',
+    )
+    ordem = models.PositiveIntegerField('Ordem', default=0)
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='aulas_cadastradas',
+        verbose_name='Cadastrada pelo estúdio',
+        help_text='Deixe vazio para a aula aparecer para todos os estúdios.',
+    )
+
+    class Meta:
+        verbose_name = 'Aula'
+        verbose_name_plural = 'Aulas'
+        ordering = ['ordem', 'titulo']
+
+    def __str__(self):
+        return self.titulo
+
+    @classmethod
+    def visiveis_para(cls, estudio):
+        """Aulas da plataforma (sem estúdio) e as cadastradas pelo estúdio."""
+        return cls.objects.filter(
+            models.Q(estudio__isnull=True) | models.Q(estudio=estudio)
+        )
+
+    def video(self):
+        """Devolve ('youtube', id), ('arquivo', url) ou ('link', url)."""
+        video_id = id_youtube(self.url_video)
+        if video_id:
+            return 'youtube', video_id
+        if urlparse(self.url_video).path.lower().endswith(EXTENSOES_VIDEO):
+            return 'arquivo', self.url_video
+        return 'link', self.url_video
+
+    def clean(self):
+        # Só YouTube e arquivo de vídeo deixam a página medir o progresso.
+        if self.url_video and self.video()[0] == 'link':
+            raise ValidationError({'url_video': self.MENSAGEM_URL_VIDEO})
+
+    def duracao_formatada(self):
+        return formatar_tempo(self.duracao_segundos)
+
+
+class ProgressoAula(models.Model):
+    FOLGA_SEGUNDOS = 5
+
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='progressos_aula',
+        verbose_name='Estúdio',
+    )
+    aula = models.ForeignKey(
+        Aula,
+        on_delete=models.CASCADE,
+        related_name='progressos',
+        verbose_name='Aula',
+    )
+    segundos_assistidos = models.PositiveIntegerField(
+        'Segundos assistidos', default=0
+    )
+    concluida = models.BooleanField('Concluída', default=False)
+
+    class Meta:
+        verbose_name = 'Progresso em aula'
+        verbose_name_plural = 'Progressos em aulas'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['estudio', 'aula'],
+                name='progresso_unico_por_estudio_e_aula',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.estudio} - {self.aula}'
+
+    def registrar(self, segundos):
+        """Guarda o maior valor já recebido, sem passar da duração da aula.
+
+        O MAX é feito pelo banco num UPDATE só desta coluna. Assim dois envios
+        ao mesmo tempo não fazem o progresso voltar, e o envio do progresso
+        não desfaz um "concluída" gravado no mesmo instante.
+        """
+        limite = min(segundos, self.aula.duracao_segundos)
+        ProgressoAula.objects.filter(pk=self.pk).update(
+            segundos_assistidos=Greatest('segundos_assistidos', Value(limite))
+        )
+        self.refresh_from_db(fields=['segundos_assistidos'])
+
+    def pode_concluir(self):
+        minimo = self.aula.duracao_segundos - self.FOLGA_SEGUNDOS
+        return self.segundos_assistidos >= minimo
+
+    def assistido_formatado(self):
+        return formatar_tempo(self.segundos_assistidos)

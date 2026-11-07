@@ -56,13 +56,14 @@
         {% endif %}
     {% endwith %}
 
-    <h3>Refazer diagnóstico</h3>
+    <div class="caixa">
+        <p><b>{{ mensagem_ja_realizado }}</b></p>
+    </div>
 {% else %}
     <p>
         Responda as perguntas abaixo para descobrir a nota do estúdio em cada
         pilar do ESG.
     </p>
-{% endif %}
 
 <form method="post">
     {% csrf_token %}
@@ -103,4 +104,5 @@
         nota de 0 a 10 e fica ativo a partir de 7.
     </p>
 </form>
+{% endif %}
 {% endblock %}

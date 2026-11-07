@@ -1,0 +1,52 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Aulas de inclusão - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Aulas de inclusão e acessibilidade</h2>
+
+<p>
+    Aulas para a equipe de {{ estudio.nome }} atender melhor pessoas com
+    deficiência e outros grupos minoritários. Escolha uma aula para assistir.
+</p>
+
+<p><a href="{% url 'forum:estudio_aula_nova' estudio.id %}">Cadastrar uma aula</a></p>
+
+{% if aulas %}
+    <table>
+        <tr>
+            <th>Aula</th>
+            <th>Duração</th>
+            <th>Situação</th>
+        </tr>
+        {% for aula in aulas %}
+            <tr>
+                <td>
+                    <a href="{% url 'forum:estudio_aula' estudio.id aula.id %}">{{ aula.titulo }}</a>
+                    {% if aula.estudio_id %}<br>Cadastrada pelo estúdio{% endif %}
+                </td>
+                <td>{{ aula.duracao_formatada }}</td>
+                <td>
+                    {% if aula.progresso.concluida %}
+                        <b>Concluída</b>
+                    {% elif aula.progresso.segundos_assistidos %}
+                        Assistida até {{ aula.progresso.assistido_formatado }}
+                    {% else %}
+                        Não iniciada
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <p class="ajuda">{{ concluidas }} de {{ aulas|length }} aula(s) concluída(s).</p>
+{% else %}
+    <div class="caixa">
+        <p>
+            Ainda não há aulas cadastradas. Use o link acima para cadastrar a
+            primeira aula do estúdio.
+        </p>
+    </div>
+{% endif %}
+
+<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil do estúdio</a></p>
+{% endblock %}

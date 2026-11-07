@@ -308,6 +308,91 @@ footer {
     text-align: center;
 }
 
+/* Tabelas largas rolam de lado no celular em vez de esmagar as colunas. */
+.tabela-rolagem {
+    overflow-x: auto;
+}
+
+.tabela-rolagem table {
+    min-width: 520px;
+}
+
+/* Vídeos e players incorporados ocupam a largura toda, na proporção 16:9. */
+.player {
+    margin: 15px 0;
+}
+
+.player iframe,
+.player video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    background-color: var(--inka-preto);
+}
+
+.player iframe.player-spotify {
+    height: 232px;
+    aspect-ratio: auto;
+    background-color: transparent;
+}
+
+.player audio {
+    display: block;
+    width: 100%;
+}
+
+/* "Sair" é um formulário POST (protegido contra CSRF) com cara de link. */
+.form-sair {
+    display: inline;
+    margin: 0;
+}
+
+.form-sair button {
+    margin: 2px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--inka-claro);
+    font: inherit;
+    cursor: pointer;
+}
+
+.form-sair button:hover {
+    background-color: var(--inka-preto);
+}
+
+body.modo-noturno .form-sair button {
+    color: var(--inka-verde-escuro);
+}
+
+body.modo-noturno .form-sair button:hover {
+    background-color: var(--inka-claro);
+}
+
+/* No tema escuro o botão "Área do Estúdio" já leva ao login e à área do
+   estúdio, então só o "Sair" aparece, com o estilo dos links do tema. */
+body.tema-inka > nav .link-conta {
+    display: none;
+}
+
+body.tema-inka > nav .form-sair button {
+    margin: 0;
+    padding: 6px 0;
+    border-radius: 0;
+    color: var(--landing-texto);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+body.tema-inka > nav .form-sair button:hover {
+    background: none;
+    color: var(--landing-verde);
+}
+
 @media (max-width: 600px) {
     .container {
         margin: 15px 10px;

@@ -1,0 +1,35 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Alterar senha - INKA{% endblock %}
+
+{% block content %}
+<h2>Alterar senha</h2>
+
+<p>Para trocar a senha da conta do estúdio, informe a senha atual e a nova.</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="senha_atual">Senha atual</label>
+    <input type="password" id="senha_atual" name="senha_atual"
+           autocomplete="current-password">
+    {% if erros.senha_atual %}<p class="erro">{{ erros.senha_atual }}</p>{% endif %}
+
+    <label for="senha">Nova senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="new-password">
+    {% if erros.senha %}<p class="erro">{{ erros.senha }}</p>{% endif %}
+
+    <label for="senha2">Confirme a nova senha</label>
+    <input type="password" id="senha2" name="senha2" autocomplete="new-password">
+    {% if erros.senha2 %}<p class="erro">{{ erros.senha2 }}</p>{% endif %}
+
+    <p class="ajuda">
+        Use pelo menos 8 caracteres. A senha não pode ser só números, nem
+        muito comum, nem parecida com o e-mail.
+    </p>
+
+    <input type="submit" name="alterar" value="Alterar senha">
+</form>
+
+<p><a href="{% url 'forum:minha_area' %}">Voltar à área do estúdio</a></p>
+{% endblock %}

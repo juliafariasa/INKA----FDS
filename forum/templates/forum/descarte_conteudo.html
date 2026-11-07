@@ -1,0 +1,44 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}{{ conteudo.titulo }} - INKA{% endblock %}
+
+{% block content %}
+<h2>{{ conteudo.titulo }}</h2>
+
+<p class="ajuda">{{ conteudo.get_formato_display }} sobre descarte de resíduos</p>
+
+{% if conteudo.disponivel %}
+    {% if tipo_player == 'youtube' %}
+        <div class="player">
+            <iframe src="{{ url_player }}" title="{{ conteudo.titulo }}"
+                    allow="encrypted-media; picture-in-picture; fullscreen"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen loading="lazy"></iframe>
+        </div>
+    {% elif tipo_player == 'spotify' %}
+        <div class="player">
+            <iframe class="player-spotify" src="{{ url_player }}"
+                    title="{{ conteudo.titulo }}" allow="encrypted-media"
+                    loading="lazy"></iframe>
+        </div>
+    {% elif tipo_player == 'video' %}
+        <div class="player">
+            <video src="{{ url_player }}" controls preload="metadata"></video>
+        </div>
+    {% elif tipo_player == 'audio' %}
+        <div class="player">
+            <audio src="{{ url_player }}" controls preload="metadata"></audio>
+        </div>
+    {% endif %}
+
+    <p>
+        <a href="{{ conteudo.url }}" target="_blank" rel="noopener">{% if tipo_player == 'link' %}Abrir {{ conteudo.get_formato_display|lower }}{% else %}Abrir no site original{% endif %}</a>
+    </p>
+{% endif %}
+
+{% if conteudo.descricao %}
+    <p>{{ conteudo.descricao|linebreaksbr }}</p>
+{% endif %}
+
+<p><a href="{% url 'forum:descarte' %}">Voltar aos conteúdos sobre descarte</a></p>
+{% endblock %}

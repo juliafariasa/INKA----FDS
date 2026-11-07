@@ -1,0 +1,64 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Descarte de resíduos - INKA{% endblock %}
+
+{% block content %}
+<h2>Descarte de resíduos</h2>
+
+<p>
+    Vídeos, podcasts e slides sobre como separar e descartar os resíduos do
+    estúdio, e as empresas que fazem a coleta.
+</p>
+
+<h3>Conteúdos</h3>
+{% if tem_conteudo %}
+    {% for formato in formatos %}
+        <h4>{{ formato.titulo }}</h4>
+        <ul>
+            {% for conteudo in formato.conteudos %}
+                <li>
+                    <a href="{% url 'forum:descarte_conteudo' conteudo.id %}">{{ conteudo.titulo }}</a>
+                    {% if not conteudo.disponivel %}(indisponível no momento){% endif %}
+                    {% if conteudo.descricao %}<br>{{ conteudo.descricao|truncatewords:30 }}{% endif %}
+                </li>
+            {% empty %}
+                <li>Nada cadastrado neste formato ainda.</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+{% else %}
+    <div class="caixa">
+        <p>Ainda não há conteúdos sobre descarte cadastrados.</p>
+    </div>
+{% endif %}
+
+<h3>Empresas de coleta de resíduos</h3>
+{% if empresas %}
+    <div class="tabela-rolagem">
+        <table>
+            <tr>
+                <th>Empresa</th>
+                <th>Cidade</th>
+                <th>Recolhe</th>
+                <th>Contato</th>
+            </tr>
+            {% for empresa in empresas %}
+                <tr>
+                    <td>{{ empresa.nome }}</td>
+                    <td>{{ empresa.cidade }}</td>
+                    <td>{{ empresa.tipos_residuo }}</td>
+                    <td>
+                        <a href="tel:{{ empresa.telefone_link }}">{{ empresa.telefone }}</a>
+                        {% if empresa.email %}<br><a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>{% endif %}
+                        {% if empresa.site %}<br><a href="{{ empresa.site }}" target="_blank" rel="noopener">Site da empresa</a>{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <div class="caixa">
+        <p>Nenhuma empresa de descarte cadastrada ainda.</p>
+    </div>
+{% endif %}
+{% endblock %}

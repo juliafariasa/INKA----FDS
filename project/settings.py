@@ -37,6 +37,17 @@ DEBUG = os.environ.get('DEBUG', str('runserver' in sys.argv)) == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+# Login dos estúdios: quem não está logado é mandado para esta página.
+LOGIN_URL = 'forum:entrar'
+
+# No Render o site roda em HTTPS atrás de um proxy. O cabeçalho abaixo faz o
+# Django reconhecer o HTTPS, e os cookies de sessão e de CSRF só trafegam
+# criptografados. Localmente (runserver em http) fica como está.
+if 'RENDER' in os.environ:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 
 # Application definition
 
@@ -118,7 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'America/Sao_Paulo'
 

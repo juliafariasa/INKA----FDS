@@ -9,8 +9,19 @@
     <h3>Resultado do último cálculo</h3>
     <p>
         Calculado em {{ calculo.criado_em|date:"d/m/Y" }} para
-        {{ calculo.atendimentos }} atendimento(s).
+        {{ calculo.atendimentos }} atendimento(s) no mês.
+        <a href="#calculo">Editar dados</a>
     </p>
+    {% with usados=calculo.materiais.all %}
+        {% if usados %}
+            <p>
+                Materiais usados:
+                {% for material in usados %}
+                    {{ material.nome }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        {% endif %}
+    {% endwith %}
 
     {% with linhas=calculo.resultado %}
     <table>
@@ -40,20 +51,24 @@
         {% endfor %}
     </ul>
 
-    <h3>Novo cálculo</h3>
+    <h3 id="calculo">Editar dados do mês</h3>
+    <p>
+        Os dados do último cálculo já vêm preenchidos. Altere o que mudou e
+        calcule de novo para comparar com o resultado anterior.
+    </p>
 {% else %}
     <p>
-        Informe quantos atendimentos o estúdio fez no período e marque os
-        materiais usados. A calculadora estima quanto resíduo de cada tipo foi
-        gerado.
+        Informe quantos atendimentos o estúdio faz por mês e marque os
+        materiais usados. A calculadora estima quanto resíduo de cada tipo é
+        gerado no mês.
     </p>
 {% endif %}
 
 <form method="post">
     {% csrf_token %}
 
-    <label for="atendimentos">Número de atendimentos</label>
-    <input type="number" id="atendimentos" name="atendimentos" min="1"
+    <label for="atendimentos">Atendimentos por mês</label>
+    <input type="number" id="atendimentos" name="atendimentos" min="1" max="10000"
            value="{{ dados.atendimentos|default:'' }}">
     {% if erros.atendimentos %}<p class="erro">{{ erros.atendimentos }}</p>{% endif %}
 

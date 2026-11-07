@@ -1,0 +1,50 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Cadastrar aula - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Cadastrar aula</h2>
+
+<p>
+    Cadastre uma aula sobre inclusão e acessibilidade para a equipe de
+    {{ estudio.nome }}. Ela aparece só na área de aulas deste estúdio.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="titulo">Título da aula</label>
+    <input type="text" id="titulo" name="titulo" maxlength="150"
+           value="{{ dados.titulo|default:'' }}">
+    {% if erros.titulo %}<p class="erro">{{ erros.titulo }}</p>{% endif %}
+
+    <label for="descricao">Descrição (opcional)</label>
+    <textarea id="descricao" name="descricao" rows="4">{{ dados.descricao|default:'' }}</textarea>
+
+    <label for="url_video">Link do vídeo</label>
+    <input type="url" id="url_video" name="url_video" maxlength="500"
+           placeholder="https://www.youtube.com/watch?v=..."
+           value="{{ dados.url_video|default:'' }}">
+    {% if erros.url_video %}<p class="erro">{{ erros.url_video }}</p>{% endif %}
+    <p class="ajuda">
+        Use um link do YouTube ou de um arquivo de vídeo (.mp4, .webm ou .ogg).
+    </p>
+
+    <label for="minutos">Duração do vídeo: minutos</label>
+    <input type="number" id="minutos" name="minutos" min="0" max="600"
+           value="{{ dados.minutos|default:'' }}">
+
+    <label for="segundos">Duração do vídeo: segundos</label>
+    <input type="number" id="segundos" name="segundos" min="0" max="59"
+           value="{{ dados.segundos|default:'' }}">
+    {% if erros.duracao %}<p class="erro">{{ erros.duracao }}</p>{% endif %}
+    <p class="ajuda">
+        Informe a duração exata do vídeo. A aula só pode ser concluída depois
+        de assistida até esse ponto.
+    </p>
+
+    <input type="submit" name="cadastrar" value="Cadastrar aula">
+</form>
+
+<p><a href="{% url 'forum:estudio_aulas' estudio.id %}">Voltar às aulas</a></p>
+{% endblock %}

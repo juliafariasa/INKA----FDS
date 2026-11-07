@@ -1,15 +1,20 @@
 from django.contrib import admin
 
 from .models import (
+    Aula,
     CalculoResiduo,
     Contato,
+    ConteudoDescarte,
     Diagnostico,
+    EmpresaDescarte,
     Estudio,
+    ItemEstoque,
     ItemLista,
     Material,
     MembroEquipe,
     Pilar,
     PraticaEstudio,
+    ProgressoAula,
     SecaoConteudo,
     Tecnologia,
 )
@@ -63,8 +68,8 @@ class PraticaEstudioAdmin(admin.ModelAdmin):
 
 @admin.register(Estudio)
 class EstudioAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'cidade', 'criado_em']
-    search_fields = ['nome', 'cidade']
+    list_display = ['nome', 'cidade', 'usuario', 'criado_em']
+    search_fields = ['nome', 'cidade', 'usuario__email']
 
 
 @admin.register(Diagnostico)
@@ -85,3 +90,42 @@ class CalculoResiduoAdmin(admin.ModelAdmin):
                     'gramas_perfurocortante', 'gramas_contaminado',
                     'gramas_comum']
     list_filter = ['estudio']
+
+
+@admin.register(ItemEstoque)
+class ItemEstoqueAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'tipo', 'quantidade', 'fornecedor', 'estudio']
+    list_filter = ['tipo', 'estudio']
+    search_fields = ['nome', 'fornecedor']
+
+
+@admin.register(ConteudoDescarte)
+class ConteudoDescarteAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'formato', 'disponivel']
+    list_filter = ['formato', 'disponivel']
+    list_editable = ['disponivel']
+    search_fields = ['titulo', 'descricao']
+
+
+@admin.register(EmpresaDescarte)
+class EmpresaDescarteAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'cidade', 'telefone', 'email']
+    list_filter = ['cidade']
+    search_fields = ['nome', 'cidade', 'tipos_residuo']
+
+
+@admin.register(Aula)
+class AulaAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'duracao', 'estudio', 'ordem']
+    list_filter = ['estudio']
+    search_fields = ['titulo', 'descricao']
+
+    @admin.display(description='Duração')
+    def duracao(self, aula):
+        return aula.duracao_formatada()
+
+
+@admin.register(ProgressoAula)
+class ProgressoAulaAdmin(admin.ModelAdmin):
+    list_display = ['estudio', 'aula', 'segundos_assistidos', 'concluida']
+    list_filter = ['concluida', 'aula', 'estudio']

@@ -1,13 +1,15 @@
 {% extends "forum/base.html" %}
 
-{% block titulo %}Cadastrar estúdio - INKA{% endblock %}
+{% block titulo %}Criar conta do estúdio - INKA{% endblock %}
 
 {% block content %}
-<h2>Cadastrar estúdio</h2>
+<h2>Criar conta do estúdio</h2>
 
 <p>
-    Informe os dados do estúdio. Depois do cadastro você já segue para o
-    diagnóstico de maturidade ESG.
+    Informe os dados do estúdio e crie a senha de acesso. Com a conta, só você
+    entra na área do estúdio: diagnóstico, calculadora de resíduos, estoque e
+    aulas. Depois do cadastro você já segue para o diagnóstico de maturidade
+    ESG.
 </p>
 
 <form method="post">
@@ -23,6 +25,27 @@
            value="{{ dados.cidade|default:'' }}">
     {% if erros.cidade %}<p class="erro">{{ erros.cidade }}</p>{% endif %}
 
-    <input type="submit" name="cadastrar" value="Cadastrar e fazer diagnóstico">
+    <label for="email">E-mail de acesso</label>
+    <input type="email" id="email" name="email" maxlength="150"
+           autocomplete="username" value="{{ dados.email|default:'' }}">
+    {% if erros.email %}<p class="erro">{{ erros.email }}</p>{% endif %}
+
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="new-password">
+    {% if erros.senha %}<p class="erro">{{ erros.senha }}</p>{% endif %}
+
+    <label for="senha2">Confirme a senha</label>
+    <input type="password" id="senha2" name="senha2" autocomplete="new-password">
+    {% if erros.senha2 %}<p class="erro">{{ erros.senha2 }}</p>{% endif %}
+
+    <p class="ajuda">
+        Use pelo menos 8 caracteres. A senha não pode ser só números, nem
+        muito comum, nem parecida com o e-mail. Ela é guardada com hash
+        (PBKDF2): nem a equipe do INKA consegue ver a sua senha.
+    </p>
+
+    <input type="submit" name="cadastrar" value="Criar conta e fazer diagnóstico">
 </form>
+
+<p>Já tem conta? <a href="{% url 'forum:entrar' %}">Entrar</a></p>
 {% endblock %}

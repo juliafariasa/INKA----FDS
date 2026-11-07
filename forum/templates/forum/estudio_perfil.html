@@ -17,7 +17,7 @@
                 mais no diagnóstico.
             </p>
         {% else %}
-            <p><b>Ainda sem selo</b></p>
+            <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
             <p>Nenhum pilar do ESG atingiu nota 7 no último diagnóstico.</p>
         {% endif %}
     </div>
@@ -45,7 +45,7 @@
     {% endwith %}
 {% else %}
     <div class="caixa">
-        <p><b>Ainda sem selo</b></p>
+        <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
         <p>Este estúdio ainda não fez o diagnóstico de maturidade ESG.</p>
     </div>
 {% endif %}
@@ -57,11 +57,22 @@
     Prata e 1 dá Bronze.
 </p>
 
+{% if eh_dono %}
+<h3>Área do estúdio</h3>
 <p>
     <a href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code do perfil</a>
     |
-    <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">{% if diagnostico %}Refazer{% else %}Fazer{% endif %} diagnóstico</a>
+    <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">{% if diagnostico %}Ver{% else %}Fazer{% endif %} diagnóstico</a>
     |
     <a href="{% url 'forum:estudio_residuos' estudio.id %}">Calculadora de resíduos</a>
+    |
+    <a href="{% url 'forum:estudio_estoque' estudio.id %}">Estoque</a>
+    |
+    <a href="{% url 'forum:estudio_aulas' estudio.id %}">Aulas de inclusão</a>
 </p>
+<p class="ajuda">
+    Só a conta do estúdio vê estes links.
+    <a href="{% url 'forum:alterar_senha' %}">Alterar senha</a>
+</p>
+{% endif %}
 {% endblock %}

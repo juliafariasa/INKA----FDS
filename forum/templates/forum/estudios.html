@@ -10,12 +10,18 @@
     diagnóstico com as práticas ESG da rotina e recebe uma nota por pilar.
 </p>
 
-<p><a href="{% url 'forum:estudio_novo' %}">Cadastrar um estúdio</a></p>
+{% if not user.is_authenticated %}
+<p>
+    Tem um estúdio? <a href="{% url 'forum:estudio_novo' %}">Crie a conta do seu estúdio</a>
+    ou <a href="{% url 'forum:entrar' %}">entre na sua conta</a>.
+</p>
+{% endif %}
 
 <table>
     <tr>
         <th>Estúdio</th>
         <th>Cidade</th>
+        <th>Selo</th>
         <th>Índice de sustentabilidade</th>
     </tr>
     {% for estudio in estudios %}
@@ -25,6 +31,7 @@
                 <a href="{% url 'forum:estudio_perfil' estudio.id %}">{{ estudio.nome }}</a>
             </td>
             <td>{{ estudio.cidade }}</td>
+            <td>{{ diagnostico.selo|default:"Sem selo" }}</td>
             <td>
                 {% if diagnostico %}
                     {{ diagnostico.indice|floatformat:0 }} de 100
@@ -36,7 +43,7 @@
         {% endwith %}
     {% empty %}
         <tr>
-            <td colspan="3">Nenhum estúdio cadastrado.</td>
+            <td colspan="4">Nenhum estúdio cadastrado.</td>
         </tr>
     {% endfor %}
 </table>

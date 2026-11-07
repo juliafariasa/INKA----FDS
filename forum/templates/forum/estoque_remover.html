@@ -1,0 +1,23 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Remover item - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Remover item do estoque</h2>
+
+<div class="caixa">
+    <p>
+        Tem certeza que quer remover <b>{{ item.nome }}</b>
+        ({{ item.fornecedor }}, quantidade {{ item.quantidade }}) do estoque de
+        {{ estudio.nome }}?
+    </p>
+    <p>Essa ação não pode ser desfeita.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="remover" value="Remover item">
+</form>
+
+<p><a href="{% url 'forum:estudio_estoque' estudio.id %}">Cancelar e voltar ao estoque</a></p>
+{% endblock %}

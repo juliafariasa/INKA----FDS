@@ -28,6 +28,19 @@
            href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
         <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
            href="{% url 'forum:estudios' %}">Estúdios</a>
+        {% if user.is_authenticated %}
+            <a class="{% if 'descarte' in pagina %}ativo{% endif %}"
+               href="{% url 'forum:descarte' %}">Descarte</a>
+            <a class="link-conta{% if pagina == 'alterar_senha' %} ativo{% endif %}"
+               href="{% url 'forum:minha_area' %}">Minha área</a>
+            <form class="form-sair" method="post" action="{% url 'forum:sair' %}">
+                {% csrf_token %}
+                <button type="submit">Sair</button>
+            </form>
+        {% else %}
+            <a class="link-conta{% if pagina == 'entrar' %} ativo{% endif %}"
+               href="{% url 'forum:entrar' %}">Entrar</a>
+        {% endif %}
         {% block nav_extra %}{% endblock %}
     </nav>
     {% endwith %}

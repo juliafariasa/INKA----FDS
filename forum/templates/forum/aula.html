@@ -1,0 +1,73 @@
+{% extends "forum/base.html" %}
+{% load static %}
+
+{% block titulo %}{{ aula.titulo }} - INKA{% endblock %}
+
+{% block head_extra %}
+<script src="{% static 'js/aula.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<h2>{{ aula.titulo }}</h2>
+
+<p class="ajuda">
+    Duração: {{ aula.duracao_formatada }}
+    {% if aula.estudio_id %}| Aula cadastrada por {{ aula.estudio.nome }}{% endif %}
+</p>
+
+<div class="player" id="aula-player"
+     data-tipo="{{ tipo_video }}"
+     data-duracao="{{ aula.duracao_segundos }}"
+     data-assistidos="{{ segundos_assistidos }}"
+     data-inicio="{{ inicio }}"
+     data-url-progresso="{% url 'forum:estudio_aula_progresso' estudio.id aula.id %}">
+    {% if tipo_video == 'youtube' %}
+        <iframe id="aula-video"
+                src="https://www.youtube.com/embed/{{ fonte_video }}?enablejsapi=1&amp;rel=0&amp;start={{ inicio }}&amp;origin={{ origem|urlencode:'' }}"
+                title="{{ aula.titulo }}"
+                allow="encrypted-media; picture-in-picture; fullscreen"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen></iframe>
+    {% elif tipo_video == 'arquivo' %}
+        <video id="aula-video" src="{{ fonte_video }}" controls preload="metadata"></video>
+    {% else %}
+        <p><a href="{{ fonte_video }}" target="_blank" rel="noopener">Abrir o vídeo da aula</a></p>
+        <p class="ajuda">Este link não permite acompanhar o progresso pela plataforma.</p>
+    {% endif %}
+</div>
+
+{% if aula.descricao %}
+    <p>{{ aula.descricao|linebreaksbr }}</p>
+{% endif %}
+
+{% if concluida %}
+    <div class="caixa">
+        <p><b>Aula concluída.</b></p>
+    </div>
+{% else %}
+    <p>
+        Assistido até <b id="texto-assistido">{{ assistido_formatado }}</b>
+        de {{ aula.duracao_formatada }}.
+    </p>
+
+    <form method="post" id="form-concluir">
+        {% csrf_token %}
+        <input type="hidden" id="campo-segundos" name="segundos"
+               value="{{ segundos_assistidos }}">
+        <input type="submit" name="concluir" value="Marcar como concluída">
+    </form>
+
+    <p class="ajuda">
+        A aula só pode ser concluída depois de assistida até o final. Avançar
+        o vídeo pela barra não conta como assistido.
+    </p>
+{% endif %}
+
+<p>
+    <a href="{% url 'forum:estudio_aulas' estudio.id %}">Voltar às aulas</a>
+    {% if aula.estudio_id == estudio.id %}
+        |
+        <a href="{% url 'forum:estudio_aula_remover' estudio.id aula.id %}">Remover esta aula</a>
+    {% endif %}
+</p>
+{% endblock %}

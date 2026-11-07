@@ -12,6 +12,8 @@
 
 <p><img src="{{ qrcode }}" alt="QR Code do perfil de {{ estudio.nome }}"></p>
 
+<p><a href="{{ qrcode }}" download="qrcode-{{ estudio.nome|slugify }}.png">Baixar QR Code para imprimir</a></p>
+
 <p class="ajuda">Endereço do perfil: <a href="{{ url_perfil }}">{{ url_perfil }}</a></p>
 
 <p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil</a></p>
