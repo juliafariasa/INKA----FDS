@@ -1,0 +1,52 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Cadastrar empresa - Descarte - INKA{% endblock %}
+
+{% block content %}
+<h2>Cadastrar empresa de coleta</h2>
+
+<p>
+    Cadastre uma empresa que recolhe resíduos de estúdio. Ela aparece na área
+    de descarte de {{ estudio.nome }}.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="nome">Nome da empresa</label>
+    <input type="text" id="nome" name="nome" maxlength="150"
+           value="{{ dados.nome|default:'' }}">
+    {% if erros.nome %}<p class="erro">{{ erros.nome }}</p>{% endif %}
+
+    <label for="cidade">Cidade</label>
+    <input type="text" id="cidade" name="cidade" maxlength="80"
+           value="{{ dados.cidade|default:'' }}">
+    {% if erros.cidade %}<p class="erro">{{ erros.cidade }}</p>{% endif %}
+
+    <label for="tipos_residuo">Tipos de resíduo que recolhe</label>
+    <input type="text" id="tipos_residuo" name="tipos_residuo" maxlength="200"
+           placeholder="Ex.: perfurocortante, contaminado, comum"
+           value="{{ dados.tipos_residuo|default:'' }}">
+    {% if erros.tipos_residuo %}<p class="erro">{{ erros.tipos_residuo }}</p>{% endif %}
+
+    <label for="telefone">Telefone</label>
+    <input type="tel" id="telefone" name="telefone" maxlength="30"
+           value="{{ dados.telefone|default:'' }}">
+    {% if erros.telefone %}<p class="erro">{{ erros.telefone }}</p>{% endif %}
+
+    <label for="email">E-mail (opcional)</label>
+    <input type="email" id="email" name="email" maxlength="254"
+           value="{{ dados.email|default:'' }}">
+    {% if erros.email %}<p class="erro">{{ erros.email }}</p>{% endif %}
+
+    <label for="site">Site (opcional)</label>
+    <input type="url" id="site" name="site" maxlength="200"
+           placeholder="https://"
+           value="{{ dados.site|default:'' }}">
+    {% if erros.site %}<p class="erro">{{ erros.site }}</p>{% endif %}
+
+    <input type="submit" name="cadastrar" value="Cadastrar empresa">
+</form>
+
+<p><a href="{% url 'forum:descarte' %}">Voltar ao Descarte</a></p>
+{% endblock %}

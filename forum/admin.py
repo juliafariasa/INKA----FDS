@@ -101,16 +101,16 @@ class ItemEstoqueAdmin(admin.ModelAdmin):
 
 @admin.register(ConteudoDescarte)
 class ConteudoDescarteAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'formato', 'disponivel']
-    list_filter = ['formato', 'disponivel']
+    list_display = ['titulo', 'formato', 'disponivel', 'estudio']
+    list_filter = ['formato', 'disponivel', 'estudio']
     list_editable = ['disponivel']
     search_fields = ['titulo', 'descricao']
 
 
 @admin.register(EmpresaDescarte)
 class EmpresaDescarteAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'cidade', 'telefone', 'email']
-    list_filter = ['cidade']
+    list_display = ['nome', 'cidade', 'telefone', 'email', 'estudio']
+    list_filter = ['cidade', 'estudio']
     search_fields = ['nome', 'cidade', 'tipos_residuo']
 
 

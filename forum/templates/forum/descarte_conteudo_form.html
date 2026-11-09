@@ -1,0 +1,56 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Cadastrar conteúdo - Descarte - INKA{% endblock %}
+
+{% block content %}
+<h2>Cadastrar conteúdo sobre descarte</h2>
+
+<p>
+    Cadastre um vídeo, podcast ou apresentação de slides sobre descarte de
+    resíduos. O conteúdo aparece na área de descarte de {{ estudio.nome }}.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label for="titulo">Título</label>
+    <input type="text" id="titulo" name="titulo" maxlength="150"
+           value="{{ dados.titulo|default:'' }}">
+    {% if erros.titulo %}<p class="erro">{{ erros.titulo }}</p>{% endif %}
+
+    <label for="formato">Formato</label>
+    <select id="formato" name="formato">
+        {% for codigo, rotulo in formatos %}
+            <option value="{{ codigo }}"{% if dados.formato == codigo %} selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+    </select>
+    {% if erros.formato %}<p class="erro">{{ erros.formato }}</p>{% endif %}
+
+    <label for="url">Link</label>
+    <input type="url" id="url" name="url" maxlength="500"
+           placeholder="https://www.youtube.com/watch?v=..."
+           value="{{ dados.url|default:'' }}">
+    {% if erros.url %}<p class="erro">{{ erros.url }}</p>{% endif %}
+    <p class="ajuda">
+        Vídeos do YouTube e episódios do Spotify abrem num player dentro do
+        INKA. Arquivos .mp4 e .mp3 tocam no navegador. Slides e outros links
+        aparecem como link.
+    </p>
+
+    <label for="descricao">Descrição (opcional)</label>
+    <textarea id="descricao" name="descricao" rows="4">{{ dados.descricao|default:'' }}</textarea>
+
+    <label>
+        <input type="checkbox" name="disponivel"{% if dados.disponivel %} checked{% endif %}>
+        O link está funcionando
+    </label>
+    <p class="ajuda">
+        Desmarque se o link estiver fora do ar: o conteúdo continua na lista,
+        mas não é reproduzido.
+    </p>
+
+    <input type="submit" name="cadastrar" value="Cadastrar conteúdo">
+</form>
+
+<p><a href="{% url 'forum:descarte' %}">Voltar ao Descarte</a></p>
+{% endblock %}

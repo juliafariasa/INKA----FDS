@@ -11,6 +11,9 @@
 </p>
 
 <h3>Conteúdos</h3>
+{% if estudio %}
+    <p><a href="{% url 'forum:descarte_conteudo_novo' estudio.id %}">Cadastrar um conteúdo</a></p>
+{% endif %}
 {% if tem_conteudo %}
     {% for formato in formatos %}
         <h4>{{ formato.titulo }}</h4>
@@ -19,6 +22,10 @@
                 <li>
                     <a href="{% url 'forum:descarte_conteudo' conteudo.id %}">{{ conteudo.titulo }}</a>
                     {% if not conteudo.disponivel %}(indisponível no momento){% endif %}
+                    {% if conteudo.do_estudio %}
+                        | Cadastrado pelo seu estúdio
+                        | <a href="{% url 'forum:descarte_conteudo_remover' estudio.id conteudo.id %}">Remover</a>
+                    {% endif %}
                     {% if conteudo.descricao %}<br>{{ conteudo.descricao|truncatewords:30 }}{% endif %}
                 </li>
             {% empty %}
@@ -33,6 +40,9 @@
 {% endif %}
 
 <h3>Empresas de coleta de resíduos</h3>
+{% if estudio %}
+    <p><a href="{% url 'forum:descarte_empresa_nova' estudio.id %}">Cadastrar uma empresa</a></p>
+{% endif %}
 {% if empresas %}
     <div class="tabela-rolagem">
         <table>
@@ -44,7 +54,12 @@
             </tr>
             {% for empresa in empresas %}
                 <tr>
-                    <td>{{ empresa.nome }}</td>
+                    <td>
+                        {{ empresa.nome }}
+                        {% if empresa.do_estudio %}
+                            <br><a href="{% url 'forum:descarte_empresa_remover' estudio.id empresa.id %}">Remover</a>
+                        {% endif %}
+                    </td>
                     <td>{{ empresa.cidade }}</td>
                     <td>{{ empresa.tipos_residuo }}</td>
                     <td>
@@ -60,5 +75,12 @@
     <div class="caixa">
         <p>Nenhuma empresa de descarte cadastrada ainda.</p>
     </div>
+{% endif %}
+
+{% if estudio %}
+    <p class="ajuda">
+        O que o seu estúdio cadastra aparece só para ele. Os conteúdos e
+        empresas cadastrados pela equipe do INKA aparecem para todos.
+    </p>
 {% endif %}
 {% endblock %}
