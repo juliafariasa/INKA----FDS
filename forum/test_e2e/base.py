@@ -28,7 +28,16 @@ class BaseE2E(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.navegador = webdriver.Chrome()
+
+        options = webdriver.ChromeOptions()
+
+        if "CI" in os.environ:
+            options.add_argument("--headless=new")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--window-size=1366,900")
+
+        cls.navegador = webdriver.Chrome(options=options)
         cls.navegador.set_window_size(1366, 900)
         cls.espera = WebDriverWait(cls.navegador, 10)
 
