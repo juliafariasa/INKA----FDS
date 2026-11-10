@@ -42,6 +42,13 @@ def embed_spotify(url):
     return f'https://open.spotify.com/embed/{achado[1]}/{achado[2]}'
 
 
+def da_plataforma_ou_do_estudio(modelo, estudio):
+    """Itens cadastrados no admin (sem estúdio) e os do próprio estúdio."""
+    return modelo.objects.filter(
+        models.Q(estudio__isnull=True) | models.Q(estudio=estudio)
+    )
+
+
 def formatar_tempo(segundos):
     """Escreve segundos como minutos:segundos, por exemplo 905 -> '15:05'."""
     return f'{segundos // 60}:{segundos % 60:02d}'
@@ -523,6 +530,16 @@ class ConteudoDescarte(models.Model):
         'Disponível', default=True,
         help_text='Desmarque quando o link estiver fora do ar.',
     )
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='conteudos_descarte',
+        verbose_name='Cadastrado pelo estúdio',
+        help_text='Deixe vazio para o conteúdo aparecer para todos os '
+                  'estúdios.',
+    )
 
     class Meta:
         verbose_name = 'Conteúdo sobre descarte'
@@ -531,6 +548,10 @@ class ConteudoDescarte(models.Model):
 
     def __str__(self):
         return f'{self.get_formato_display()}: {self.titulo}'
+
+    @classmethod
+    def visiveis_para(cls, estudio):
+        return da_plataforma_ou_do_estudio(cls, estudio)
 
     def exibicao(self):
         """Diz como a página do conteúdo mostra o link.
@@ -567,6 +588,16 @@ class EmpresaDescarte(models.Model):
         'Tipos de resíduo que recolhe', max_length=200,
         help_text='Ex.: perfurocortante, contaminado, comum.',
     )
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='empresas_descarte',
+        verbose_name='Cadastrada pelo estúdio',
+        help_text='Deixe vazio para a empresa aparecer para todos os '
+                  'estúdios.',
+    )
 
     class Meta:
         verbose_name = 'Empresa de descarte'
@@ -575,6 +606,10 @@ class EmpresaDescarte(models.Model):
 
     def __str__(self):
         return f'{self.nome} ({self.cidade})'
+
+    @classmethod
+    def visiveis_para(cls, estudio):
+        return da_plataforma_ou_do_estudio(cls, estudio)
 
     def telefone_link(self):
         return re.sub(r'[^\d+]', '', self.telefone)
@@ -616,9 +651,7 @@ class Aula(models.Model):
     @classmethod
     def visiveis_para(cls, estudio):
         """Aulas da plataforma (sem estúdio) e as cadastradas pelo estúdio."""
-        return cls.objects.filter(
-            models.Q(estudio__isnull=True) | models.Q(estudio=estudio)
-        )
+        return da_plataforma_ou_do_estudio(cls, estudio)
 
     def video(self):
         """Devolve ('youtube', id), ('arquivo', url) ou ('link', url)."""

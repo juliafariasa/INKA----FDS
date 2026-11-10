@@ -71,6 +71,22 @@ class AreaDoEstudioMixin(LoginObrigatorioMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
+def estudio_da_conta(usuario):
+    """Estúdio ligado à conta logada, ou None (ex.: conta só do admin)."""
+    return Estudio.objects.filter(usuario=usuario).first()
+
+
+def link_valido(url, limite=500):
+    """Aceita só links http ou https de até `limite` caracteres."""
+    if len(url) > limite:
+        return False
+    try:
+        URLValidator(schemes=['http', 'https'])(url)
+    except ValidationError:
+        return False
+    return True
+
+
 def validar_nova_senha(erros, senha, confirmacao, usuario, campo='senha'):
     """Confere a senha nova com os validadores do Django (settings.py)."""
     if not senha:
@@ -172,7 +188,7 @@ class SairView(View):
 
 class MinhaAreaView(LoginObrigatorioMixin, View):
     def get(self, request):
-        estudio = Estudio.objects.filter(usuario=request.user).first()
+        estudio = estudio_da_conta(request.user)
         if estudio is None:
             messages.error(
                 request, 'Esta conta ainda não está ligada a nenhum estúdio.'
@@ -835,7 +851,15 @@ class DescarteView(LoginObrigatorioMixin, View):
     }
 
     def get(self, request):
-        conteudos = list(ConteudoDescarte.objects.all())
+        # Cada estúdio vê o que veio do admin e o que ele mesmo cadastrou.
+        estudio = estudio_da_conta(request.user)
+        conteudos = list(ConteudoDescarte.visiveis_para(estudio))
+        empresas = list(EmpresaDescarte.visiveis_para(estudio))
+        for item in conteudos + empresas:
+            item.do_estudio = estudio is not None and (
+                item.estudio_id == estudio.id
+            )
+
         formatos = [
             {
                 'titulo': self.TITULOS_FORMATO[codigo],
@@ -844,9 +868,10 @@ class DescarteView(LoginObrigatorioMixin, View):
             for codigo, _ in ConteudoDescarte.FORMATO_CHOICES
         ]
         contexto = {
+            'estudio': estudio,
             'tem_conteudo': bool(conteudos),
             'formatos': formatos,
-            'empresas': EmpresaDescarte.objects.all(),
+            'empresas': empresas,
         }
         return render(request, 'forum/descarte.html', contexto)
 
@@ -858,8 +883,17 @@ class DescarteConteudoView(LoginObrigatorioMixin, View):
     )
 
     def get(self, request, conteudo_id):
-        conteudo = get_object_or_404(ConteudoDescarte, id=conteudo_id)
-        contexto = {'conteudo': conteudo}
+        estudio = estudio_da_conta(request.user)
+        conteudo = get_object_or_404(
+            ConteudoDescarte.visiveis_para(estudio), id=conteudo_id
+        )
+        contexto = {
+            'conteudo': conteudo,
+            'estudio': estudio,
+            'do_estudio': estudio is not None and (
+                conteudo.estudio_id == estudio.id
+            ),
+        }
 
         if conteudo.disponivel:
             contexto['tipo_player'], contexto['url_player'] = (
@@ -869,6 +903,157 @@ class DescarteConteudoView(LoginObrigatorioMixin, View):
             messages.error(request, self.MENSAGEM_INDISPONIVEL)
 
         return render(request, 'forum/descarte_conteudo.html', contexto)
+
+
+class DescarteConteudoNovoView(AreaDoEstudioMixin, View):
+    """O estúdio cadastra um vídeo, podcast ou slides; só ele vê."""
+
+    def get(self, request, estudio_id):
+        contexto = self.contexto({'disponivel': True}, {})
+        return render(request, 'forum/descarte_conteudo_form.html', contexto)
+
+    def post(self, request, estudio_id):
+        dados = {
+            'titulo': request.POST.get('titulo', '').strip(),
+            'formato': request.POST.get('formato', '').strip(),
+            'url': request.POST.get('url', '').strip(),
+            'descricao': request.POST.get('descricao', '').strip(),
+            'disponivel': request.POST.get('disponivel') == 'on',
+        }
+        erros = self.validar(dados)
+
+        if erros:
+            messages.error(
+                request, 'Confira os campos destacados e tente novamente.'
+            )
+            return render(request, 'forum/descarte_conteudo_form.html',
+                          self.contexto(dados, erros))
+
+        conteudo = ConteudoDescarte.objects.create(estudio=self.estudio,
+                                                   **dados)
+        messages.success(request, f'Conteúdo cadastrado: {conteudo.titulo}.')
+        return redirect(reverse('forum:descarte'))
+
+    def contexto(self, dados, erros):
+        return {
+            'estudio': self.estudio,
+            'formatos': ConteudoDescarte.FORMATO_CHOICES,
+            'dados': dados,
+            'erros': erros,
+        }
+
+    def validar(self, dados):
+        erros = {}
+
+        if not dados['titulo']:
+            erros['titulo'] = 'Informe o título do conteúdo.'
+        elif len(dados['titulo']) > 150:
+            erros['titulo'] = 'Use no máximo 150 caracteres.'
+
+        formatos = [codigo for codigo, _ in ConteudoDescarte.FORMATO_CHOICES]
+        if dados['formato'] not in formatos:
+            erros['formato'] = 'Escolha o formato: vídeo, podcast ou slides.'
+
+        if not dados['url']:
+            erros['url'] = 'Informe o link do conteúdo.'
+        elif not link_valido(dados['url']):
+            erros['url'] = (
+                'Informe um link válido, começando com http:// ou https://.'
+            )
+
+        return erros
+
+
+class DescarteEmpresaNovaView(AreaDoEstudioMixin, View):
+    """O estúdio cadastra uma empresa de coleta; só ele vê."""
+
+    def get(self, request, estudio_id):
+        contexto = {'estudio': self.estudio, 'dados': {}, 'erros': {}}
+        return render(request, 'forum/descarte_empresa_form.html', contexto)
+
+    def post(self, request, estudio_id):
+        campos = ['nome', 'cidade', 'telefone', 'email', 'site',
+                  'tipos_residuo']
+        dados = {campo: request.POST.get(campo, '').strip()
+                 for campo in campos}
+        erros = self.validar(dados)
+
+        if erros:
+            messages.error(
+                request, 'Confira os campos destacados e tente novamente.'
+            )
+            contexto = {'estudio': self.estudio, 'dados': dados,
+                        'erros': erros}
+            return render(request, 'forum/descarte_empresa_form.html',
+                          contexto)
+
+        empresa = EmpresaDescarte.objects.create(estudio=self.estudio,
+                                                 **dados)
+        messages.success(request, f'Empresa cadastrada: {empresa.nome}.')
+        return redirect(reverse('forum:descarte'))
+
+    def validar(self, dados):
+        erros = {}
+
+        obrigatorios = {
+            'nome': ('Informe o nome da empresa.', 150),
+            'cidade': ('Informe a cidade.', 80),
+            'telefone': ('Informe o telefone de contato.', 30),
+            'tipos_residuo': ('Informe os tipos de resíduo que ela recolhe.',
+                              200),
+        }
+        for campo, (mensagem, limite) in obrigatorios.items():
+            if not dados[campo]:
+                erros[campo] = mensagem
+            elif len(dados[campo]) > limite:
+                erros[campo] = f'Use no máximo {limite} caracteres.'
+
+        if dados['email']:
+            try:
+                validate_email(dados['email'])
+            except ValidationError:
+                erros['email'] = 'Informe um e-mail válido.'
+
+        if dados['site'] and not link_valido(dados['site'], limite=200):
+            erros['site'] = (
+                'Informe um link válido, começando com http:// ou https://.'
+            )
+
+        return erros
+
+
+class DescarteRemoverView(AreaDoEstudioMixin, View):
+    """Remove um conteúdo ou uma empresa cadastrados pelo próprio estúdio.
+
+    O que veio do admin, ou é de outro estúdio, responde 404.
+    """
+
+    modelo = None
+    tipo = ''
+
+    def buscar(self, item_id):
+        return get_object_or_404(self.modelo, id=item_id,
+                                 estudio=self.estudio)
+
+    def get(self, request, estudio_id, item_id):
+        contexto = {'item': self.buscar(item_id), 'tipo': self.tipo}
+        return render(request, 'forum/descarte_remover.html', contexto)
+
+    def post(self, request, estudio_id, item_id):
+        item = self.buscar(item_id)
+        item.delete()
+        messages.success(request, f'Removido do Descarte: {item}.')
+        return redirect(reverse('forum:descarte'))
+
+
+class DescarteConteudoRemoverView(DescarteRemoverView):
+    modelo = ConteudoDescarte
+    tipo = 'o conteúdo'
+
+
+class DescarteEmpresaRemoverView(DescarteRemoverView):
+    modelo = EmpresaDescarte
+    tipo = 'a empresa'
 
 
 def buscar_aula(estudio, aula_id):
@@ -1038,16 +1223,10 @@ class AulaNovaView(AreaDoEstudioMixin, View):
 
         if not dados['url_video']:
             erros['url_video'] = 'Informe o link do vídeo.'
-        else:
-            try:
-                URLValidator(schemes=['http', 'https'])(dados['url_video'])
-                url_valida = len(dados['url_video']) <= 500
-            except ValidationError:
-                url_valida = False
-            if not url_valida or (
-                Aula(url_video=dados['url_video']).video()[0] == 'link'
-            ):
-                erros['url_video'] = Aula.MENSAGEM_URL_VIDEO
+        elif not link_valido(dados['url_video']) or (
+            Aula(url_video=dados['url_video']).video()[0] == 'link'
+        ):
+            erros['url_video'] = Aula.MENSAGEM_URL_VIDEO
 
         try:
             minutos = int(dados['minutos'] or 0)

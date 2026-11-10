@@ -1309,6 +1309,259 @@ class DescarteTest(TestCase):
                 self.assertEqual(id_youtube(url), esperado)
 
 
+class DescarteCadastroTest(TestCase):
+    """Os estúdios cadastram conteúdos e empresas do Descarte pelo site."""
+
+    # Texto copiado da História 5.
+    MENSAGEM_INDISPONIVEL = (
+        'Este conteúdo está indisponível no momento. '
+        'Tente outro conteúdo da lista!'
+    )
+
+    def setUp(self):
+        self.estudio = Estudio.objects.create(nome='Tinta Verde',
+                                              cidade='Recife')
+        self.outro = Estudio.objects.create(nome='Agulha Viva',
+                                            cidade='Olinda')
+        self.dono = criar_dono(self.estudio)
+        self.dono_outro = criar_dono(self.outro)
+        self.client.force_login(self.dono)
+        self.url_lista = reverse('forum:descarte')
+        self.url_novo_conteudo = reverse('forum:descarte_conteudo_novo',
+                                         args=[self.estudio.id])
+        self.url_nova_empresa = reverse('forum:descarte_empresa_nova',
+                                        args=[self.estudio.id])
+
+    def dados_conteudo(self, **campos):
+        dados = {
+            'titulo': 'Como descartar agulhas corretamente',
+            'formato': ConteudoDescarte.VIDEO,
+            'url': 'https://www.youtube.com/watch?v=abcdefghijk',
+            'descricao': 'Passo a passo do coletor.',
+            'disponivel': 'on',
+        }
+        dados.update(campos)
+        return dados
+
+    def dados_empresa(self, **campos):
+        dados = {
+            'nome': 'Coleta Exemplo', 'cidade': 'Recife',
+            'telefone': '(81) 3333-4444', 'email': 'contato@example.com',
+            'site': 'https://example.com',
+            'tipos_residuo': 'perfurocortante, contaminado',
+        }
+        dados.update(campos)
+        return dados
+
+    def conteudo_do_estudio(self, estudio=None, **campos):
+        valores = {
+            'titulo': 'Conteúdo do estúdio', 'formato': ConteudoDescarte.SLIDES,
+            'url': 'https://example.com/slides.pdf',
+        }
+        valores.update(campos)
+        return ConteudoDescarte.objects.create(
+            estudio=estudio or self.estudio, **valores
+        )
+
+    # Cadastro de conteúdo
+
+    def test_lista_tem_os_links_para_cadastrar(self):
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, self.url_novo_conteudo)
+        self.assertContains(resposta, self.url_nova_empresa)
+
+    def test_formulario_de_conteudo_vem_com_link_funcionando_marcado(self):
+        resposta = self.client.get(self.url_novo_conteudo)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTemplateUsed(resposta, 'forum/descarte_conteudo_form.html')
+        self.assertContains(resposta, 'name="disponivel" checked')
+
+    def test_estudio_cadastra_conteudo(self):
+        resposta = self.client.post(self.url_novo_conteudo,
+                                    self.dados_conteudo())
+        self.assertRedirects(resposta, self.url_lista)
+
+        conteudo = ConteudoDescarte.objects.get()
+        self.assertEqual(conteudo.estudio, self.estudio)
+        self.assertTrue(conteudo.disponivel)
+
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'Como descartar agulhas corretamente')
+        self.assertContains(resposta, 'Cadastrado pelo seu estúdio')
+
+    def test_conteudo_cadastrado_abre_o_player(self):
+        self.client.post(self.url_novo_conteudo, self.dados_conteudo())
+        conteudo = ConteudoDescarte.objects.get()
+        resposta = self.client.get(
+            reverse('forum:descarte_conteudo', args=[conteudo.id])
+        )
+        self.assertContains(resposta, 'youtube.com/embed/abcdefghijk')
+
+    def test_conteudo_cadastrado_com_link_fora_do_ar_mostra_a_mensagem(self):
+        # Cenário 2 feito pelo próprio site: a caixa "link funcionando" fica
+        # desmarcada (o navegador não envia o campo).
+        dados = self.dados_conteudo()
+        del dados['disponivel']
+        self.client.post(self.url_novo_conteudo, dados)
+
+        conteudo = ConteudoDescarte.objects.get()
+        self.assertFalse(conteudo.disponivel)
+        resposta = self.client.get(
+            reverse('forum:descarte_conteudo', args=[conteudo.id])
+        )
+        self.assertContains(resposta, self.MENSAGEM_INDISPONIVEL)
+        self.assertNotContains(resposta, '<iframe')
+
+    def test_campos_invalidos_do_conteudo_sao_rejeitados(self):
+        casos = [
+            ('titulo', {'titulo': ''}),
+            ('titulo', {'titulo': 'x' * 151}),
+            ('formato', {'formato': 'livro'}),
+            ('url', {'url': ''}),
+            ('url', {'url': 'nao-e-um-link'}),
+            ('url', {'url': 'ftp://example.com/guia.pdf'}),
+        ]
+        for campo, invalido in casos:
+            with self.subTest(campo=campo, valor=invalido):
+                resposta = self.client.post(self.url_novo_conteudo,
+                                            self.dados_conteudo(**invalido))
+                self.assertEqual(resposta.status_code, 200)
+                self.assertIn(campo, resposta.context['erros'])
+                self.assertContains(resposta, 'Confira os campos destacados')
+        self.assertEqual(ConteudoDescarte.objects.count(), 0)
+
+    # Cadastro de empresa
+
+    def test_estudio_cadastra_empresa(self):
+        resposta = self.client.post(self.url_nova_empresa,
+                                    self.dados_empresa())
+        self.assertRedirects(resposta, self.url_lista)
+
+        empresa = EmpresaDescarte.objects.get()
+        self.assertEqual(empresa.estudio, self.estudio)
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'Coleta Exemplo')
+        self.assertContains(resposta, 'href="tel:8133334444"')
+
+    def test_empresa_sem_email_e_sem_site_e_aceita(self):
+        self.client.post(self.url_nova_empresa,
+                         self.dados_empresa(email='', site=''))
+        self.assertEqual(EmpresaDescarte.objects.count(), 1)
+
+    def test_campos_invalidos_da_empresa_sao_rejeitados(self):
+        casos = [
+            ('nome', {'nome': ''}),
+            ('nome', {'nome': 'x' * 151}),
+            ('cidade', {'cidade': ''}),
+            ('telefone', {'telefone': ''}),
+            ('tipos_residuo', {'tipos_residuo': ''}),
+            ('email', {'email': 'nao-e-email'}),
+            ('site', {'site': 'nao-e-um-link'}),
+        ]
+        for campo, invalido in casos:
+            with self.subTest(campo=campo, valor=invalido):
+                resposta = self.client.post(self.url_nova_empresa,
+                                            self.dados_empresa(**invalido))
+                self.assertEqual(resposta.status_code, 200)
+                self.assertIn(campo, resposta.context['erros'])
+        self.assertEqual(EmpresaDescarte.objects.count(), 0)
+
+    # Remoção
+
+    def test_estudio_remove_o_proprio_conteudo(self):
+        conteudo = self.conteudo_do_estudio()
+        url = reverse('forum:descarte_conteudo_remover',
+                      args=[self.estudio.id, conteudo.id])
+        self.assertContains(self.client.get(url), 'Tem certeza')
+        self.assertTrue(ConteudoDescarte.objects.exists())
+
+        resposta = self.client.post(url)
+        self.assertRedirects(resposta, self.url_lista)
+        self.assertFalse(ConteudoDescarte.objects.exists())
+
+    def test_estudio_remove_a_propria_empresa(self):
+        empresa = EmpresaDescarte.objects.create(
+            estudio=self.estudio, nome='Coleta Exemplo', cidade='Recife',
+            telefone='(81) 3333-4444', tipos_residuo='perfurocortante',
+        )
+        url = reverse('forum:descarte_empresa_remover',
+                      args=[self.estudio.id, empresa.id])
+        self.assertRedirects(self.client.post(url), self.url_lista)
+        self.assertFalse(EmpresaDescarte.objects.exists())
+
+    def test_estudio_nao_remove_conteudo_da_plataforma(self):
+        conteudo = ConteudoDescarte.objects.create(
+            titulo='Conteúdo do admin', formato=ConteudoDescarte.SLIDES,
+            url='https://example.com/admin.pdf',
+        )
+        url = reverse('forum:descarte_conteudo_remover',
+                      args=[self.estudio.id, conteudo.id])
+        self.assertEqual(self.client.post(url).status_code, 404)
+        self.assertTrue(ConteudoDescarte.objects.filter(id=conteudo.id)
+                        .exists())
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'Conteúdo do admin')
+        self.assertNotContains(resposta, url)
+
+    # Acesso e isolamento entre estúdios
+
+    def test_o_que_um_estudio_cadastra_nao_aparece_para_outro(self):
+        conteudo = self.conteudo_do_estudio()
+        EmpresaDescarte.objects.create(
+            estudio=self.estudio, nome='Coleta da Tinta Verde',
+            cidade='Recife', telefone='(81) 3333-4444',
+            tipos_residuo='perfurocortante',
+        )
+        self.client.force_login(self.dono_outro)
+
+        resposta = self.client.get(self.url_lista)
+        self.assertNotContains(resposta, 'Conteúdo do estúdio')
+        self.assertNotContains(resposta, 'Coleta da Tinta Verde')
+        self.assertEqual(self.client.get(
+            reverse('forum:descarte_conteudo', args=[conteudo.id])
+        ).status_code, 404)
+        self.assertEqual(self.client.post(
+            reverse('forum:descarte_conteudo_remover',
+                    args=[self.outro.id, conteudo.id])
+        ).status_code, 404)
+        self.assertTrue(ConteudoDescarte.objects.filter(id=conteudo.id)
+                        .exists())
+
+    def test_conta_de_outro_estudio_nao_usa_o_formulario(self):
+        self.client.force_login(self.dono_outro)
+        self.assertEqual(self.client.get(self.url_novo_conteudo).status_code,
+                         404)
+        self.assertEqual(self.client.post(self.url_nova_empresa,
+                                          self.dados_empresa()).status_code,
+                         404)
+        self.assertEqual(EmpresaDescarte.objects.count(), 0)
+
+    def test_cadastro_exige_login(self):
+        self.client.logout()
+        for url in [self.url_novo_conteudo, self.url_nova_empresa]:
+            with self.subTest(url=url):
+                resposta = self.client.get(url)
+                self.assertRedirects(
+                    resposta, f"{reverse('forum:entrar')}?next={url}"
+                )
+
+    def test_conta_sem_estudio_ve_so_a_plataforma(self):
+        ConteudoDescarte.objects.create(
+            titulo='Conteúdo do admin', formato=ConteudoDescarte.SLIDES,
+            url='https://example.com/admin.pdf',
+        )
+        self.conteudo_do_estudio()
+        sem_estudio = get_user_model().objects.create_user(
+            username='equipe@example.com', email='equipe@example.com'
+        )
+        self.client.force_login(sem_estudio)
+
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'Conteúdo do admin')
+        self.assertNotContains(resposta, 'Conteúdo do estúdio')
+        self.assertNotContains(resposta, 'Cadastrar um conteúdo')
+
+
 class AulasTest(TestCase):
     # Texto copiado da História 6.
     MENSAGEM_INCOMPLETA = 'Assista à aula até o final para concluí-la!'
