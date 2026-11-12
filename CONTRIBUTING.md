@@ -140,16 +140,14 @@ Quando a sua mudança afeta só uma área do INKA, dá para rodar apenas os test
 
 - Comando = python manage.py test forum.tests
 - O que roda = Todos os testes de unidade (não precisa do Chrome)
-
+\\
 - Comando = python manage.py test forum.test_e2e
 - O que roda = Todos os testes de sistema (E2E), que abrem o Chrome e usam a plataforma como um usuário faria.
-
-
+\\
 - Comando 1 = python manage.py test
 - Comando 2 = forum.tests.EstoqueTest
 - O que roda = Os testes de uma funcionalidade específica. Outras opções: DiagnosticoTest , SeloTest , ResiduoTest , DescarteTest , AulasTest.
-
-
+\\
 - Comando 1 = python manage.py test
 - Comando 2 = forum.test_e2e.test_descarte
 - O que roda = Um único arquivo de testes E2E. Outras opções: test_estoque , test_aulas
@@ -157,7 +155,7 @@ Quando a sua mudança afeta só uma área do INKA, dá para rodar apenas os test
 ### Acelerando os testes E2E
 Por padrão, os testes E2E esperam alguns segundos entre um passo e outro, para que de para acompanhar (e gravar) o que está acontecendo na tela. Se quiser que eles rodem sem pausa, defina a variável E2E_PAUSA como zero antes de rodar:
 
-# PowerShell
+PowerShell
 $env:E2E_PAUSA="0"
 
 ### Checklist antes do Pull Request
