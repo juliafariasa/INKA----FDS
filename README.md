@@ -317,7 +317,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
   ### Link do deployment da infraestrutura:
-  esgrise-fds.onrender.com
+  https://esgrise-fds.onrender.com/
   
   ### Link do screencast das funcionalidades desenvolvidas:
   LINK
