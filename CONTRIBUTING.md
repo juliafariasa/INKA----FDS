@@ -137,17 +137,20 @@ Esse comando executa os testes de unidade e os testes E2E juntos. Para ele funci
 
 Quando a sua mudança afeta só uma área do INKA, dá para rodar apenas os testes dela:
 
-
+1-
 - Comando = python manage.py test forum.tests
 - O que roda = Todos os testes de unidade (não precisa do Chrome)
-\\
+
+2-
 - Comando = python manage.py test forum.test_e2e
 - O que roda = Todos os testes de sistema (E2E), que abrem o Chrome e usam a plataforma como um usuário faria.
-\\
+
+3-
 - Comando 1 = python manage.py test
 - Comando 2 = forum.tests.EstoqueTest
 - O que roda = Os testes de uma funcionalidade específica. Outras opções: DiagnosticoTest , SeloTest , ResiduoTest , DescarteTest , AulasTest.
-\\
+
+4-
 - Comando 1 = python manage.py test
 - Comando 2 = forum.test_e2e.test_descarte
 - O que roda = Um único arquivo de testes E2E. Outras opções: test_estoque , test_aulas
