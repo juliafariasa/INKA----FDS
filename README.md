@@ -317,16 +317,16 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
   ### Link do deployment da infraestrutura:
-LINK
+  LINK
   
   ### Link do screencast das funcionalidades desenvolvidas:
-LINK
+  LINK
 
   ### Link do CONTRIBUTING.md
   LINK
 
   ### Link do screencast dos Testes de Sistema (E2E) automatizados com selenium
-  LINK
+  https://youtu.be/Tpux6avEQaI
 
   ### Link do screencast CI/CD (integração contínua / deployment contínuo) com build e deployment automatizados
   LINK
