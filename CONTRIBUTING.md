@@ -169,6 +169,6 @@ $env:E2E_PAUSA="0"
 
 ---
 
-##VALEU PELA AJUDA!
+## VALEU PELA AJUDA!
 
 Obrigado por dedicar seu tempo ao INKA. Cada contribuição ajuda a mostrar que o ESG pode fazer parte da rotina de qualquer estúdio. Siga os combinados, tire suas dúvidas com a equipe e bom código!
