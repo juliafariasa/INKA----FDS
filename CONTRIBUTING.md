@@ -1,194 +1,168 @@
-# Documentação Contributing do INKA
+# Guia de Contribuição do INKA
 
-## Bem-vindo ao INKA
+## Olá, que bom ter você por aqui!
 
-Esse é o manual de contribuição do nosso projeto. Nesse documento vamos falar sobre:
+Este guia reúne tudo o que você precisa saber para colaborar com o INKA. Ao longo dele você vai encontrar:
 
-- As regras de conduta do projeto.
-- Como contribuir para o código do INKA.
-- Como clonar o repositório principal.
-- Como executar o conjunto de testes.
+- Os combinados da equipe para contribuir com o projeto.
+- O passo a passo para preparar o ambiente e rodar a aplicação.
+- Como baixar o repositório para a sua máquina.
+- Como rodar os testes automatizados.
 
-INKA é uma aplicação web desenvolvida para ajudar estúdios de tatuagem a colocar o ESG (Ambiental, Social e Governança) em prática no dia a dia, reunindo em um único ambiente diversas ferramentas essenciais para a gestão sustentável do estúdio. A plataforma foi criada com o objetivo de traduzir os pilares do ESG em critérios objetivos, como o diagnóstico ESG, o selo do estúdio, o controle de estoque, o cálculo de resíduos, o guia de descarte e as aulas, evitando que o estúdio precise utilizar vários aplicativos ou sites diferentes para organizar suas práticas e acompanhar sua evolução.
-
----
-
-## Regras de conduta
-
-Antes de tudo vamos falar sobre as regras de como contribuir para o código, impondo algumas limitações para controle e um bom estruturamento do nosso projeto.
-
-**1. Não apague nenhuma funcionalidade implementada ou qualquer tipo de código complexo do projeto.**
-
-(Apagar o código de outras pessoas é primeiramente desrespeitoso e prejudicará no desenvolvimento da nossa plataforma. Tudo foi pensado com muito carinho e foi feito com muito cuidado, se está implementado é porque é uma parte importante do projeto. Aceitamos mudanças no código para melhorias de funcionalidade e uma boa experiência do usuário. Faça suas modificações a partir do que já faz parte do projeto.)
-
-**2. Crie uma Branch só sua para acompanhar seu progresso e não interferir no código base antes de estar tudo pronto.**
-
-(Separar as modificações que ainda estão em construção do que já está tudo certo é muito importante para organização do código e evitar problemas. A branch `main` é a branch principal do projeto e é a partir dela que o deploy automático é feito, então nunca trabalhe diretamente nela.)
-
-**3. Não suba suas modificações sem abrir um Pull Request e sem a análise dos contribuidores principais.**
-
-(Isso pode levar a algum conflito no código principal ou até mesmo levar a implementar algo que está fora dos princípios do nosso projeto. Então, tenha cuidado antes de enviar seu código e sempre peça revisão de cada modificação, explicando o que foi feito e o seu propósito.)
-
-**4. Teste modificações antes de abrir o Pull Request.**
-
-(Código não testado pode introduzir problemas. Antes de enviar qualquer mudança, rode os testes para garantir que todos passam e execute manualmente a funcionalidade no navegador. Se você adicionar uma nova feature, crie testes para ela!)
-
-**5. Documente modificações.**
-
-(Se você adicionar uma nova funcionalidade, atualize a documentação como por exemplo: README, comentários no código e etc. Se corrigir um bug complexo, explique o motivo da correção em comentários. Código sem documentação é difícil de manter e entender. Lembre-se: você está escrevendo código para que outras pessoas possam entender e dar continuidade.)
-
-**6. Divirta-se e sempre pense em formas de melhorar nossa plataforma. Isso vai ajudar muito os desenvolvedores e os estúdios que usam o INKA!**
-
-E por último e não menos importante, siga os padrões de código do projeto e sempre comunique-se com a equipe antes de alguma grande alteração. Assim, todos ficam felizes e o projeto vai dar muito certo.
+O INKA é uma plataforma web pensada para estúdios de tatuagem que querem levar o ESG (Ambiental, Social e Governança) para a rotina do negócio. Em vez de espalhar a gestão sustentável por planilhas, anotações e sites diferentes, o estúdio encontra tudo em um só lugar: diagnóstico ESG, selo do estúdio, controle de estoque, cálculo de resíduos, guia de descarte e aulas. A ideia é transformar conceitos que parecem distantes em critérios concretos, que o estúdio consegue acompanhar e melhorar com o tempo.
 
 ---
 
-## Como contribuir para o código do INKA
+## Combinados da equipe
 
-Aqui está o passo a passo para rodar o projeto na sua máquina e começar a contribuir.
+Para que o projeto continue organizado e todo mundo consiga trabalhar sem atrapalhar o outro, pedimos que você siga alguns combinados.
 
-### 1. Pré-requisitos
+**1. Preserve o que já existe.**
 
-Certifique-se de ter instalado:
+Cada funcionalidade do INKA foi discutida, planejada e construída pela equipe. Por isso, não remova telas, funções ou trechos de código que já estão funcionando. Melhorias são sempre bem-vindas, mas elas devem partir do que já foi feito, evoluindo o código em vez de substituí-lo.
 
-- Python 3.12+: [Download Python](https://www.python.org/downloads/) (o projeto usa Django 6.1, que exige Python 3.12 ou mais novo)
-- Git: [Download Git](https://git-scm.com/downloads/)
-- pip: Gerenciador de pacotes Python (instalado com Python)
-- Google Chrome: [Download Chrome](https://www.google.com/chrome/) (necessário apenas para rodar os testes E2E com Selenium)
+**2. Trabalhe na sua própria branch.**
 
-### 2. Clone o repositório
+Nunca desenvolva direto na `main`. Ela guarda a versão estável do projeto e é dela que sai o deploy automático no Render, então qualquer erro ali chega direto na versão publicada. Crie uma branch para cada tarefa e só leve suas mudanças para a `main` quando elas estiverem prontas.
 
-No seu ambiente de versionamento dê o seguinte comando:
+**3. Toda mudança passa por um Pull Request.**
+
+Nenhum código entra na `main` sem revisão. Abra um Pull Request, descreva o que você alterou e por que, e espere que alguém da equipe revise. Assim evitamos conflitos e garantimos que as mudanças seguem a proposta do INKA.
+
+**4. Teste antes de pedir revisão.**
+
+Antes de abrir o Pull Request, rode a suíte de testes e confira se tudo continua passando. Também vale abrir a aplicação no navegador e usar a funcionalidade que você mexeu. Criou algo novo? Escreva testes para cobrir essa parte também.
+
+**5. Deixe registrado o que você fez.**
+
+Funcionalidade nova pede documentação nova: atualize o README e comente os trechos de código que não são óbvios. Se a correção de um bug exigiu uma solução fora do comum, explique o raciocínio em um comentário. Quem vier depois de você vai agradecer.
+
+**6. Contribua com vontade!**
+
+Fique à vontade para propor ideias e melhorias. Quanto mais o INKA evoluir, mais ele ajuda os estúdios que usam a plataforma.
+
+Por fim, mantenha o estilo de código que já é usado no projeto e converse com a equipe antes de começar uma mudança grande. Alinhar antes evita retrabalho depois.
+
+---
+
+## Preparando o ambiente
+
+Siga as etapas abaixo para ter o INKA rodando no seu computador.
+
+### Etapa 1: O que você precisa ter instalado
+
+- [Python](https://www.python.org/downloads/) na versão 3.12 ou superior (exigida pelo Django 6.1, usado no projeto)
+- [Git](https://git-scm.com/downloads/), para versionar o código
+- pip, que já vem junto com o Python
+- [Google Chrome](https://www.google.com/chrome/), necessário só para os testes E2E com Selenium
+
+### Etapa 2: Baixe o projeto
+
+Copie o repositório para a sua máquina e entre na pasta dele:
 
 ```bash
 git clone https://github.com/juliafariasa/INKA----FDS.git
-```
-
-(Essa é a URL do nosso projeto)
-
-Depois entre na pasta do projeto:
-
-```bash
 cd INKA----FDS
 ```
 
-### 3. Crie um ambiente virtual
+### Etapa 3: Prepare um ambiente virtual
 
-Em Windows:
-
-Comando:
+O ambiente virtual mantém as bibliotecas do INKA separadas das outras do seu computador.
 
 ```bash
 python -m venv venv
 ```
 
-depois você faz:
-
-Comando:
+Para ativá-lo no Windows:
 
 ```bash
 venv\Scripts\activate
 ```
 
-(Em Linux ou macOS, o comando para ativar é `source venv/bin/activate`)
+No Linux ou no macOS:
 
-### 4. Instale as dependências
+```bash
+source venv/bin/activate
+```
 
-Comando:
+### Etapa 4: Instale as bibliotecas do projeto
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Se você for rodar os testes E2E, instale também as dependências de desenvolvimento (inclui o Selenium):
-
-Comando:
+Para rodar também os testes E2E, instale as bibliotecas de desenvolvimento (entre elas o Selenium):
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-### 5. Configure o banco de dados
-
-Comando:
+### Etapa 5: Monte o banco de dados
 
 ```bash
 python manage.py migrate
 ```
 
-(As migrações já criam o conteúdo inicial da plataforma, como as práticas ESG, os materiais e os conteúdos de descarte.)
+Além de criar as tabelas, as migrações já carregam o conteúdo inicial da plataforma, como as práticas ESG, os materiais e as informações de descarte.
 
-### 6. Crie um superusuário (opcional)
+### Etapa 6 (opcional): Crie um usuário administrador
 
-Para acessar o admin do Django:
-
-Comando:
+Se quiser usar o painel de administração do Django:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Rode o servidor de desenvolvimento
-
-Comando:
+### Etapa 7: Suba a aplicação
 
 ```bash
 python manage.py runserver
 ```
 
-e depois acesse o localhost (http://127.0.0.1:8000/) em algum navegador para visualizar.
+Com o servidor rodando, abra http://127.0.0.1:8000/ no navegador.
 
-(Em desenvolvimento local não é preciso configurar a variável de ambiente `SECRET_KEY`, o projeto já usa uma chave de desenvolvimento. Nunca coloque chaves secretas reais no código!)
+Para rodar localmente você não precisa definir a variável de ambiente `SECRET_KEY`, pois o projeto usa uma chave própria para desenvolvimento. Chaves reais nunca devem ser colocadas no código.
 
-### 8. Faça suas modificações
+### Etapa 8: Desenvolva a sua parte
 
-- Crie uma nova branch: `git checkout -b feature/nome-da-funcionalidade`
-- Edite o código
-- Teste localmente: `python manage.py test forum.tests`
-- Commit: `git commit -m "Descrição clara da mudança"`
-- Push: `git push origin feature/nome-da-funcionalidade`
+1. Abra uma branch para a tarefa: `git checkout -b feature/nome-da-funcionalidade`
+2. Faça as alterações no código.
+3. Confira se nada quebrou: `python manage.py test forum.tests`
+4. Salve as mudanças com uma mensagem que explique o que foi feito: `git commit -m "Adiciona filtro de materiais no estoque"`
+5. Envie a branch para o GitHub: `git push origin feature/nome-da-funcionalidade`
 
-### 9. Abra um Pull Request
+### Etapa 9: Peça a revisão
 
-Vá até o repositório no GitHub e clique em "Compare & pull request".
-
-(Nunca esqueça de abrir um Pull Request antes de fazer uma modificação, isso faz parte das regras de conduta, ajudando na análise e no controle do código. Lembre-se que tudo que entra na `main` vai automaticamente para o deploy no Render.)
+No GitHub, abra a página do repositório e clique em "Compare & pull request". Explique na descrição o que mudou e por quê. Lembre-se: o que for aprovado e entrar na `main` é publicado automaticamente no Render.
 
 ---
 
-## Como rodar os testes automatizados
+## Testes automatizados
 
-Os testes são muito importantes para garantir a qualidade e estabilidade do código. Sempre rode os testes antes de abrir um Pull Request, isso está nas regras de conduta!!
+Os testes são a nossa garantia de que uma mudança nova não estragou algo que já funcionava. Por isso, rodar os testes antes do Pull Request faz parte dos combinados da equipe.
 
-### Como executar todos os testes do projeto
-
-Basta rodar o seguinte comando:
+### Rodando a suíte completa
 
 ```bash
 python manage.py test
 ```
 
-(Esse comando roda os testes de unidade e também os testes E2E, então você precisa ter instalado o `requirements-dev.txt` e o Google Chrome.)
+Esse comando executa os testes de unidade e os testes E2E juntos. Para ele funcionar, você precisa ter instalado o `requirements-dev.txt` e o Google Chrome.
 
-### Como executar testes de uma parte específica
+### Rodando só uma parte dos testes
 
-Se acabou trabalhando apenas em uma parte do projeto, pode rodar só os testes dessa parte:
+Quando a sua mudança afeta só uma área do INKA, dá para rodar apenas os testes dela:
 
-Aqui estão alguns exemplos de comando para os testes existentes:
+| Comando | O que roda |
+|---|---|
+| `python manage.py test forum.tests` | Todos os testes de unidade (não precisa do Chrome) |
+| `python manage.py test forum.test_e2e` | Todos os testes de sistema (E2E), que abrem o Chrome e usam a plataforma como um usuário faria |
+| `python manage.py test forum.tests.EstoqueTest` | Os testes de uma funcionalidade específica. Outras opções: `DiagnosticoTest`, `SeloTest`, `ResiduoTest`, `DescarteTest`, `AulasTest` |
+| `python manage.py test forum.test_e2e.test_descarte` | Um único arquivo de testes E2E. Outras opções: `test_estoque`, `test_aulas` |
 
-```bash
-python manage.py test forum.tests
-python manage.py test forum.test_e2e
-python manage.py test forum.tests.EstoqueTest
-python manage.py test forum.test_e2e.test_descarte
-```
+### Acelerando os testes E2E
 
-- `forum.tests`: todos os testes de unidade (não precisa do Chrome).
-- `forum.test_e2e`: todos os testes de sistema (E2E) com Selenium, que abrem o Chrome e testam a plataforma como um usuário.
-- `forum.tests.EstoqueTest`: só os testes de uma funcionalidade (outros exemplos: `DiagnosticoTest`, `SeloTest`, `ResiduoTest`, `DescarteTest`, `AulasTest`).
-- `forum.test_e2e.test_descarte`: só um arquivo de testes E2E (outros exemplos: `test_estoque`, `test_aulas`).
-
-Os testes E2E fazem uma pausa entre os passos para dar tempo de ver (e gravar) o que está acontecendo. Para rodar rápido, zere a pausa antes do comando:
+Por padrão, os testes E2E esperam alguns segundos entre um passo e outro, para que dê para acompanhar (e gravar) o que está acontecendo na tela. Se quiser que eles rodem sem pausa, defina a variável `E2E_PAUSA` como zero antes de rodar:
 
 ```bash
 # PowerShell
@@ -198,15 +172,15 @@ $env:E2E_PAUSA="0"
 export E2E_PAUSA=0
 ```
 
-### O que verificar antes de enviar código
+### Checklist antes do Pull Request
 
-- Todos os testes passam sem erros
-- Adicionou testes para novas funcionalidades
-- Não quebrou testes existentes
-- O código roda sem erros no servidor local (é só utilizar o comando: `python manage.py runserver`)
+- [ ] A suíte de testes roda sem nenhuma falha.
+- [ ] A funcionalidade nova tem testes próprios.
+- [ ] Os testes que já existiam continuam passando.
+- [ ] A aplicação abre e funciona normalmente com `python manage.py runserver`.
 
 ---
 
-## Obrigada por querer contribuir!
+## Valeu pela ajuda!
 
-Esse foi o manual de contribuição do INKA, obrigada por querer fazer parte desse projeto tão especial. Apenas preste atenção nas regras e requisitos do nosso projeto e aproveite bastante!
+Obrigado por dedicar seu tempo ao INKA. Cada contribuição ajuda a mostrar que o ESG pode fazer parte da rotina de qualquer estúdio. Siga os combinados, tire suas dúvidas com a equipe e bom código!
