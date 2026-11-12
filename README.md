@@ -323,7 +323,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   https://www.youtube.com/watch?v=tevTT0w5scU&t=6s
 
   ### Link do CONTRIBUTING.md
-  LINK
+  CONTRIBUTING.md
 
   ### Link do screencast dos Testes de Sistema (E2E) automatizados com selenium
   https://youtu.be/Tpux6avEQaI
