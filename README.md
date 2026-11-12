@@ -317,7 +317,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
   ### Link do deployment da infraestrutura:
-  LINK
+  esgrise-fds.onrender.com
   
   ### Link do screencast das funcionalidades desenvolvidas:
   LINK
@@ -329,7 +329,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   https://youtu.be/Tpux6avEQaI
 
   ### Link do screencast CI/CD (integração contínua / deployment contínuo) com build e deployment automatizados
-  LINK
+  https://www.youtube.com/watch?v=tevTT0w5scU&t=6s
 
   ### Link do screencast do código django:
  LINK
