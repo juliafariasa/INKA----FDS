@@ -320,7 +320,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   https://esgrise-fds.onrender.com/
   
   ### Link do screencast das funcionalidades desenvolvidas:
-  LINK
+  https://www.youtube.com/watch?v=tevTT0w5scU&t=6s
 
   ### Link do CONTRIBUTING.md
   LINK
@@ -329,7 +329,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   https://youtu.be/Tpux6avEQaI
 
   ### Link do screencast CI/CD (integração contínua / deployment contínuo) com build e deployment automatizados
-  https://www.youtube.com/watch?v=tevTT0w5scU&t=6s
+  link
 
   ### Link do screencast do código django:
  LINK
