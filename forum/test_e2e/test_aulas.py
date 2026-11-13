@@ -34,9 +34,11 @@ class AulasTest(BaseE2E):
             url_video=f'{self.live_server_url}/static/video/aula-teste.webm',
             descricao='Aula curta usada para assistir até o final.',
         )
+        # Usa o vídeo local (e não o YouTube): no GitHub Actions o player do
+        # YouTube carrega devagar ou nem carrega, e o teste falhava às vezes.
         self.aula_lgbt = Aula.objects.create(
             titulo=AULA_LGBT, ordem=2, duracao_segundos=15 * 60,
-            url_video='https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            url_video=f'{self.live_server_url}/static/video/aula-teste.webm',
         )
         # E o tatuador assistiu apenas 10 dos 15 minutos dessa aula
         ProgressoAula.objects.create(
@@ -115,7 +117,12 @@ class AulasTest(BaseE2E):
         self.clicar(By.CSS_SELECTOR, 'input[name="concluir"]')
 
         # ENTÃO é exibida a mensagem pedindo para assistir até o final
-        self.esperar_mensagem(MSG_INCOMPLETA, tipo='error')
+        # Espera até 30 s (o CI é mais lento que o computador da gente)
+        WebDriverWait(self.navegador, 30).until(
+            EC.text_to_be_present_in_element(
+                (By.CSS_SELECTOR, 'p.aviso-error'), MSG_INCOMPLETA
+            )
+        )
 
         # E a aula NÃO é marcada como concluída
         self.assertTrue(self.navegador.find_elements(By.ID, 'form-concluir'))
