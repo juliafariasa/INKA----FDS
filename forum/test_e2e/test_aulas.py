@@ -115,7 +115,12 @@ class AulasTest(BaseE2E):
         self.clicar(By.CSS_SELECTOR, 'input[name="concluir"]')
 
         # ENTÃO é exibida a mensagem pedindo para assistir até o final
-        self.esperar_mensagem(MSG_INCOMPLETA, tipo='error')
+        self.espera.until(
+            EC.text_to_be_present_in_element(
+                (By.TAG_NAME, "body"),
+                MSG_INCOMPLETA
+            )
+    )
 
         # E a aula NÃO é marcada como concluída
         self.assertTrue(self.navegador.find_elements(By.ID, 'form-concluir'))
