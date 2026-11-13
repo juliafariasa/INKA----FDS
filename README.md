@@ -332,7 +332,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   link
 
   ### Link do screencast do código django:
- LINK
+  https://youtu.be/-NC-9cw7_q4
 
   ### Quadro de sprint 4:
   <img width="1667" height="847" alt="image" src="https://github.com/user-attachments/assets/e951e31e-76cc-406e-bd5b-c87f61dcd485" />
