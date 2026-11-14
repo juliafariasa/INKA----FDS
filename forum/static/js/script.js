@@ -31,25 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
         atualizar();
     }
 
-    var botaoModo = document.createElement('button');
-    botaoModo.type = 'button';
-    botaoModo.className = 'botao-modo';
-    document.querySelector('nav').appendChild(botaoModo);
-
-    var aplicarModo = function (noturno) {
-        document.body.classList.toggle('modo-noturno', noturno);
-        botaoModo.textContent = noturno ? 'Modo claro' : 'Modo noturno';
-        botaoModo.setAttribute('aria-pressed', noturno);
-    };
-
-    aplicarModo(localStorage.getItem('modo') === 'noturno');
-
-    botaoModo.addEventListener('click', function () {
-        var noturno = !document.body.classList.contains('modo-noturno');
-        localStorage.setItem('modo', noturno ? 'noturno' : 'claro');
-        aplicarModo(noturno);
-    });
-
     var botaoTopo = document.createElement('button');
     botaoTopo.type = 'button';
     botaoTopo.className = 'voltar-topo';
@@ -65,12 +46,50 @@ document.addEventListener('DOMContentLoaded', function () {
         botaoTopo.classList.toggle('visivel', window.scrollY > 300);
     });
 
+    iniciarMenu();
     desenharTintaDecorativa();
     iniciarDesenho();
     iniciarAnimacaoCaneta();
     iniciarFormularioContato();
     iniciarRevelacaoEquipe();
+    revelarSecoes();
 });
+
+function iniciarMenu() {
+    var botao = document.querySelector('.menu-botao');
+    var menu = document.getElementById('menu');
+    var aberto = function () {
+        return document.body.classList.contains('menu-aberto');
+    };
+
+    var alternar = function (abrir) {
+        document.body.classList.toggle('menu-aberto', abrir);
+        botao.setAttribute('aria-expanded', abrir);
+        botao.setAttribute('aria-label', abrir ? 'Fechar menu' : 'Abrir menu');
+        if (abrir) {
+            menu.querySelector('a').focus({ preventScroll: true });
+        }
+    };
+
+    botao.addEventListener('click', function () {
+        alternar(!aberto());
+    });
+
+    // Clique fora da gaveta fecha; o fundo escurecido é o próprio body.
+    document.addEventListener('click', function (evento) {
+        if (aberto() && !menu.contains(evento.target) &&
+                !botao.contains(evento.target)) {
+            alternar(false);
+        }
+    });
+
+    document.addEventListener('keydown', function (evento) {
+        if (evento.key === 'Escape' && aberto()) {
+            alternar(false);
+            botao.focus();
+        }
+    });
+}
 
 // Gera a mancha de tinta do hero em SVG. Cada faixa segue uma linha-guia e é
 // formada por vários fios finos. Os valores usam o viewBox 1280x806.
@@ -600,3 +619,133 @@ function iniciarRevelacaoEquipe() {
         observador.observe(item);
     });
 }
+
+// Seções do tema escuro entram ao aparecer na tela. A primeira de cada página
+// já está à vista e fica de fora; sem JavaScript tudo aparece normalmente.
+function revelarSecoes() {
+    var secoes = Array.prototype.slice.call(
+        document.querySelectorAll('.landing-secao'), 1
+    );
+    if (!secoes.length || !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    var observador = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (entrada) {
+            if (entrada.isIntersecting) {
+                entrada.target.classList.add('revelada');
+                observador.unobserve(entrada.target);
+            }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+    secoes.forEach(function (secao) {
+        secao.classList.add('revelar');
+        observador.observe(secao);
+    });
+}
+
+// ==========================================
+// INKA - MÁQUINA DE ESCREVER
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const experiencia = document.querySelector("#type-experiencia");
+    const botao = document.querySelector("#type-acionar");
+    const textoBotao = document.querySelector("#type-acao-texto");
+    const formulario = document.querySelector("#type-form-container");
+    const fechar = document.querySelector("#type-fechar");
+    const titulo = document.querySelector("#type-titulo");
+    const subtitulo = document.querySelector("#type-subtitulo");
+
+    if (!experiencia || !botao || !formulario || !fechar) return;
+
+    let aberto = false;
+    let digitando = false;
+
+    const abrirMaquina = () => {
+        if (aberto || digitando) return;
+
+        digitando = true;
+        experiencia.classList.add("type-digitando");
+        textoBotao.textContent = "DIGITANDO...";
+
+        const tituloFinal = "Toda conversa\ncomeça com uma ideia.";
+        const subtituloFinal = "Escreva para a gente.";
+
+        titulo.textContent = "";
+        subtitulo.textContent = "";
+
+        let i = 0;
+        const textoCompleto = tituloFinal;
+
+        const escrever = () => {
+            if (i < textoCompleto.length) {
+                titulo.textContent += textoCompleto[i];
+                i++;
+                setTimeout(escrever, 65);
+            } else {
+                let j = 0;
+
+                const escreverSubtitulo = () => {
+                    if (j < subtituloFinal.length) {
+                        subtitulo.textContent += subtituloFinal[j];
+                        j++;
+                        setTimeout(escreverSubtitulo, 45);
+                    } else {
+                        finalizar();
+                    }
+                };
+
+                escreverSubtitulo();
+            }
+        };
+
+        const finalizar = () => {
+            experiencia.classList.remove("type-digitando");
+            experiencia.classList.add("type-aberto");
+            formulario.hidden = false;
+            textoBotao.textContent = "MÁQUINA ACIONADA";
+            aberto = true;
+            digitando = false;
+
+            setTimeout(() => {
+                if (window.innerWidth <= 850) {
+                    formulario.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }
+
+                const primeiroCampo = formulario.querySelector("input");
+                if (primeiroCampo) primeiroCampo.focus({ preventScroll: true });
+            }, 300);
+        };
+
+        escrever();
+    };
+
+    const fecharMaquina = () => {
+        experiencia.classList.remove("type-aberto", "type-digitando");
+        formulario.hidden = true;
+
+        titulo.textContent = "Toda conversa\ncomeça com uma ideia.";
+        subtitulo.textContent = "Escreva para a gente.";
+
+        textoBotao.textContent = "ACIONAR A MÁQUINA";
+        aberto = false;
+        digitando = false;
+
+        botao.focus();
+    };
+
+    botao.addEventListener("click", abrirMaquina);
+    fechar.addEventListener("click", fecharMaquina);
+
+    document.addEventListener("keydown", (evento) => {
+        if (evento.key === "Escape" && aberto) {
+            fecharMaquina();
+        }
+    });
+});

@@ -1,50 +1,152 @@
+
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}Cadastrar aula - {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>Cadastrar aula</h2>
 
-<p>
-    Cadastre uma aula sobre inclusão e acessibilidade para a equipe de
-    {{ estudio.nome }}. Ela aparece só na área de aulas deste estúdio.
-</p>
+<section class="aula-cadastro">
 
-<form method="post">
-    {% csrf_token %}
+    <div class="aula-apresentacao">
 
-    <label for="titulo">Título da aula</label>
-    <input type="text" id="titulo" name="titulo" maxlength="150"
-           value="{{ dados.titulo|default:'' }}">
-    {% if erros.titulo %}<p class="erro">{{ erros.titulo }}</p>{% endif %}
+        <span class="aula-identificacao">INKA / 01</span>
 
-    <label for="descricao">Descrição (opcional)</label>
-    <textarea id="descricao" name="descricao" rows="4">{{ dados.descricao|default:'' }}</textarea>
+        <h2>Conhecimento que transforma<span>.</span></h2>
 
-    <label for="url_video">Link do vídeo</label>
-    <input type="url" id="url_video" name="url_video" maxlength="500"
-           placeholder="https://www.youtube.com/watch?v=..."
-           value="{{ dados.url_video|default:'' }}">
-    {% if erros.url_video %}<p class="erro">{{ erros.url_video }}</p>{% endif %}
-    <p class="ajuda">
-        Use um link do YouTube ou de um arquivo de vídeo (.mp4, .webm ou .ogg).
-    </p>
+        <p>
+            Compartilhe conhecimento com sua equipe.
+            Cadastre conteúdos sobre inclusão, acessibilidade
+            e práticas mais conscientes no universo da tatuagem.
+        </p>
 
-    <label for="minutos">Duração do vídeo: minutos</label>
-    <input type="number" id="minutos" name="minutos" min="0" max="600"
-           value="{{ dados.minutos|default:'' }}">
+        <div class="aula-detalhe-decorativo">
+            <span class="aula-detalhe-simbolo">✳</span>
+            <span>APRENDER · COMPARTILHAR · TRANSFORMAR</span>
+        </div>
 
-    <label for="segundos">Duração do vídeo: segundos</label>
-    <input type="number" id="segundos" name="segundos" min="0" max="59"
-           value="{{ dados.segundos|default:'' }}">
-    {% if erros.duracao %}<p class="erro">{{ erros.duracao }}</p>{% endif %}
-    <p class="ajuda">
-        Informe a duração exata do vídeo. A aula só pode ser concluída depois
-        de assistida até esse ponto.
-    </p>
+        <span class="aula-legenda">
+            EDUCAÇÃO É PARTE DA TRANSFORMAÇÃO.
+        </span>
 
-    <input type="submit" name="cadastrar" value="Cadastrar aula">
-</form>
+    </div>
 
-<p><a href="{% url 'forum:estudio_aulas' estudio.id %}">Voltar às aulas</a></p>
+
+    <div class="aula-formulario">
+
+        <div class="aula-formulario-cabecalho">
+            <span>CADASTRO DE CONTEÚDO</span>
+            <h3>Nova aula</h3>
+            <p>
+                Adicione os detalhes do conteúdo que será disponibilizado
+                para a equipe de {{ estudio.nome }}.
+            </p>
+        </div>
+
+        <form method="post" class="aula-form">
+            {% csrf_token %}
+
+            <div class="aula-campo">
+                <label for="titulo">Título da aula</label>
+                <input
+                    type="text"
+                    id="titulo"
+                    name="titulo"
+                    maxlength="150"
+                    placeholder="Ex.: Introdução à acessibilidade"
+                    value="{{ dados.titulo|default:'' }}"
+                >
+                {% if erros.titulo %}
+                    <p class="erro">{{ erros.titulo }}</p>
+                {% endif %}
+            </div>
+
+            <div class="aula-campo">
+                <label for="descricao">
+                    Descrição <span>(opcional)</span>
+                </label>
+                <textarea
+                    id="descricao"
+                    name="descricao"
+                    rows="4"
+                    placeholder="Conte um pouco sobre o que será abordado..."
+                >{{ dados.descricao|default:'' }}</textarea>
+            </div>
+
+            <div class="aula-campo">
+                <label for="url_video">Link do vídeo</label>
+                <input
+                    type="url"
+                    id="url_video"
+                    name="url_video"
+                    maxlength="500"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value="{{ dados.url_video|default:'' }}"
+                >
+                {% if erros.url_video %}
+                    <p class="erro">{{ erros.url_video }}</p>
+                {% endif %}
+                <p class="ajuda">
+                    YouTube ou arquivo de vídeo (.mp4, .webm ou .ogg).
+                </p>
+            </div>
+
+            <div class="aula-duracao">
+                <span class="aula-duracao-titulo">Duração do vídeo</span>
+
+                <div class="aula-duracao-campos">
+
+                    <div class="aula-campo">
+                        <label for="minutos">Minutos</label>
+                        <input
+                            type="number"
+                            id="minutos"
+                            name="minutos"
+                            min="0"
+                            max="600"
+                            value="{{ dados.minutos|default:'' }}"
+                        >
+                    </div>
+
+                    <div class="aula-campo">
+                        <label for="segundos">Segundos</label>
+                        <input
+                            type="number"
+                            id="segundos"
+                            name="segundos"
+                            min="0"
+                            max="59"
+                            value="{{ dados.segundos|default:'' }}"
+                        >
+                    </div>
+
+                </div>
+
+                {% if erros.duracao %}
+                    <p class="erro">{{ erros.duracao }}</p>
+                {% endif %}
+
+                <p class="ajuda">
+                    Informe a duração exata. A aula só poderá ser concluída
+                    depois de assistida até o final.
+                </p>
+            </div>
+
+            <button type="submit" name="cadastrar" class="aula-submit">
+                Cadastrar aula <span>↗</span>
+            </button>
+
+        </form>
+
+        <a
+            class="aula-voltar"
+            href="{% url 'forum:estudio_aulas' estudio.id %}"
+        >
+            ← Voltar às aulas
+        </a>
+
+    </div>
+
+</section>
+
 {% endblock %}

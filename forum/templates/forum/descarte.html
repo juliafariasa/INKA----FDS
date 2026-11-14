@@ -1,86 +1,311 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}Descarte de resíduos - INKA{% endblock %}
 
 {% block content %}
-<h2>Descarte de resíduos</h2>
 
-<p>
-    Vídeos, podcasts e slides sobre como separar e descartar os resíduos do
-    estúdio, e as empresas que fazem a coleta.
-</p>
+<div class="inka-descarte-pagina">
 
-<h3>Conteúdos</h3>
-{% if estudio %}
-    <p><a href="{% url 'forum:descarte_conteudo_novo' estudio.id %}">Cadastrar um conteúdo</a></p>
-{% endif %}
-{% if tem_conteudo %}
-    {% for formato in formatos %}
-        <h4>{{ formato.titulo }}</h4>
-        <ul>
-            {% for conteudo in formato.conteudos %}
-                <li>
-                    <a href="{% url 'forum:descarte_conteudo' conteudo.id %}">{{ conteudo.titulo }}</a>
-                    {% if not conteudo.disponivel %}(indisponível no momento){% endif %}
-                    {% if conteudo.do_estudio %}
-                        | Cadastrado pelo seu estúdio
-                        | <a href="{% url 'forum:descarte_conteudo_remover' estudio.id conteudo.id %}">Remover</a>
-                    {% endif %}
-                    {% if conteudo.descricao %}<br>{{ conteudo.descricao|truncatewords:30 }}{% endif %}
-                </li>
-            {% empty %}
-                <li>Nada cadastrado neste formato ainda.</li>
-            {% endfor %}
-        </ul>
-    {% endfor %}
-{% else %}
-    <div class="caixa">
-        <p>Ainda não há conteúdos sobre descarte cadastrados.</p>
-    </div>
-{% endif %}
+    <!-- HERO -->
+    <section class="inka-descarte-hero">
 
-<h3>Empresas de coleta de resíduos</h3>
-{% if estudio %}
-    <p><a href="{% url 'forum:descarte_empresa_nova' estudio.id %}">Cadastrar uma empresa</a></p>
-{% endif %}
-{% if empresas %}
-    <div class="tabela-rolagem">
-        <table>
-            <tr>
-                <th>Empresa</th>
-                <th>Cidade</th>
-                <th>Recolhe</th>
-                <th>Contato</th>
-            </tr>
-            {% for empresa in empresas %}
-                <tr>
-                    <td>
-                        {{ empresa.nome }}
-                        {% if empresa.do_estudio %}
-                            <br><a href="{% url 'forum:descarte_empresa_remover' estudio.id empresa.id %}">Remover</a>
-                        {% endif %}
-                    </td>
-                    <td>{{ empresa.cidade }}</td>
-                    <td>{{ empresa.tipos_residuo }}</td>
-                    <td>
-                        <a href="tel:{{ empresa.telefone_link }}">{{ empresa.telefone }}</a>
-                        {% if empresa.email %}<br><a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>{% endif %}
-                        {% if empresa.site %}<br><a href="{{ empresa.site }}" target="_blank" rel="noopener">Site da empresa</a>{% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-    </div>
-{% else %}
-    <div class="caixa">
-        <p>Nenhuma empresa de descarte cadastrada ainda.</p>
-    </div>
-{% endif %}
+        <div class="inka-descarte-intro">
+            <span class="inka-descarte-eyebrow">
+                <span></span> INKA / CICLO RESPONSÁVEL
+            </span>
 
-{% if estudio %}
-    <p class="ajuda">
-        O que o seu estúdio cadastra aparece só para ele. Os conteúdos e
-        empresas cadastrados pela equipe do INKA aparecem para todos.
-    </p>
-{% endif %}
+            <h2>Descarte<br>consciente<span>.</span></h2>
+
+            <p>
+                O cuidado com o planeta também faz parte da arte.
+                Descubra como separar, armazenar e destinar corretamente
+                os resíduos produzidos no seu estúdio.
+            </p>
+
+            <a href="#biblioteca-descarte" class="inka-descarte-scroll">
+                EXPLORAR CONTEÚDOS
+                <span>↓</span>
+            </a>
+        </div>
+
+        <!-- LIXEIRA 3D -->
+        <div class="inka-lixeira-cena" aria-hidden="true">
+
+            <div class="inka-lixeira-orbita orbita-1"></div>
+            <div class="inka-lixeira-orbita orbita-2"></div>
+
+            <div class="inka-lixeira-selo">
+                <span>01</span>
+                <span>RECICLAR</span>
+            </div>
+
+            <div class="inka-lixeira-visual">
+
+                <div class="inka-lixeira-sombra"></div>
+
+                <div class="inka-lixeira">
+
+                    <div class="inka-lixeira-interior"></div>
+
+                    <div class="inka-lixeira-corpo">
+                        <div class="inka-lixeira-lateral"></div>
+
+                        <div class="inka-lixeira-frente">
+                            <span class="inka-lixeira-simbolo">♻</span>
+                            <span class="inka-lixeira-texto">CICLO</span>
+                            <span class="inka-lixeira-linha"></span>
+                            <span class="inka-lixeira-numero">INKA / 001</span>
+                        </div>
+
+                        <div class="inka-lixeira-detalhe"></div>
+                    </div>
+
+                    <div class="inka-lixeira-tampa">
+                        <div class="inka-lixeira-alca"></div>
+                        <div class="inka-lixeira-tampa-detalhe"></div>
+                    </div>
+
+                    <div class="inka-lixeira-base"></div>
+
+                </div>
+
+                <div class="inka-lixeira-reflexo"></div>
+
+            </div>
+
+            <span class="inka-lixeira-legenda">
+                PASSE O CURSOR SOBRE A LIXEIRA
+            </span>
+
+        </div>
+
+        <div class="inka-descarte-indice">
+            <span>GESTÃO DE RESÍDUOS</span>
+            <span>01 — 03</span>
+        </div>
+
+    </section>
+
+
+    <!-- BIBLIOTECA -->
+    <section class="inka-descarte-secao" id="biblioteca-descarte">
+
+        <div class="inka-descarte-cabecalho">
+            <div>
+                <span class="inka-descarte-microtitulo">APRENDA A FAZER</span>
+                <h3>Biblioteca de descarte<span>.</span></h3>
+                <p>
+                    Conhecimento para transformar pequenos hábitos
+                    em grandes mudanças.
+                </p>
+            </div>
+
+            {% if estudio %}
+                <a class="inka-descarte-acao"
+                   href="{% url 'forum:descarte_conteudo_novo' estudio.id %}">
+                    <span>+</span> Cadastrar conteúdo
+                </a>
+            {% endif %}
+        </div>
+
+        {% if tem_conteudo %}
+
+            <div class="inka-descarte-formatos">
+
+                {% for formato in formatos %}
+
+                    <article class="inka-descarte-formato">
+
+                        <div class="inka-descarte-formato-topo">
+                            <span class="inka-descarte-formato-marca">
+                                MATERIAL / {{ forloop.counter|stringformat:"02d" }}
+                            </span>
+                            <span class="inka-descarte-formato-seta">↗</span>
+                        </div>
+
+                        <h4>{{ formato.titulo }}</h4>
+
+                        <div class="inka-descarte-lista">
+
+                            {% for conteudo in formato.conteudos %}
+
+                                <div class="inka-descarte-conteudo">
+
+                                    <div class="inka-descarte-conteudo-icone">
+                                        ↗
+                                    </div>
+
+                                    <div class="inka-descarte-conteudo-info">
+
+                                        <a href="{% url 'forum:descarte_conteudo' conteudo.id %}">
+                                            {{ conteudo.titulo }}
+                                        </a>
+
+                                        {% if not conteudo.disponivel %}
+                                            <span class="inka-descarte-indisponivel">
+                                                Indisponível no momento
+                                            </span>
+                                        {% endif %}
+
+                                        {% if conteudo.descricao %}
+                                            <p>{{ conteudo.descricao|truncatewords:30 }}</p>
+                                        {% endif %}
+
+                                        {% if conteudo.do_estudio %}
+                                            <span class="inka-descarte-autoria">
+                                                CADASTRADO PELO SEU ESTÚDIO
+                                            </span>
+
+                                            <a class="inka-descarte-remover"
+                                               href="{% url 'forum:descarte_conteudo_remover' estudio.id conteudo.id %}">
+                                                Remover conteúdo
+                                            </a>
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            {% empty %}
+
+                                <p class="inka-descarte-vazio-formato">
+                                    Nada cadastrado neste formato ainda.
+                                </p>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="inka-descarte-vazio">
+                <span>✳</span>
+                <div>
+                    <strong>O conhecimento começa aqui.</strong>
+                    <p>Ainda não há conteúdos sobre descarte cadastrados.</p>
+                </div>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- EMPRESAS -->
+    <section class="inka-descarte-secao inka-descarte-rede">
+
+        <div class="inka-descarte-cabecalho">
+            <div>
+                <span class="inka-descarte-microtitulo">DESTINO RESPONSÁVEL</span>
+                <h3>Rede de coleta<span>.</span></h3>
+                <p>
+                    Encontre empresas que ajudam seu estúdio a dar
+                    o destino correto aos resíduos.
+                </p>
+            </div>
+
+            {% if estudio %}
+                <a class="inka-descarte-acao"
+                   href="{% url 'forum:descarte_empresa_nova' estudio.id %}">
+                    <span>+</span> Cadastrar empresa
+                </a>
+            {% endif %}
+        </div>
+
+        {% if empresas %}
+
+            <div class="inka-descarte-tabela">
+
+                <div class="inka-descarte-tabela-cabecalho">
+                    <span>EMPRESA</span>
+                    <span>LOCALIZAÇÃO</span>
+                    <span>TIPOS DE RESÍDUO</span>
+                    <span>CONTATO</span>
+                </div>
+
+                {% for empresa in empresas %}
+
+                    <article class="inka-descarte-empresa">
+
+                        <div class="inka-descarte-empresa-nome">
+                            <span class="inka-descarte-empresa-icone">↗</span>
+
+                            <div>
+                                <strong>{{ empresa.nome }}</strong>
+
+                                {% if empresa.do_estudio %}
+                                    <a href="{% url 'forum:descarte_empresa_remover' estudio.id empresa.id %}">
+                                        Remover cadastro
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="inka-descarte-empresa-cidade">
+                            {{ empresa.cidade }}
+                        </div>
+
+                        <div class="inka-descarte-empresa-residuos">
+                            {{ empresa.tipos_residuo }}
+                        </div>
+
+                        <div class="inka-descarte-empresa-contato">
+                            <a href="tel:{{ empresa.telefone_link }}">
+                                {{ empresa.telefone }}
+                            </a>
+
+                            {% if empresa.email %}
+                                <a href="mailto:{{ empresa.email }}">
+                                    {{ empresa.email }}
+                                </a>
+                            {% endif %}
+
+                            {% if empresa.site %}
+                                <a href="{{ empresa.site }}" target="_blank" rel="noopener">
+                                    Visitar site ↗
+                                </a>
+                            {% endif %}
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="inka-descarte-vazio">
+                <span>✳</span>
+                <div>
+                    <strong>Nenhuma empresa por aqui ainda.</strong>
+                    <p>Novas opções de coleta aparecerão nesta área.</p>
+                </div>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    {% if estudio %}
+        <div class="inka-descarte-ajuda">
+            <span>i</span>
+            <p>
+                O que o seu estúdio cadastra aparece só para ele.
+                Os conteúdos e empresas cadastrados pela equipe do INKA
+                aparecem para todos.
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+
 {% endblock %}

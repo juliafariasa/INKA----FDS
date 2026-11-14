@@ -46,6 +46,7 @@ class DescarteTest(BaseE2E):
         )
 
     def ir_para_o_descarte(self):
+        self.abrir_menu()
         self.clicar(By.XPATH, '//nav//a[normalize-space()="Descarte"]')
         self.esperar_titulo('Descarte de resíduos')
 

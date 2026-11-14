@@ -3,45 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#121314">
     <title>{% block titulo %}INKA{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
     <script src="{% static 'js/script.js' %}" defer></script>
     {% block head_extra %}{% endblock %}
 </head>
 <body class="{% block classe_body %}{% endblock %}">
-    <header>
+    <!-- Decorações gráficas fixas do INKA -->
+<div class="inka-fundo-grafico" aria-hidden="true">
+
+    <span class="inka-deco inka-estrela estrela-1">✳</span>
+    <span class="inka-deco inka-estrela estrela-2">✳</span>
+    <span class="inka-deco inka-cruz cruz-1">+</span>
+    <span class="inka-deco inka-cruz cruz-2">×</span>
+
+    <span class="inka-deco inka-circulo circulo-1"></span>
+    <span class="inka-deco inka-circulo circulo-2"></span>
+
+    <span class="inka-deco inka-risco risco-1"></span>
+    <span class="inka-deco inka-risco risco-2"></span>
+
+       <!-- Ilustrações decorativas -->
+    <svg class="inka-ilustra inka-flor" viewBox="0 0 220 260">
+        <g fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- Caule -->
+            <path d="M108 245 C105 205 125 170 112 130 C104 105 93 90 91 70"/>
+            <path d="M111 190 C80 175 61 180 48 202 C75 207 96 201 111 190"/>
+            <path d="M111 190 C88 184 70 190 59 199"/>
+
+            <!-- Folha superior -->
+            <path d="M112 151 C135 119 160 119 176 130 C158 151 135 157 112 151"/>
+            <path d="M119 148 C140 137 157 132 176 130"/>
+
+            <!-- Flor -->
+            <path d="M91 70 C60 53 61 25 85 30 C99 32 105 49 108 62"/>
+            <path d="M91 70 C55 78 39 59 54 43 C67 30 84 48 91 70"/>
+            <path d="M91 70 C74 100 47 96 49 75 C50 58 72 59 91 70"/>
+            <path d="M91 70 C94 105 119 111 127 92 C134 75 111 66 91 70"/>
+            <path d="M91 70 C116 44 139 54 132 73 C126 88 105 82 91 70"/>
+
+            <!-- Miolo -->
+            <circle cx="91" cy="70" r="8"/>
+            <circle cx="91" cy="70" r="2"/>
+
+            <!-- Detalhes -->
+            <path d="M35 117 L45 111 M29 128 L40 125"/>
+            <path d="M148 42 L153 31 M157 49 L169 43"/>
+            <circle cx="157" cy="87" r="2"/>
+            <circle cx="25" cy="83" r="2"/>
+        </g>
+    </svg>
+
+    <svg class="inka-ilustra inka-olho" viewBox="0 0 240 160">
+        <g fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- Olho -->
+            <path d="M22 80 Q120 -5 218 80 Q120 165 22 80Z"/>
+            <circle cx="120" cy="80" r="34"/>
+            <circle cx="120" cy="80" r="14"/>
+            <circle cx="120" cy="80" r="4" fill="currentColor"/>
+
+            <!-- Raios -->
+            <path d="M120 10 V0 M75 23 L66 11 M165 23 L174 11"/>
+            <path d="M43 43 L28 34 M197 43 L212 34"/>
+            <path d="M120 150 V160 M75 137 L66 149 M165 137 L174 149"/>
+
+            <!-- Marcas -->
+            <path d="M12 111 L3 117 M228 111 L237 117"/>
+            <path d="M110 80 L98 80 M130 80 L142 80"/>
+        </g>
+    </svg>
+
+    <span class="inka-microtexto micro-1">INKA / VISUAL ARCHIVE</span>
+    <span class="inka-microtexto micro-2">ART · PEOPLE · PLANET</span>
+
+    <span class="inka-marca-grafica marca-1">✳</span>
+    <span class="inka-marca-grafica marca-2">///</span>
+    
+
+</div>
+    <header class="topo">
         {% block cabecalho %}
         <h1>INKA</h1>
         <p class="subtitulo">Práticas de ESG para pequenas e médias empresas</p>
         {% endblock %}
+        {% block topo_extra %}{% endblock %}
+        <button type="button" class="menu-botao" aria-controls="menu"
+                aria-expanded="false" aria-label="Abrir menu"><span></span></button>
     </header>
 
     {% with pagina=request.resolver_match.url_name %}
-    <nav>
-        <a class="{% if pagina == 'index' %}ativo{% endif %}"
-           href="{% url 'forum:index' %}">Início</a>
-        <a class="{% if pagina == 'quem_somos' %}ativo{% endif %}"
-           href="{% url 'forum:quem_somos' %}">Quem Somos</a>
-        <a class="{% if pagina == 'sobre_projeto' %}ativo{% endif %}"
-           href="{% url 'forum:sobre_projeto' %}">Sobre o Projeto</a>
-        <a class="{% if pagina == 'fale_conosco' %}ativo{% endif %}"
-           href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
-        <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
-           href="{% url 'forum:estudios' %}">Estúdios</a>
-        {% if user.is_authenticated %}
-            <a class="{% if 'descarte' in pagina %}ativo{% endif %}"
-               href="{% url 'forum:descarte' %}">Descarte</a>
-            <a class="link-conta{% if pagina == 'alterar_senha' %} ativo{% endif %}"
-               href="{% url 'forum:minha_area' %}">Minha área</a>
-            <form class="form-sair" method="post" action="{% url 'forum:sair' %}">
-                {% csrf_token %}
-                <button type="submit">Sair</button>
-            </form>
-        {% else %}
-            <a class="link-conta{% if pagina == 'entrar' %} ativo{% endif %}"
-               href="{% url 'forum:entrar' %}">Entrar</a>
-        {% endif %}
-        {% block nav_extra %}{% endblock %}
+    <nav class="menu" id="menu" aria-label="Navegação principal">
+        <div class="menu-links">
+            <a class="{% if pagina == 'index' %}ativo{% endif %}"
+               href="{% url 'forum:index' %}">Início</a>
+            <a class="{% if pagina == 'quem_somos' %}ativo{% endif %}"
+               href="{% url 'forum:quem_somos' %}">Quem Somos</a>
+            <a class="{% if pagina == 'sobre_projeto' %}ativo{% endif %}"
+               href="{% url 'forum:sobre_projeto' %}">Sobre o Projeto</a>
+            <a class="{% if pagina == 'fale_conosco' %}ativo{% endif %}"
+               href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
+            <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
+               href="{% url 'forum:estudios' %}">Estúdios</a>
+            {% if user.is_authenticated %}
+                <a class="{% if 'descarte' in pagina %}ativo{% endif %}"
+                   href="{% url 'forum:descarte' %}">Descarte</a>
+            {% endif %}
+        </div>
+        <div class="menu-conta">
+            {% if user.is_authenticated %}
+                <a class="link-conta{% if pagina == 'alterar_senha' %} ativo{% endif %}"
+                   href="{% url 'forum:minha_area' %}">Minha área</a>
+                <form class="form-sair" method="post" action="{% url 'forum:sair' %}">
+                    {% csrf_token %}
+                    <button type="submit">Sair</button>
+                </form>
+            {% else %}
+                <a class="link-conta{% if pagina == 'entrar' %} ativo{% endif %}"
+                   href="{% url 'forum:entrar' %}">Entrar</a>
+            {% endif %}
+        </div>
     </nav>
     {% endwith %}
 
@@ -51,6 +137,7 @@
         {% endfor %}
 
         {% block content %}{% endblock %}
+
     </div>
 
     <footer>

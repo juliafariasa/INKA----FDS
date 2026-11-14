@@ -2,77 +2,122 @@
 
 {% block titulo %}{{ estudio.nome }} - INKA{% endblock %}
 
+{% block classe_body %}pagina-perfil{% endblock %}
+
+{% block classe_container %}container perfil{% if eh_dono %} perfil-dono{% endif %}{% endblock %}
+
 {% block content %}
-<h2>{{ estudio.nome }}</h2>
-
-<p>Estúdio de tatuagem em {{ estudio.cidade }}.</p>
-
-{% if diagnostico %}
-    {% with selo=diagnostico.selo pilares=diagnostico.pilares_ativos %}
-    <div class="caixa">
-        {% if selo %}
-            <p><b>Selo Estúdio Consciente {{ selo }}</b></p>
-            <p>
-                {{ pilares|length }} de 3 pilares do ESG ativos, com nota 7 ou
-                mais no diagnóstico.
-            </p>
-        {% else %}
-            <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
-            <p>Nenhum pilar do ESG atingiu nota 7 no último diagnóstico.</p>
-        {% endif %}
-    </div>
-
-    <table class="tabela-itens">
-        <tr>
-            <td><b>Pilares ativos</b></td>
-            <td>
-                {% for pilar in pilares %}
-                    {{ pilar.nome }}{% if not forloop.last %}, {% endif %}
-                {% empty %}
-                    Nenhum
-                {% endfor %}
-            </td>
-        </tr>
-        <tr>
-            <td><b>Índice de sustentabilidade</b></td>
-            <td>{{ diagnostico.indice|floatformat:0 }} de 100</td>
-        </tr>
-        <tr>
-            <td><b>Última avaliação</b></td>
-            <td>{{ diagnostico.data|date:"d/m/Y" }}</td>
-        </tr>
-    </table>
-    {% endwith %}
-{% else %}
-    <div class="caixa">
-        <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
-        <p>Este estúdio ainda não fez o diagnóstico de maturidade ESG.</p>
-    </div>
-{% endif %}
-
-<h3>Sobre o selo</h3>
-<p>
-    O selo Estúdio Consciente é dado pelo diagnóstico do INKA. Cada pilar com
-    nota 7 ou mais conta como ativo: 3 pilares ativos dão o selo Ouro, 2 dão
-    Prata e 1 dá Bronze.
-</p>
-
 {% if eh_dono %}
-<h3>Área do estúdio</h3>
-<p>
-    <a href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code do perfil</a>
-    |
-    <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">{% if diagnostico %}Ver{% else %}Fazer{% endif %} diagnóstico</a>
-    |
-    <a href="{% url 'forum:estudio_residuos' estudio.id %}">Calculadora de resíduos</a>
-    |
-    <a href="{% url 'forum:estudio_estoque' estudio.id %}">Estoque</a>
-    |
-    <a href="{% url 'forum:estudio_aulas' estudio.id %}">Aulas de inclusão</a>
-</p>
-<p class="ajuda">
-    Só a conta do estúdio vê estes links.
-    <a href="{% url 'forum:alterar_senha' %}">Alterar senha</a>
-</p>
+<aside class="perfil-lateral">
+    <h3>Área do estúdio</h3>
+    <nav class="perfil-atalhos" aria-label="Área do estúdio">
+        <a href="{% url 'forum:estudio_qrcode' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>
+            QR Code do perfil
+        </a>
+        <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></svg>
+            {% if diagnostico %}Ver{% else %}Fazer{% endif %} diagnóstico
+        </a>
+        <a href="{% url 'forum:estudio_residuos' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14M5 19c3-5 6-8 10-10"/></svg>
+            Calculadora de resíduos
+        </a>
+        <a href="{% url 'forum:estudio_estoque' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8"/></svg>
+            Estoque
+        </a>
+        <a href="{% url 'forum:estudio_aulas' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/></svg>
+            Aulas de inclusão
+        </a>
+    </nav>
+    <p class="ajuda">
+        Só a conta do estúdio vê estes links.
+        <a href="{% url 'forum:alterar_senha' %}">Alterar senha</a>
+    </p>
+</aside>
 {% endif %}
+
+<div class="perfil-conteudo">
+    <h2>{{ estudio.nome }}</h2>
+
+    <p class="perfil-cidade">Estúdio de tatuagem em {{ estudio.cidade }}.</p>
+
+    {% if diagnostico %}
+        {% with selo=diagnostico.selo pilares=diagnostico.pilares_ativos %}
+        <div class="perfil-blocos">
+            <div class="perfil-placar">
+                {# O anel e as barras repetem os números da ficha abaixo em forma de gráfico. #}
+                <div class="perfil-anel" aria-hidden="true">
+                    <svg viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="52"/>
+                        <circle cx="60" cy="60" r="52" pathLength="100"
+                                stroke-dasharray="{{ diagnostico.indice|floatformat:0 }} 100"/>
+                    </svg>
+                    <span>{{ diagnostico.indice|floatformat:0 }}</span>
+                </div>
+                <ul class="perfil-pilares">
+                    {% for item in diagnostico.notas_por_pilar %}
+                        <li{% if item.ativo %} class="ativo"{% endif %}>
+                            <span>{{ item.pilar.nome }}</span>
+                            <b>{{ item.nota|floatformat:1 }}</b>
+                            <i style="--nota: {{ item.nota|stringformat:'.1f' }}"></i>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="caixa perfil-selo{% if selo %} com-selo{% endif %}">
+                {% if selo %}
+                    <p><b>Selo Estúdio Consciente {{ selo }}</b></p>
+                    <p>
+                        {{ pilares|length }} de 3 pilares do ESG ativos, com nota 7 ou
+                        mais no diagnóstico.
+                    </p>
+                {% else %}
+                    <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
+                    <p>Nenhum pilar do ESG atingiu nota 7 no último diagnóstico.</p>
+                {% endif %}
+            </div>
+
+            <table class="tabela-itens perfil-ficha">
+                <tr>
+                    <td><b>Pilares ativos</b></td>
+                    <td>
+                        {% for pilar in pilares %}
+                            {{ pilar.nome }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Nenhum
+                        {% endfor %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Índice de sustentabilidade</b></td>
+                    <td>{{ diagnostico.indice|floatformat:0 }} de 100</td>
+                </tr>
+                <tr>
+                    <td><b>Última avaliação</b></td>
+                    <td>{{ diagnostico.data|date:"d/m/Y" }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endwith %}
+    {% else %}
+        <div class="caixa perfil-selo">
+            <p><b>Este estúdio ainda não possui o selo Estúdio Consciente</b></p>
+            <p>Este estúdio ainda não fez o diagnóstico de maturidade ESG.</p>
+        </div>
+    {% endif %}
+
+    <div class="perfil-sobre">
+        <h3>Sobre o selo</h3>
+        <p>
+            O selo Estúdio Consciente é dado pelo diagnóstico do INKA. Cada pilar com
+            nota 7 ou mais conta como ativo: 3 pilares ativos dão o selo Ouro, 2 dão
+            Prata e 1 dá Bronze.
+        </p>
+    </div>
+</div>
+
 {% endblock %}

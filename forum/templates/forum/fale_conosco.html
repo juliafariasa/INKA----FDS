@@ -1,83 +1,151 @@
+
 {% extends "forum/base_inka.html" %}
 
 {% block titulo %}Fale Conosco - INKA{% endblock %}
 
-{% block classe_body %}{{ block.super }} pagina-interna{% endblock %}
+{% block classe_body %}{{ block.super }} pagina-interna pagina-contato{% endblock %}
 
 {% block content %}
-<section class="landing-secao landing-contato">
-    <div class="landing-contato-info">
-        <p class="landing-rotulo">Contato</p>
-        <h2>Fale Conosco</h2>
-        <p>
-            Envie sua dúvida, sugestão ou proposta de parceria. A equipe responde
-            em até 3 dias úteis.
-        </p>
+<section class="type-pagina">
 
-        <p class="landing-rotulo">Sobre o que você pode escrever</p>
-        <ul class="landing-beneficios landing-assuntos">
-            {% for codigo, rotulo in assuntos %}
-                <li>{{ rotulo }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+    <header class="type-intro">
+        <span class="type-overline">INKA / CORRESPONDÊNCIAS Nº 04</span>
+        <h2>Vamos colocar<br>as ideias no papel<span>.</span></h2>
+        <p>Uma dúvida, uma ideia ou uma parceria? Nossa máquina está pronta para receber sua mensagem.</p>
+    </header>
 
-    <form method="post" class="landing-form" id="formulario-contato" novalidate>
-        {% csrf_token %}
+    <div class="type-experiencia" id="type-experiencia">
 
-        <div class="landing-campo">
-            <label for="nome">Nome</label>
-            <input type="text" id="nome" name="nome" maxlength="120"
-                   autocomplete="name" required
-                   value="{{ dados.nome|default:'' }}"
-                   {% if erros.nome %}aria-invalid="true" aria-describedby="erro-nome"{% endif %}>
-            {% if erros.nome %}<p class="erro" id="erro-nome">{{ erros.nome }}</p>{% endif %}
-        </div>
+        <div class="type-cena">
 
-        <div class="landing-campo">
-            <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" maxlength="254"
-                   autocomplete="email" required
-                   value="{{ dados.email|default:'' }}"
-                   {% if erros.email %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
-            {% if erros.email %}<p class="erro" id="erro-email">{{ erros.email }}</p>{% endif %}
-        </div>
+            <div class="type-etiqueta">
+                <span>INKA STUDIO</span>
+                <span>REC • BR</span>
+            </div>
 
-        <div class="landing-campo">
-            <label for="empresa">Empresa <span class="landing-opcional">(opcional)</span></label>
-            <input type="text" id="empresa" name="empresa" maxlength="120"
-                   autocomplete="organization"
-                   value="{{ dados.empresa|default:'' }}">
-        </div>
+            <div class="type-papel">
+                <div class="type-papel-conteudo">
+                    <span class="type-papel-codigo">CORRESPONDÊNCIA / 002</span>
+                    <h3 id="type-titulo">Toda conversa<br>começa com uma ideia.</h3>
+                    <p id="type-subtitulo">Escreva para a gente.</p>
+                </div>
+                <div class="type-papel-linha"></div>
+            </div>
 
-        <div class="landing-campo">
-            <label for="assunto">Assunto</label>
-            <select id="assunto" name="assunto" required
-                    {% if erros.assunto %}aria-invalid="true" aria-describedby="erro-assunto"{% endif %}>
-                {% for codigo, rotulo in assuntos %}
-                    <option value="{{ codigo }}"{% if dados.assunto == codigo %} selected{% endif %}>{{ rotulo }}</option>
-                {% endfor %}
-            </select>
-            {% if erros.assunto %}<p class="erro" id="erro-assunto">{{ erros.assunto }}</p>{% endif %}
-        </div>
+            <div class="type-rolo"></div>
 
-        <div class="landing-campo landing-campo-largo">
-            <label for="mensagem">Mensagem</label>
-            <textarea id="mensagem" name="mensagem" rows="6" required
-                      {% if erros.mensagem %}aria-invalid="true" aria-describedby="erro-mensagem"{% endif %}>{{ dados.mensagem|default:'' }}</textarea>
-            {% if erros.mensagem %}<p class="erro" id="erro-mensagem">{{ erros.mensagem }}</p>{% endif %}
-        </div>
+            <div class="type-maquina">
+                <div class="type-maquina-topo">
+                    <span class="type-marca">INKA</span>
+                    <span class="type-parafuso"></span>
+                    <span class="type-parafuso"></span>
+                </div>
 
-        <div class="landing-campo-largo landing-form-rodape">
-            <button type="submit" name="enviar" value="Enviar mensagem"
-                    class="landing-botao landing-botao-cta">
-                <span class="landing-botao-texto">Enviar mensagem</span>
+                <div class="type-maquina-corpo">
+                    <div class="type-detalhe"></div>
+                    <div class="type-teclado">
+                        <div class="type-teclas-linha">
+                            <span>Q</span><span>W</span><span>E</span><span>R</span><span>T</span><span>Y</span><span>U</span><span>I</span><span>O</span><span>P</span>
+                        </div>
+                        <div class="type-teclas-linha">
+                            <span>A</span><span>S</span><span>D</span><span>F</span><span>G</span><span>H</span><span>J</span><span>K</span><span>L</span>
+                        </div>
+                        <div class="type-teclas-linha">
+                            <span>Z</span><span>X</span><span>C</span><span>V</span><span>B</span><span>N</span><span>M</span>
+                        </div>
+                        <div class="type-teclas-linha">
+                            <span class="type-shift">SHIFT</span><span class="type-space"></span><span class="type-shift">↵</span>
+                        </div>
+                    </div>
+                    <div class="type-base"></div>
+                </div>
+            </div>
+
+            <div class="type-sombra"></div>
+
+            <button type="button" class="type-acionar" id="type-acionar">
+                <span class="type-acionar-ponto"></span>
+                <span id="type-acao-texto">ACIONAR A MÁQUINA</span>
+                <span class="type-acionar-seta">↗</span>
             </button>
-            <p class="ajuda">
-                Todos os campos são obrigatórios, exceto a empresa. A mensagem
-                precisa ter pelo menos 20 caracteres.
-            </p>
+
+            <span class="type-legenda">UMA MENSAGEM PODE COMEÇAR AQUI.</span>
         </div>
-    </form>
+
+        <div class="type-form-container" id="type-form-container" hidden>
+            <div class="type-form-papel">
+
+                <div class="type-form-cabecalho">
+                    <div>
+                        <span class="type-form-codigo">INKA / MENSAGEM RECEBIDA</span>
+                        <h3>Fale com a gente<span>.</span></h3>
+                    </div>
+                    <button type="button" id="type-fechar" aria-label="Fechar formulário">×</button>
+                </div>
+
+                <p class="type-form-descricao">Agora é sua vez de escrever. Conte o que está pensando e nossa equipe responderá em até 3 dias úteis.</p>
+
+                <form method="post" class="type-formulario" id="formulario-contato" novalidate>
+                    {% csrf_token %}
+
+                    <div class="type-campo">
+                        <label for="nome">Nome</label>
+                        <input type="text" id="nome" name="nome" maxlength="120"
+                               autocomplete="name" required
+                               value="{{ dados.nome|default:'' }}"
+                               {% if erros.nome %}aria-invalid="true" aria-describedby="erro-nome"{% endif %}>
+                        {% if erros.nome %}<p class="erro" id="erro-nome">{{ erros.nome }}</p>{% endif %}
+                    </div>
+
+                    <div class="type-campo">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" maxlength="254"
+                               autocomplete="email" required
+                               value="{{ dados.email|default:'' }}"
+                               {% if erros.email %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
+                        {% if erros.email %}<p class="erro" id="erro-email">{{ erros.email }}</p>{% endif %}
+                    </div>
+
+                    <div class="type-campo">
+                        <label for="empresa">Empresa <span>(opcional)</span></label>
+                        <input type="text" id="empresa" name="empresa" maxlength="120"
+                               autocomplete="organization"
+                               value="{{ dados.empresa|default:'' }}">
+                    </div>
+
+                    <div class="type-campo">
+                        <label for="assunto">Assunto</label>
+                        <select id="assunto" name="assunto" required
+                                {% if erros.assunto %}aria-invalid="true" aria-describedby="erro-assunto"{% endif %}>
+                            {% for codigo, rotulo in assuntos %}
+                                <option value="{{ codigo }}"{% if dados.assunto == codigo %} selected{% endif %}>{{ rotulo }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if erros.assunto %}<p class="erro" id="erro-assunto">{{ erros.assunto }}</p>{% endif %}
+                    </div>
+
+                    <div class="type-campo type-campo-largo">
+                        <label for="mensagem">Mensagem</label>
+                        <textarea id="mensagem" name="mensagem" rows="5" required
+                                  {% if erros.mensagem %}aria-invalid="true" aria-describedby="erro-mensagem"{% endif %}>{{ dados.mensagem|default:'' }}</textarea>
+                        {% if erros.mensagem %}<p class="erro" id="erro-mensagem">{{ erros.mensagem }}</p>{% endif %}
+                    </div>
+
+                    <div class="type-form-rodape">
+                        <p>Todos os campos são obrigatórios, exceto empresa. Mínimo de 20 caracteres na mensagem.</p>
+                        <button type="submit" name="enviar" value="Enviar mensagem">
+                            ENVIAR MENSAGEM <span>↗</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="type-form-assinatura">
+                    <span>INKA / COMUNICAÇÃO</span>
+                    <span>FIM DA PÁGINA 01</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </section>
 {% endblock %}

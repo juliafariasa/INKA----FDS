@@ -1,102 +1,230 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}Resíduos de {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>Calculadora de resíduos de {{ estudio.nome }}</h2>
 
-{% if calculo %}
-    <h3>Resultado do último cálculo</h3>
-    <p>
-        Calculado em {{ calculo.criado_em|date:"d/m/Y" }} para
-        {{ calculo.atendimentos }} atendimento(s) no mês.
-        <a href="#calculo">Editar dados</a>
-    </p>
-    {% with usados=calculo.materiais.all %}
-        {% if usados %}
-            <p>
-                Materiais usados:
-                {% for material in usados %}
-                    {{ material.nome }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
+<div class="inka-residuos-pagina">
+
+    <header class="inka-residuos-topo">
+        <div>
+            <span class="inka-residuos-etiqueta">INKA / GESTÃO DE IMPACTO</span>
+            <h2>Calculadora de resíduos<span>.</span></h2>
+            <p>Entenda o impacto dos materiais utilizados no seu estúdio e descubra onde é possível reduzir.</p>
+        </div>
+        <div class="inka-residuos-simbolo" aria-hidden="true">
+            <span>R</span>
+            <small>RE</small>
+        </div>
+    </header>
+
+    {% if calculo %}
+
+        <section class="inka-residuos-resultado">
+            <div class="inka-residuos-secao-titulo">
+                <span>01 / RESULTADO</span>
+                <h3>Panorama do mês</h3>
+            </div>
+
+            <p class="inka-residuos-data">
+                Calculado em {{ calculo.criado_em|date:"d/m/Y" }} para
+                <strong>{{ calculo.atendimentos }} atendimento(s)</strong> no mês.
+                <a href="#calculo">Editar dados ↗</a>
             </p>
-        {% endif %}
-    {% endwith %}
 
-    {% with linhas=calculo.resultado %}
-    <table>
-        <tr>
-            <th>Tipo de resíduo</th>
-            <th>Gramas</th>
-            {% if linhas.0.situacao %}<th>Em relação ao cálculo anterior</th>{% endif %}
-        </tr>
-        {% for linha in linhas %}
-            <tr>
-                <td>{% if forloop.last %}<b>{{ linha.tipo }}</b>{% else %}{{ linha.tipo }}{% endif %}</td>
-                <td>{{ linha.gramas }} g</td>
-                {% if linha.situacao %}
-                    <td>
-                        {{ linha.situacao }}{% if linha.situacao != 'Igual' %} {{ linha.diferenca }} g{% endif %}
-                    </td>
+            {% with usados=calculo.materiais.all %}
+                {% if usados %}
+                    <div class="inka-residuos-materiais">
+                        <span>MATERIAIS UTILIZADOS</span>
+                        <div>
+                            {% for material in usados %}
+                                <span class="inka-residuos-tag">{{ material.nome }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
-            </tr>
-        {% endfor %}
-    </table>
-    {% endwith %}
+            {% endwith %}
 
-    <h3>Recomendações para reduzir o impacto</h3>
-    <ul>
-        {% for pratica in recomendacoes %}
-            <li><b>{{ pratica.titulo }}.</b> {{ pratica.descricao }}</li>
-        {% endfor %}
-    </ul>
+            {% with linhas=calculo.resultado %}
+                <div class="inka-residuos-tabela-wrap">
+                    <table class="inka-residuos-tabela">
+                        <thead>
+                            <tr>
+                                <th>Tipo de resíduo</th>
+                                <th>Quantidade</th>
+                                {% if linhas.0.situacao %}
+                                    <th>Comparação anterior</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for linha in linhas %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.last %}
+                                            <strong>{{ linha.tipo }}</strong>
+                                        {% else %}
+                                            {{ linha.tipo }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="inka-residuos-gramas">{{ linha.gramas }} g</td>
+                                    {% if linha.situacao %}
+                                        <td>
+                                            <span class="inka-residuos-situacao">{{ linha.situacao }}</span>
+                                            {% if linha.situacao != 'Igual' %}
+                                                <small>{{ linha.diferenca }} g</small>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endwith %}
+        </section>
 
-    <h3 id="calculo">Editar dados do mês</h3>
-    <p>
-        Os dados do último cálculo já vêm preenchidos. Altere o que mudou e
-        calcule de novo para comparar com o resultado anterior.
-    </p>
-{% else %}
-    <p>
-        Informe quantos atendimentos o estúdio faz por mês e marque os
-        materiais usados. A calculadora estima quanto resíduo de cada tipo é
-        gerado no mês.
-    </p>
-{% endif %}
+        <section class="inka-residuos-recomendacoes">
+            <div class="inka-residuos-secao-titulo">
+                <span>02 / PRÓXIMOS PASSOS</span>
+                <h3>Reduza seu impacto<span>.</span></h3>
+            </div>
 
-<form method="post">
-    {% csrf_token %}
+            <div class="inka-residuos-recomendacoes-lista">
+                {% for pratica in recomendacoes %}
+                    <article class="inka-residuos-recomendacao">
+                        <span class="inka-residuos-asterisco">✳</span>
+                        <div>
+                            <strong>{{ pratica.titulo }}</strong>
+                            <p>{{ pratica.descricao }}</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
 
-    <label for="atendimentos">Atendimentos por mês</label>
-    <input type="number" id="atendimentos" name="atendimentos" min="1" max="10000"
-           value="{{ dados.atendimentos|default:'' }}">
-    {% if erros.atendimentos %}<p class="erro">{{ erros.atendimentos }}</p>{% endif %}
+        <div class="inka-residuos-divisor"></div>
 
-    <label>Materiais usados</label>
-    <table>
-        <tr>
-            <th>Usa?</th>
-            <th>Material</th>
-            <th>Tipo</th>
-            <th>Gramas por atendimento</th>
-        </tr>
-        {% for material in materiais %}
-            <tr>
-                <td>
-                    <input type="checkbox" name="materiais" value="{{ material.id }}"
-                           aria-label="{{ material.nome }}"
-                           {% if material.id in dados.materiais %}checked{% endif %}>
-                </td>
-                <td>{{ material.nome }}</td>
-                <td>{{ material.get_tipo_display }}</td>
-                <td>{{ material.gramas_por_atendimento }} g</td>
-            </tr>
-        {% endfor %}
-    </table>
-    {% if erros.materiais %}<p class="erro">{{ erros.materiais }}</p>{% endif %}
+        <section id="calculo" class="inka-residuos-formulario">
+            <div class="inka-residuos-secao-titulo">
+                <span>03 / ATUALIZAÇÃO</span>
+                <h3>Editar dados do mês</h3>
+            </div>
+            <p class="inka-residuos-intro">
+                Os dados do último cálculo já vêm preenchidos. Altere o que mudou e calcule novamente para comparar os resultados.
+            </p>
 
-    <input type="submit" name="calcular" value="Calcular resíduos">
-</form>
+    {% else %}
 
-<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil do estúdio</a></p>
+        <section class="inka-residuos-formulario">
+            <div class="inka-residuos-secao-titulo">
+                <span>01 / CALCULADORA</span>
+                <h3>Vamos mapear seus resíduos<span>.</span></h3>
+            </div>
+            <p class="inka-residuos-intro">
+                Informe quantos atendimentos o estúdio realiza por mês e marque os materiais utilizados. A INKA estima a quantidade de resíduos gerados.
+            </p>
+
+    {% endif %}
+
+            <form method="post" class="inka-residuos-form">
+                {% csrf_token %}
+
+                <div class="inka-residuos-atendimentos">
+                    <label for="atendimentos">ATENDIMENTOS POR MÊS</label>
+                    <div class="inka-residuos-input-wrap">
+                        <input
+                            type="number"
+                            id="atendimentos"
+                            name="atendimentos"
+                            min="1"
+                            max="10000"
+                            value="{{ dados.atendimentos|default:'' }}"
+                            placeholder="Ex.: 120"
+                        >
+                        <span>atendimentos</span>
+                    </div>
+                    {% if erros.atendimentos %}
+                        <p class="inka-residuos-erro">{{ erros.atendimentos }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="inka-residuos-materiais-titulo">
+                    <div>
+                        <span>MATERIAIS DO ESTÚDIO</span>
+                        <h4>O que faz parte da sua rotina?</h4>
+                    </div>
+                    <small>MARQUE OS UTILIZADOS</small>
+                </div>
+
+                <div class="inka-residuos-lista-materiais">
+                    {% for material in materiais %}
+                        <label class="notebook-checkbox">
+                            <input
+                                type="checkbox"
+                                name="materiais"
+                                value="{{ material.id }}"
+                                aria-label="{{ material.nome }}"
+                                {% if material.id in dados.materiais %}checked{% endif %}
+                            >
+
+                            <span class="checkmark"></span>
+
+                            <span class="text">
+                                <span class="text-content">{{ material.nome }}</span>
+                                <svg preserveAspectRatio="none" viewBox="0 0 400 20" class="cut-line" aria-hidden="true">
+                                    <path d="M0,10 H400"></path>
+                                </svg>
+                            </span>
+
+                            <span class="inka-material-info">
+                                <span>{{ material.get_tipo_display }}</span>
+                                <strong>{{ material.gramas_por_atendimento }} g</strong>
+                                <small>/ atendimento</small>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                {% if erros.materiais %}
+                    <p class="inka-residuos-erro">{{ erros.materiais }}</p>
+                {% endif %}
+
+                <div class="inka-residuos-legenda">
+                    <span><i></i> Material selecionado</span>
+                    <span><i></i> Gramas por atendimento</span>
+                </div>
+
+                <button type="submit" name="calcular" class="inka-residuos-botao">
+                    Calcular resíduos <span>↗</span>
+                </button>
+            </form>
+        </section>
+
+    <footer class="inka-residuos-rodape">
+        <span>INKA / IMPACTO EM CADA ESCOLHA</span>
+        <a href="{% url 'forum:estudio_perfil' estudio.id %}">← Voltar ao perfil do estúdio</a>
+    </footer>
+
+</div>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <filter id="handDrawnNoise">
+        <feTurbulence
+            result="noise"
+            numOctaves="8"
+            baseFrequency="0.1"
+            type="fractalNoise">
+        </feTurbulence>
+        <feDisplacementMap
+            yChannelSelector="G"
+            xChannelSelector="R"
+            scale="3"
+            in2="noise"
+            in="SourceGraphic">
+        </feDisplacementMap>
+    </filter>
+</svg>
+
 {% endblock %}

@@ -84,6 +84,11 @@ class BaseE2E(StaticLiveServerTestCase):
         self.pausar()  # pausa ANTES do clique, para ver o que vai ser clicado
         elemento.click()
 
+    def abrir_menu(self):
+        """Abre o menu lateral (os links ficam escondidos com ele fechado)."""
+        self.clicar(By.CSS_SELECTOR, '.menu-botao')
+        self.espera.until(EC.visibility_of_element_located((By.ID, 'menu')))
+
     def preencher(self, by, valor, texto):
         campo = self.espera.until(EC.visibility_of_element_located((by, valor)))
         campo.clear()

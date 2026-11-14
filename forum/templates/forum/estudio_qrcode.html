@@ -1,20 +1,90 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}QR Code de {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>QR Code de {{ estudio.nome }}</h2>
 
-<p>
-    Imprima este QR Code e deixe no balcão do estúdio. Ao ler o código, o
-    cliente abre o perfil público com o selo Estúdio Consciente.
-</p>
+<section class="qr-pagina">
 
-<p><img src="{{ qrcode }}" alt="QR Code do perfil de {{ estudio.nome }}"></p>
+    <div class="qr-intro">
+        <span class="qr-etiqueta">INKA / STUDIO ACCESS</span>
+        <h2>Seu estúdio, <span>em um scan.</span></h2>
+        <p>
+            Um acesso direto à identidade do seu estúdio.
+            Imprima, exponha e deixe seu trabalho ser descoberto.
+        </p>
+    </div>
 
-<p><a href="{{ qrcode }}" download="qrcode-{{ estudio.nome|slugify }}.png">Baixar QR Code para imprimir</a></p>
+    <article class="qr-ticket">
 
-<p class="ajuda">Endereço do perfil: <a href="{{ url_perfil }}">{{ url_perfil }}</a></p>
+        <div class="qr-ticket-topo">
+            <span>INKA®</span>
+            <span>STUDIO PASS · 001</span>
+        </div>
 
-<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil</a></p>
+        <div class="qr-ticket-titulo">
+            <span class="qr-mini-label">ACESSO AO PERFIL</span>
+            <h3>{{ estudio.nome }}</h3>
+            <p>ESTÚDIO DE TATUAGEM · {{ estudio.cidade }}</p>
+        </div>
+
+        <div class="qr-ticket-corpo">
+
+            <div class="qr-moldura">
+                <img
+                    src="{{ qrcode }}"
+                    alt="QR Code do perfil de {{ estudio.nome }}"
+                >
+            </div>
+
+            <div class="qr-instrucao">
+                <span>ME ESCANEIE</span>
+                <p>
+                    Aponte a câmera e descubra o perfil,
+                    as práticas ESG e o selo Estúdio Consciente.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="qr-ticket-rodape">
+            <div>
+                <span class="qr-mini-label">IDENTIFICAÇÃO</span>
+                <strong>INKA — {{ estudio.id }}</strong>
+            </div>
+
+            <div class="qr-carimbo">ESTÚDIO<br>VERIFICADO</div>
+        </div>
+
+        <div class="qr-ticket-lateral">
+            MAIS IMPACTO  · MAIS CONSCIENCIA ·
+        </div>
+
+    </article>
+
+    <div class="qr-acoes">
+        <a
+            class="qr-download"
+            href="{{ qrcode }}"
+            download="qrcode-{{ estudio.nome|slugify }}.png"
+        >
+            ↓ BAIXAR QR CODE
+        </a>
+
+        <a
+            class="qr-voltar"
+            href="{% url 'forum:estudio_perfil' estudio.id %}"
+        >
+            ← Voltar ao perfil
+        </a>
+    </div>
+
+    <div class="qr-endereco">
+        <span>LINK DO PERFIL</span>
+        <a href="{{ url_perfil }}">{{ url_perfil }}</a>
+    </div>
+
+</section>
+
 {% endblock %}

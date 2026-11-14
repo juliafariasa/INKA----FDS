@@ -2,26 +2,43 @@
 
 {% block titulo %}Sobre o Projeto - INKA{% endblock %}
 
-{% block classe_body %}{{ block.super }} pagina-interna{% endblock %}
+{% block classe_body %}{{ block.super }} pagina-interna pagina-sobre{% endblock %}
 
 {% block content %}
-<section class="landing-secao landing-pagina-topo">
-    <p class="landing-rotulo">O projeto</p>
-    <h2>Sobre o Projeto</h2>
-    <p class="landing-intro">
-        Conheça a proposta do INKA, o problema que motivou a plataforma e como
-        ela leva o ESG para a rotina dos estúdios de tatuagem.
-    </p>
+<section class="landing-secao landing-pagina-topo sobre-capa">
+    <h2 class="sobre-titulo-acessivel">Sobre o Projeto</h2>
 
-    <nav class="landing-sumario" aria-label="Nesta página">
-        <a href="#proposta">Proposta</a>
-        <a href="#problema">Problema</a>
-        <a href="#objetivos">Objetivos</a>
-        <a href="#contribuicao">ESG no estúdio</a>
-        <a href="#disciplina">Disciplina</a>
-        <a href="#tecnologias">Tecnologias</a>
-    </nav>
+    {# As letras chegam de posições soltas, como recortes colados na página. #}
+    <div class="sobre-titulo" aria-hidden="true">
+        <span class="sobre-titulo-linha">
+            <span class="sobre-letra" style="--x:-7rem;--y:-5rem;--r:-35deg;--d:.05s">S</span><span class="sobre-letra" style="--x:-4rem;--y:6rem;--r:25deg;--d:.1s">O</span><span class="sobre-letra" style="--x:0rem;--y:-7rem;--r:-20deg;--d:.15s">B</span><span class="sobre-letra" style="--x:4rem;--y:5rem;--r:35deg;--d:.2s">R</span><span class="sobre-letra" style="--x:7rem;--y:-4rem;--r:-30deg;--d:.25s">E</span>
+        </span>
+        <span class="sobre-titulo-linha sobre-titulo-contorno">
+            <span class="sobre-letra" style="--x:-5rem;--y:4rem;--r:20deg;--d:.3s">O</span>&nbsp;<span class="sobre-letra" style="--x:-3rem;--y:-5rem;--r:-25deg;--d:.35s">P</span><span class="sobre-letra" style="--x:-1rem;--y:5rem;--r:30deg;--d:.4s">R</span><span class="sobre-letra" style="--x:1rem;--y:-5rem;--r:-20deg;--d:.45s">O</span><span class="sobre-letra" style="--x:3rem;--y:4rem;--r:25deg;--d:.5s">J</span><span class="sobre-letra" style="--x:5rem;--y:-4rem;--r:-30deg;--d:.55s">E</span><span class="sobre-letra" style="--x:7rem;--y:5rem;--r:35deg;--d:.6s">T</span><span class="sobre-letra" style="--x:9rem;--y:-3rem;--r:-15deg;--d:.65s">O</span>
+        </span>
+    </div>
+
+    <div class="sobre-capa-texto">
+        <p class="landing-rotulo">O projeto</p>
+
+        <p class="landing-intro">
+            Conheça a proposta do INKA, o problema que motivou a plataforma e como
+            ela leva o ESG para a rotina dos estúdios de tatuagem.
+        </p>
+
+        <nav class="landing-sumario" aria-label="Nesta página">
+            <a href="#proposta">Proposta</a>
+            <a href="#problema">Problema</a>
+            <a href="#objetivos">Objetivos</a>
+            <a href="#contribuicao">ESG no estúdio</a>
+            <a href="#disciplina">Disciplina</a>
+            <a href="#tecnologias">Tecnologias</a>
+        </nav>
+    </div>
+
+    <p class="sobre-legenda" aria-hidden="true">INKA · IDEIAS QUE VIRAM PRÁTICA</p>
 </section>
+
 
 {% if secoes %}
 <section class="landing-secao" id="proposta">
@@ -63,14 +80,14 @@
 <section class="landing-secao" id="objetivos">
     <p class="landing-rotulo">Objetivo principal</p>
     <h2>Desenvolver uma plataforma que ajude PMEs a:</h2>
-    <ol class="landing-cards">
+    <ol class="sobre-objetivos">
         {% for objetivo in objetivos %}
-            <li class="landing-card">
+            <li>
                 <span class="landing-numero">{{ forloop.counter|stringformat:"02d" }}</span>
                 <p>{{ objetivo.texto }}</p>
             </li>
         {% empty %}
-            <li class="landing-card"><p>Nenhum objetivo cadastrado.</p></li>
+            <li><p>Nenhum objetivo cadastrado.</p></li>
         {% endfor %}
     </ol>
 </section>
@@ -122,11 +139,36 @@
     </ol>
 
     <div class="landing-acoes">
-        <a class="landing-botao landing-botao-cta" href="{% url 'forum:estudio_novo' %}">
-            Cadastrar meu estúdio
+
+    <div class="btn-wrapper">
+        <div class="line horizontal top"></div>
+        <div class="line vertical right"></div>
+        <div class="line horizontal bottom"></div>
+        <div class="line vertical left"></div>
+
+        <div class="dot top left"></div>
+        <div class="dot top right"></div>
+        <div class="dot bottom right"></div>
+        <div class="dot bottom left"></div>
+
+        <a class="btn" href="{% url 'forum:estudio_novo' %}">
+            <span class="btn-text">Cadastrar meu estúdio</span>
+
+            <svg class="btn-svg" viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.6744 11.4075L15.7691 17.1233C15.7072 17.309 15.5586 17.4529 15.3709 17.5087L3.69348 20.9803C3.22819 21.1186 2.79978 20.676 2.95328 20.2155L6.74467 8.84131C6.79981 8.67588 6.92419 8.54263 7.08543 8.47624L12.472 6.25822C12.696 6.166 12.9535 6.21749 13.1248 6.38876L17.5294 10.7935C17.6901 10.9542 17.7463 11.1919 17.6744 11.4075Z"/>
+                <path d="M3.2959 20.6016L9.65986 14.2376"/>
+                <path d="M17.7917 11.0557L20.6202 8.22724C21.4012 7.44619 21.4012 6.17986 20.6202 5.39881L18.4989 3.27749C17.7178 2.49645 16.4515 2.49645 15.6704 3.27749L12.842 6.10592"/>
+                <path d="M11.7814 12.1163C11.1956 11.5305 10.2458 11.5305 9.66004 12.1163C9.07426 12.7021 9.07426 13.6519 9.66004 14.2376C10.2456 14.8234 11.1956 14.8234 11.7814 14.2376C12.3671 13.6519 12.3671 12.702 11.7814 12.1163Z"/>
+            </svg>
         </a>
-        <a class="landing-link" href="{% url 'forum:estudios' %}">Ver estúdios cadastrados</a>
     </div>
+
+    <a class="landing-link" href="{% url 'forum:estudios' %}">
+        Ver estúdios cadastrados
+    </a>
+
+</div>
 </section>
 
 <section class="landing-secao" id="disciplina">
@@ -148,14 +190,14 @@
 <section class="landing-secao" id="tecnologias">
     <p class="landing-rotulo">Tecnologias usadas</p>
     <h2>Com o que o INKA foi construído</h2>
-    <ul class="landing-cards landing-cards-tecnologias">
+    <ul class="sobre-ficha">
         {% for tecnologia in tecnologias %}
-            <li class="landing-card">
+            <li>
                 <h3>{{ tecnologia.nome }}</h3>
                 <p>{{ tecnologia.descricao }}</p>
             </li>
         {% empty %}
-            <li class="landing-card"><p>Nenhuma tecnologia cadastrada.</p></li>
+            <li><p>Nenhuma tecnologia cadastrada.</p></li>
         {% endfor %}
     </ul>
 </section>

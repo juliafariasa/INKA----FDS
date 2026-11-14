@@ -1,20 +1,73 @@
+
 {% extends "forum/base_inka.html" %}
 {% load static %}
 
 {% block titulo %}Quem Somos - INKA{% endblock %}
 
-{% block classe_body %}{{ block.super }} pagina-interna{% endblock %}
+{% block classe_body %}{{ block.super }} pagina-interna pagina-quem-somos{% endblock %}
 
 {% block content %}
-<section class="landing-secao landing-pagina-topo">
+<section class="landing-secao landing-pagina-topo qs-topo">
+
     <p class="landing-rotulo">Quem somos</p>
+
     <h2>Quem Somos</h2>
-    <p class="landing-intro">
-        Somos estudantes do 2° período de Ciências da Computação da CESAR School, turma A.
-        Desenvolvemos o INKA na disciplina de Fundamentos de Desenvolvimento de
-        Software, a partir de um desafio proposto pela Deloitte.
-    </p>
-</section>
+
+    <div class="qs-postit">
+        <span class="qs-postit-fita" aria-hidden="true"></span>
+
+        <p class="landing-intro">
+            Somos estudantes do 2° período de Ciências da Computação da CESAR School, turma A.
+            Desenvolvemos o INKA na disciplina de Fundamentos de Desenvolvimento de
+            Software, a partir de um desafio proposto pela Deloitte.
+        </p>
+
+             <span class="qs-postit-assinatura">INKA · 2026</span>
+    </div>
+
+   <div class="qs-detalhe-lateral" aria-hidden="true">
+    <svg class="qs-flor" viewBox="0 0 240 280" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Caule -->
+        <path class="qs-traco traco-1"
+              pathLength="1" d="M119 250 C105 205 145 160 119 105"/>
+
+        <!-- Folhas -->
+        <path class="qs-traco traco-2"
+              pathLength="1" d="M119 205 C75 202 57 171 61 148 C94 150 115 172 119 205Z"/>
+
+        <path class="qs-traco traco-3"
+              pathLength="1" d="M124 177 C157 170 179 144 176 120 C147 124 129 147 124 177Z"/>
+
+        <!-- Pétalas -->
+        <path class="qs-traco traco-4"
+              pathLength="1" d="M119 108 C91 91 92 61 119 43 C146 61 147 91 119 108Z"/>
+
+        <path class="qs-traco traco-5"
+              pathLength="1" d="M119 108 C85 113 64 92 76 65 C102 68 117 84 119 108Z"/>
+
+        <path class="qs-traco traco-6"
+              pathLength="1" d="M119 108 C153 113 174 92 162 65 C136 68 121 84 119 108Z"/>
+
+        <path class="qs-traco traco-7"
+              pathLength="1" d="M119 108 C94 130 97 151 119 163 C141 151 144 130 119 108Z"/>
+
+        <!-- Centro -->
+        <circle class="qs-traco traco-8"
+                pathLength="1" cx="119" cy="105" r="10"/>
+
+        <!-- Detalhes -->
+        <path class="qs-traco traco-9"
+              pathLength="1" d="M40 65 L44 76 L55 80 L44 84 L40 95 L36 84 L25 80 L36 76Z"/>
+
+        <path class="qs-traco traco-10"
+              pathLength="1" d="M190 190 L193 198 L201 201 L193 204 L190 212 L187 204 L179 201 L187 198Z"/>
+
+    </svg>
+
+    <span class="qs-flor-legenda">GROW WITH PURPOSE · INKA</span>
+</div>
 
 {% if secoes %}
 <section class="landing-secao landing-secoes">
@@ -30,11 +83,10 @@
 
 <section class="landing-secao equipe" aria-labelledby="titulo-integrantes">
     <div class="equipe-cabecalho">
-        <h2 id="titulo-integrantes">Integrantes</h2>
+        <h2 id="titulo-integrantes">Conheça nosso time</h2>
         <span class="equipe-contagem" aria-hidden="true">{{ integrantes|length|stringformat:"02d" }}</span>
     </div>
 
-    {# A coluna de cada item vem do cycle: credenciais nas laterais e fotos no centro. #}
     <ol class="equipe-grade" id="equipe-grade">
         {% for item in integrantes %}
             {% if item.credencial %}
@@ -53,6 +105,7 @@
                             <span class="equipe-inicial" aria-hidden="true">{{ item.membro.inicial }}</span>
                         {% endif %}
                     </figure>
+
                     <div class="equipe-dados">
                         <span class="equipe-indice" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
                         <h3>{{ item.membro.nome }}</h3>

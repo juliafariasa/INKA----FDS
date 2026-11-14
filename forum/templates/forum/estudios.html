@@ -1,50 +1,116 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}Estúdios - INKA{% endblock %}
 
+{% block classe_body %}pagina-estudios{% endblock %}
+
 {% block content %}
-<h2>Estúdios</h2>
 
-<p>
-    Estúdios de tatuagem cadastrados no INKA. Cada estúdio responde um
-    diagnóstico com as práticas ESG da rotina e recebe uma nota por pilar.
-</p>
+<section class="estudios-pagina">
 
-{% if not user.is_authenticated %}
-<p>
-    Tem um estúdio? <a href="{% url 'forum:estudio_novo' %}">Crie a conta do seu estúdio</a>
-    ou <a href="{% url 'forum:entrar' %}">entre na sua conta</a>.
-</p>
-{% endif %}
+   
+<header class="estudios-intro">
+    <span class="estudios-etiqueta">01 / NOSSA REDE</span>
+    <h2>Onde a arte<br>encontra propósito<span>.</span></h2>
+    <p>
+        Conheça os estúdios que estão construindo uma tatuagem
+        mais consciente. Cada espaço tem uma história e um
+        compromisso com a transformação.
+    </p>
+</header>
 
-<table>
-    <tr>
-        <th>Estúdio</th>
-        <th>Cidade</th>
-        <th>Selo</th>
-        <th>Índice de sustentabilidade</th>
-    </tr>
-    {% for estudio in estudios %}
-        {% with diagnostico=estudio.ultimo_diagnostico %}
-        <tr>
-            <td>
-                <a href="{% url 'forum:estudio_perfil' estudio.id %}">{{ estudio.nome }}</a>
-            </td>
-            <td>{{ estudio.cidade }}</td>
-            <td>{{ diagnostico.selo|default:"Sem selo" }}</td>
-            <td>
-                {% if diagnostico %}
-                    {{ diagnostico.indice|floatformat:0 }} de 100
-                {% else %}
-                    Ainda sem diagnóstico
-                {% endif %}
-            </td>
-        </tr>
-        {% endwith %}
-    {% empty %}
-        <tr>
-            <td colspan="4">Nenhum estúdio cadastrado.</td>
-        </tr>
-    {% endfor %}
-</table>
+<div class="estudios-convite">
+    <div class="estudios-convite-texto">
+        <span class="estudios-convite-tag">FAÇA PARTE DA REDE</span>
+        <h3>Seu estúdio também pode fazer parte disso.</h3>
+        <p>
+            Cadastre seu espaço, conheça seu cenário ESG
+            e dê o próximo passo rumo a uma rotina mais sustentável.
+        </p>
+    </div>
+
+    <a class="estudios-convite-botao"
+       href="{% if user.is_authenticated %}{% url 'forum:estudio_novo' %}{% else %}{% url 'forum:entrar' %}{% endif %}">
+        Cadastrar meu estúdio <span>↗</span>
+    </a>
+</div>
+
+
+    {% if estudios %}
+    <div class="estudios-palco">
+
+        <div class="estudios-anel"
+             style="--quantidade: {{ estudios|length }};">
+
+            {% for estudio in estudios %}
+                {% with diagnostico=estudio.ultimo_diagnostico %}
+
+                <a class="estudios-card"
+                   href="{% url 'forum:estudio_perfil' estudio.id %}"
+                   style="--indice: {{ forloop.counter0 }};">
+
+                    <span class="estudios-card-numero">
+                        INKA / {{ forloop.counter|stringformat:"02d" }}
+                    </span>
+
+                    <div class="estudios-card-simbolo">
+                        ✳
+                    </div>
+
+                    <div class="estudios-card-info">
+                        <span class="estudios-card-label">
+                            ESTÚDIO
+                        </span>
+
+                        <h3>{{ estudio.nome }}</h3>
+
+                        <p class="estudios-cidade">
+                            {{ estudio.cidade }}
+                        </p>
+                    </div>
+
+                    <table class="estudios-card-rodape">
+                        <tr>
+                            <th class="estudios-card-label">SELO ESG</th>
+                            <th class="estudios-card-label">ÍNDICE</th>
+                        </tr>
+                        <tr>
+                            <td>{{ diagnostico.selo|default:"Sem selo" }}</td>
+                            {% if diagnostico %}
+                                <td class="estudios-indice">{{ diagnostico.indice|floatformat:0 }}<small>/100</small></td>
+                            {% else %}
+                                <td class="estudios-sem-indice">Ainda sem diagnóstico</td>
+                            {% endif %}
+                        </tr>
+                    </table>
+
+                    <span class="estudios-card-link">
+                        CONHECER ESTÚDIO ↗
+                    </span>
+
+                </a>
+
+                {% endwith %}
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <p class="estudios-instrucao">
+        <span>✳</span> Explore os estúdios e conheça suas iniciativas.
+    </p>
+
+    {% else %}
+
+    <div class="estudios-vazio">
+        <span>✳</span>
+        <h3>Ainda não temos estúdios por aqui.</h3>
+        <p>Seja um dos primeiros a fazer parte da rede INKA.</p>
+    </div>
+
+    {% endif %}
+
+</section>
+
 {% endblock %}

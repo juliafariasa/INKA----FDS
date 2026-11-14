@@ -1,108 +1,374 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}Diagnóstico de {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>Diagnóstico ESG de {{ estudio.nome }}</h2>
 
-{% if diagnostico %}
-    <h3>Resultado do último diagnóstico</h3>
-    <p>
-        Avaliado em {{ diagnostico.data|date:"d/m/Y" }}.
-        <a href="{% url 'forum:estudio_perfil' estudio.id %}">Ver perfil público e selo</a>
-    </p>
+<div class="diagnostico-painel">
 
-    <div class="caixa">
-        <p>
-            <b>Índice de sustentabilidade:</b>
-            {{ diagnostico.indice|floatformat:0 }} de 100
-        </p>
+    <!-- CABEÇALHO -->
+    <div class="diagnostico-topo">
+
+        <div class="diagnostico-topo-texto">
+            <span class="diagnostico-topo-etiqueta">
+                INKA / DIAGNÓSTICO ESG
+            </span>
+
+            <h2>
+                Diagnóstico de {{ estudio.nome }}<span>.</span>
+            </h2>
+
+            <p>Pequenas mudanças, grandes transformações.</p>
+        </div>
+
+        <!-- EMBLEMA ESG 3D -->
+        <div class="diagnostico-esg-visual" aria-label="Emblema dos três pilares ESG">
+
+            <div class="diagnostico-esg-emblema">
+
+                <div class="diagnostico-esg-peca esg-ambiental">
+                    <div class="esg-peca-lateral"></div>
+                    <div class="esg-peca-face">
+                        <span class="esg-sigla">E</span>
+                        <span class="esg-nome">AMBIENTAL</span>
+                        <span class="esg-detalhe">✳</span>
+                    </div>
+                </div>
+
+                <div class="diagnostico-esg-peca esg-social">
+                    <div class="esg-peca-lateral"></div>
+                    <div class="esg-peca-face">
+                        <span class="esg-sigla">S</span>
+                        <span class="esg-nome">SOCIAL</span>
+                        <span class="esg-detalhe">✳</span>
+                    </div>
+                </div>
+
+                <div class="diagnostico-esg-peca esg-governanca">
+                    <div class="esg-peca-lateral"></div>
+                    <div class="esg-peca-face">
+                        <span class="esg-sigla">G</span>
+                        <span class="esg-nome">GESTÃO</span>
+                        <span class="esg-detalhe">✳</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <span class="diagnostico-esg-legenda">
+                TRÊS PILARES · UM PROPÓSITO
+            </span>
+
+        </div>
     </div>
 
-    <table>
-        <tr>
-            <th>Pilar</th>
-            <th>Nota</th>
-            <th>Situação</th>
-        </tr>
-        {% for item in diagnostico.notas_por_pilar %}
-            <tr>
-                <td>{{ item.pilar.sigla }} - {{ item.pilar.nome }}</td>
-                <td>{{ item.nota|floatformat:1 }}</td>
-                <td>{% if item.ativo %}Ativo{% else %}Abaixo de 7{% endif %}</td>
-            </tr>
-        {% endfor %}
-    </table>
 
-    <h3>Plano de ação</h3>
-    {% with plano=diagnostico.plano_de_acao %}
-        {% if plano %}
-            <p>
-                Práticas que ainda não são aplicadas por completo nos pilares
-                com nota abaixo de 7:
+    {% if diagnostico %}
+
+        <!-- =================================
+             RESULTADO DO DIAGNÓSTICO
+        ================================== -->
+
+        <section class="inka-resultado">
+
+            <div class="inka-confetes" aria-hidden="true">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+
+            <!-- RESULTADO GERAL -->
+            <div class="inka-resultado-principal">
+
+                <span class="inka-resultado-etiqueta">
+                    DIAGNÓSTICO CONCLUÍDO
+                </span>
+
+                <h3>Seu resultado</h3>
+
+                <div class="inka-resultado-circulo">
+                    <div class="inka-resultado-numero">
+                        {{ diagnostico.indice|floatformat:0 }}
+                        <span>/100</span>
+                    </div>
+                </div>
+
+                <div class="inka-resultado-mensagem">
+                    <h4>Seu estúdio está em evolução.</h4>
+                    <p>
+                        Cada prática conta. Confira seu desempenho nos três
+                        pilares da sustentabilidade.
+                    </p>
+                </div>
+
+                <span class="inka-resultado-data">
+                    AVALIADO EM {{ diagnostico.data|date:"d/m/Y" }}
+                </span>
+
+            </div>
+
+
+            <!-- RESUMO DOS PILARES -->
+            <div class="inka-resultado-resumo">
+
+                <span class="inka-resumo-etiqueta">
+                    INKA / SEU PANORAMA
+                </span>
+
+                <h3>Resumo ESG</h3>
+
+                <p class="inka-resumo-descricao">
+                    Veja como seu estúdio se saiu em cada pilar.
+                </p>
+
+                <div class="inka-resumo-lista">
+
+                    {% for item in diagnostico.notas_por_pilar %}
+
+                        <div class="inka-resumo-item">
+
+                            <div class="inka-resumo-identidade">
+
+                                <span class="inka-resumo-sigla">
+                                    {{ item.pilar.sigla }}
+                                </span>
+
+                                <div>
+                                    <strong>{{ item.pilar.nome }}</strong>
+
+                                    <small>
+                                        {% if item.ativo %}
+                                            Pilar ativo
+                                        {% else %}
+                                            Precisa de atenção
+                                        {% endif %}
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="inka-resumo-nota">
+                                <strong>{{ item.nota|floatformat:1 }}</strong>
+                                <span>/10</span>
+                            </div>
+
+                            <div class="inka-resumo-barra">
+                                <span style="width: {% widthratio item.nota 10 100 %}%"></span>
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <a
+                    class="inka-resultado-link"
+                    href="{% url 'forum:estudio_perfil' estudio.id %}"
+                >
+                    Ver perfil público e selo
+                    <span>↗</span>
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             PLANO DE AÇÃO
+        ================================== -->
+
+        <section class="inka-plano-acao">
+
+            <div class="inka-plano-cabecalho">
+
+                <span>PRÓXIMOS PASSOS / INKA</span>
+
+                <h3>Seu plano de ação<span>.</span></h3>
+
+                <p>
+                    Sustentabilidade não acontece de uma vez.
+                    Veja onde começar.
+                </p>
+
+            </div>
+
+            {% with plano=diagnostico.plano_de_acao %}
+
+                {% if plano %}
+
+                    <div class="inka-plano-lista">
+
+                        {% for resposta in plano %}
+
+                            <div class="inka-plano-item">
+
+                                <span class="inka-plano-numero">
+                                    {{ forloop.counter|stringformat:"02d" }}
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        {{ resposta.pratica.titulo }}
+                                    </strong>
+
+                                    <span>
+                                        {{ resposta.pratica.pilar.nome }}
+                                        · Resposta: {{ resposta.get_valor_display }}
+                                    </span>
+
+                                    <p>
+                                        {{ resposta.pratica.descricao }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="inka-plano-vazio">
+                        <span>✳</span>
+
+                        <div>
+                            <strong>Todos os pilares estão ativos!</strong>
+
+                            <p>
+                                Nenhuma ação pendente.
+                                Continue cultivando essas práticas.
+                            </p>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+            <p class="inka-resultado-final">
+                {{ mensagem_ja_realizado }}
             </p>
-            <ul>
-                {% for resposta in plano %}
-                    <li>
-                        <b>{{ resposta.pratica.titulo }}</b>
-                        ({{ resposta.pratica.pilar.nome }}, resposta:
-                        {{ resposta.get_valor_display }}).
-                        {{ resposta.pratica.descricao }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Todos os pilares estão ativos. Nenhuma ação pendente.</p>
-        {% endif %}
-    {% endwith %}
 
-    <div class="caixa">
-        <p><b>{{ mensagem_ja_realizado }}</b></p>
-    </div>
-{% else %}
-    <p>
-        Responda as perguntas abaixo para descobrir a nota do estúdio em cada
-        pilar do ESG.
-    </p>
+        </section>
 
-<form method="post">
-    {% csrf_token %}
 
-    <table class="questionario">
-        <tr>
-            <th>Seu estúdio aplica esta prática?</th>
-            {% for valor, rotulo in opcoes %}
-                <th>{{ rotulo }}</th>
-            {% endfor %}
-        </tr>
-        {% for pratica in praticas %}
-            {% ifchanged pratica.pilar_id %}
-                <tr>
-                    <td colspan="4"><b>{{ pratica.pilar.sigla }} - {{ pratica.pilar.nome }}</b></td>
-                </tr>
-            {% endifchanged %}
-            <tr{% if pratica.pendente %} class="pendente"{% endif %}>
-                <td>
-                    {{ pratica.titulo }}
-                    {% if pratica.pendente %}<p class="erro">Escolha uma opção.</p>{% endif %}
-                </td>
-                {% for valor, rotulo in opcoes %}
-                    <td>
-                        <input type="radio" name="pratica_{{ pratica.id }}"
-                               value="{{ valor }}" aria-label="{{ rotulo }}"
-                               {% if pratica.valor == valor %}checked{% endif %}>
-                    </td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
+    {% else %}
 
-    <input type="submit" name="enviar" value="Salvar diagnóstico">
+        <!-- =================================
+             FORMULÁRIO DO DIAGNÓSTICO
+        ================================== -->
 
-    <p class="ajuda">
-        Sim vale 2 pontos, Parcial vale 1 e Não vale 0. Cada pilar recebe uma
-        nota de 0 a 10 e fica ativo a partir de 7.
-    </p>
-</form>
-{% endif %}
+        <section class="diagnostico-conteudo">
+
+            <p class="diagnostico-introducao">
+                Responda às perguntas abaixo para descobrir a nota do estúdio
+                em cada pilar do ESG.
+            </p>
+
+            <form method="post" class="diagnostico-form">
+
+                {% csrf_token %}
+
+                <div class="diagnostico-legenda">
+                    <span>COMO SEU ESTÚDIO FUNCIONA?</span>
+                    <p>Selecione uma opção para cada prática apresentada.</p>
+                </div>
+
+                <div class="diagnostico-questionario">
+
+                    {% for pratica in praticas %}
+
+                        {% ifchanged pratica.pilar_id %}
+
+                            <div class="diagnostico-pilar">
+                                <span>{{ pratica.pilar.sigla }}</span>
+                                <h3>{{ pratica.pilar.nome }}</h3>
+                                <i></i>
+                            </div>
+
+                        {% endifchanged %}
+
+                        <div class="diagnostico-pratica {% if pratica.pendente %}diagnostico-pendente{% endif %}">
+
+                            <div class="diagnostico-pratica-texto">
+
+                                <span class="diagnostico-numero">
+                                    {{ forloop.counter|stringformat:"02d" }}
+                                </span>
+
+                                <div>
+                                    <h4>{{ pratica.titulo }}</h4>
+
+                                    {% if pratica.pendente %}
+                                        <p class="diagnostico-erro">
+                                            Escolha uma opção para continuar.
+                                        </p>
+                                    {% endif %}
+                                </div>
+
+                            </div>
+
+                            <div class="diagnostico-opcoes">
+
+                                {% for valor, rotulo in opcoes %}
+
+                                    <label class="diagnostico-opcao">
+
+                                        <input
+                                            type="radio"
+                                            name="pratica_{{ pratica.id }}"
+                                            value="{{ valor }}"
+                                            aria-label="{{ rotulo }}"
+                                            {% if pratica.valor == valor %}checked{% endif %}
+                                        >
+
+                                        <span class="diagnostico-interruptor">
+                                            <span class="diagnostico-luz"></span>
+                                            <span class="diagnostico-pontos"></span>
+                                        </span>
+
+                                        <span class="diagnostico-rotulo">
+                                            {{ rotulo }}
+                                        </span>
+
+                                    </label>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <button
+                    type="submit"
+                    name="enviar"
+                    class="diagnostico-salvar"
+                >
+                    Salvar diagnóstico <span>↗</span>
+                </button>
+
+                <p class="diagnostico-ajuda">
+                    SIM = 2 pontos · PARCIAL = 1 ponto · NÃO = 0 pontos.
+                    Cada pilar recebe uma nota de 0 a 10 e fica ativo a partir de 7.
+                </p>
+
+            </form>
+
+        </section>
+
+    {% endif %}
+
+</div>
+
 {% endblock %}

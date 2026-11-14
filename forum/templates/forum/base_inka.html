@@ -7,12 +7,6 @@
     estilos de body.tema-inka em estilo.css.
 {% endcomment %}
 
-{% block head_extra %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;600;700&display=swap">
-{% endblock %}
-
 {% block classe_body %}tema-inka{% endblock %}
 
 {% block classe_container %}landing{% endblock %}
@@ -25,7 +19,7 @@
     </h1>
 {% endblock %}
 
-{% block nav_extra %}
+{% block topo_extra %}
     <a class="landing-botao landing-botao-nav" href="{% url 'forum:minha_area' %}">
         <span class="landing-icone-caneta" aria-hidden="true"></span>
         Área do Estúdio
