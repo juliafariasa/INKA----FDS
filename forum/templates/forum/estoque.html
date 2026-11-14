@@ -1,51 +1,240 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}Estoque de {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>Estoque de {{ estudio.nome }}</h2>
+<div class="inka-vault-page" id="inka-vault">
 
-<p>
-    Materiais e equipamentos do estúdio, com a quantidade disponível e o
-    fornecedor de cada item.
-</p>
+    <header class="vault-heading">
+        <div>
+            <span class="vault-kicker">INKA / ARQUIVO DE MATERIAIS</span>
+            <h2>Estoque de {{ estudio.nome }}</h2>
+            <p>
+                Materiais e equipamentos do estúdio, com a quantidade disponível e o
+                fornecedor de cada item.
+            </p>
+        </div>
 
-<p><a href="{% url 'forum:estudio_estoque_novo' estudio.id %}">Cadastrar item</a></p>
+        <a class="vault-register-link"
+           href="{% url 'forum:estudio_estoque_novo' estudio.id %}">
+            <span>＋</span> Cadastrar item
+        </a>
+    </header>
 
-{% if itens %}
-    <div class="tabela-rolagem">
-        <table>
-            <tr>
-                <th>Item</th>
-                <th>Tipo</th>
-                <th>Quantidade</th>
-                <th>Fornecedor</th>
-                <th>Ações</th>
-            </tr>
-            {% for item in itens %}
-                <tr{% if item.quantidade == 0 %} class="pendente"{% endif %}>
-                    <td>{{ item.nome }}</td>
-                    <td>{{ item.get_tipo_display }}</td>
-                    <td>{{ item.quantidade }}{% if item.quantidade == 0 %} (em falta){% endif %}</td>
-                    <td>{{ item.fornecedor }}</td>
-                    <td>
-                        <a href="{% url 'forum:estudio_estoque_editar' estudio.id item.id %}">Editar</a>
-                        |
-                        <a href="{% url 'forum:estudio_estoque_remover' estudio.id item.id %}">Remover</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+    <div class="vault-scene" id="vault-scene">
+
+        <div class="vault-scene-glow"></div>
+        <div class="vault-scene-shadow"></div>
+
+        <div class="vault-top-frame">
+            <span class="vault-rivet"></span>
+            <span class="vault-frame-title">INKA MATERIAL STORAGE</span>
+            <span class="vault-frame-code">UNIT / 001</span>
+            <span class="vault-rivet"></span>
+        </div>
+
+        <div class="vault-main">
+            <div class="vault-interior">
+                <div class="vault-interior-header">
+                    <div class="vault-interior-brand">
+                        <span class="vault-brand-symbol">◆</span>
+                        <div>
+                            <strong>INKA</strong>
+                            <small>INVENTÁRIO INTERNO</small>
+                        </div>
+                    </div>
+
+                    <div class="vault-interior-status">
+                        <i></i>
+                        SISTEMA ATIVO
+                    </div>
+                </div>
+
+                {% if itens %}
+                    <div class="vault-drawers">
+                        {% for item in itens %}
+                            <article class="vault-drawer{% if item.quantidade == 0 %} is-empty{% endif %}"
+                                     id="vault-drawer-{{ item.id }}">
+
+                                <div class="vault-drawer-track"></div>
+
+                                <div class="vault-drawer-front">
+                                    <span class="vault-drawer-index">
+                                        {% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}
+                                    </span>
+
+                                    <div class="vault-drawer-label">
+                                        <span class="vault-label-screw"></span>
+                                        <span class="vault-label-name">{{ item.nome }}</span>
+                                        <span class="vault-label-screw"></span>
+                                    </div>
+
+                                    <span class="vault-drawer-indicator">
+                                        {% if item.quantidade == 0 %}
+                                            <i class="is-warning"></i>
+                                            EM FALTA
+                                        {% else %}
+                                            <i></i>
+                                            DISPONÍVEL
+                                        {% endif %}
+                                    </span>
+
+                                    <button type="button"
+                                            class="vault-drawer-pull"
+                                            aria-expanded="false"
+                                            aria-controls="vault-info-{{ item.id }}"
+                                            aria-label="Abrir gaveta de {{ item.nome }}">
+                                        <span class="vault-pull-mount"></span>
+                                        <span class="vault-pull-handle"></span>
+                                    </button>
+                                </div>
+
+                                <div class="vault-drawer-info"
+                                     id="vault-info-{{ item.id }}"
+                                     aria-hidden="true">
+                                    <div class="vault-info-paper">
+                                        <div class="vault-info-heading">
+                                            <span>FICHA DE MATERIAL</span>
+                                            <small>REGISTRO Nº {{ item.id }}</small>
+                                        </div>
+
+                                        <div class="vault-info-grid">
+                                            <div>
+                                                <small>ITEM</small>
+                                                <strong>{{ item.nome }}</strong>
+                                            </div>
+                                            <div>
+                                                <small>TIPO</small>
+                                                <strong>{{ item.get_tipo_display }}</strong>
+                                            </div>
+                                            <div>
+                                                <small>QUANTIDADE</small>
+                                                <strong>
+                                                    {{ item.quantidade }}{% if item.quantidade == 0 %} (em falta){% endif %}
+                                                </strong>
+                                            </div>
+                                            <div>
+                                                <small>FORNECEDOR</small>
+                                                <strong>{{ item.fornecedor }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="vault-info-actions">
+                                            <a href="{% url 'forum:estudio_estoque_editar' estudio.id item.id %}">
+                                                Editar
+                                            </a>
+                                            <a class="vault-delete"
+                                               href="{% url 'forum:estudio_estoque_remover' estudio.id item.id %}">
+                                                Remover
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <p class="vault-original-help">
+                        Itens com quantidade zero aparecem destacados como em falta.
+                    </p>
+                {% else %}
+                    <div class="vault-empty-state">
+                        <span class="vault-empty-symbol">＋</span>
+                        <p>
+                            Nenhum item no estoque ainda. Cadastre o primeiro material ou
+                            equipamento do estúdio.
+                        </p>
+                    </div>
+                {% endif %}
+
+                <div class="vault-interior-footer">
+                    <span>INKA INDUSTRIES</span>
+                    <span>CONTROLE DE MATERIAIS</span>
+                    <span>◆</span>
+                </div>
+            </div>
+
+            <div class="vault-door" id="vault-door" aria-hidden="true">
+                <div class="vault-door-face">
+
+                    <div class="vault-door-inner-rim">
+                        <div class="vault-door-topline">
+                            <span class="vault-rivet"></span>
+                            <span>INKA / SECURE STORAGE</span>
+                            <span class="vault-rivet"></span>
+                        </div>
+
+                        <div class="vault-door-emblem">
+                            <span class="vault-emblem-orbit"></span>
+                            <span class="vault-emblem-center">I</span>
+                            <small>ESTÚDIO CONSCIENTE</small>
+                        </div>
+
+                        <div class="vault-door-wheel-area">
+                            <div class="vault-wheel-ring">
+                                <div class="vault-wheel-spokes">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <div class="vault-wheel-center"></div>
+                            </div>
+                        </div>
+
+                        <div class="vault-door-bottomline">
+                            <span>AUTHORIZED MATERIALS</span>
+                            <span>NO. 001</span>
+                        </div>
+
+                        <span class="vault-bolt vault-bolt-top"></span>
+                        <span class="vault-bolt vault-bolt-bottom"></span>
+                        <span class="vault-bolt vault-bolt-left"></span>
+                        <span class="vault-bolt vault-bolt-right"></span>
+
+                        <span class="vault-door-rivet rivet-a"></span>
+                        <span class="vault-door-rivet rivet-b"></span>
+                        <span class="vault-door-rivet rivet-c"></span>
+                        <span class="vault-door-rivet rivet-d"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="vault-bottom-frame">
+            <span class="vault-rivet"></span>
+            <span class="vault-bottom-caption">INDUSTRIAL ARCHIVE / INKA</span>
+
+            <button type="button"
+                    class="vault-control"
+                    id="vault-control"
+                    aria-label="Fechar cofre">
+                <span class="vault-control-light"></span>
+                <span class="vault-control-wheel">✣</span>
+                <span class="vault-control-text">FECHAR COFRE</span>
+            </button>
+
+            <span class="vault-frame-serial">SERIAL 00-INKA-01</span>
+            <span class="vault-rivet"></span>
+        </div>
+
+        <div class="vault-floor-shadow"></div>
     </div>
-    <p class="ajuda">Itens com quantidade zero aparecem destacados como em falta.</p>
-{% else %}
-    <div class="caixa">
-        <p>
-            Nenhum item no estoque ainda. Cadastre o primeiro material ou
-            equipamento do estúdio.
-        </p>
-    </div>
-{% endif %}
 
-<p><a href="{% url 'forum:estudio_perfil' estudio.id %}">Voltar ao perfil do estúdio</a></p>
+    <div class="vault-status-line">
+        <span class="vault-status-dot"></span>
+        <span id="vault-status-text">COFRE DESTRAVADO</span>
+        <span class="vault-status-separator">/</span>
+        <span>ESTOQUE DE {{ estudio.nome }}</span>
+    </div>
+
+    <a class="vault-back-link"
+       href="{% url 'forum:estudio_perfil' estudio.id %}">
+        <span>←</span> Voltar ao perfil do estúdio
+    </a>
+
+</div>
 {% endblock %}

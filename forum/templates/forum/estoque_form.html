@@ -1,48 +1,110 @@
+
 {% extends "forum/base.html" %}
 
 {% block titulo %}{% if item %}Editar item{% else %}Cadastrar item{% endif %} - {{ estudio.nome }} - INKA{% endblock %}
 
 {% block content %}
-<h2>{% if item %}Editar {{ item.nome }}{% else %}Cadastrar item no estoque{% endif %}</h2>
+<div class="inka-vault vault-register">
 
-<p>
-    {% if item %}
-        Altere os dados do item no estoque de {{ estudio.nome }}.
-    {% else %}
-        Informe o material ou equipamento, a quantidade e o fornecedor. Se o
-        item já estiver no estoque, edite a quantidade dele em vez de
-        cadastrar de novo.
-    {% endif %}
-</p>
+    <header class="vault-heading">
+        <div class="vault-heading-copy">
+            <span class="vault-overline">INKA / ESTAÇÃO DE CATALOGAÇÃO</span>
+            <h2>{% if item %}Editar {{ item.nome }}{% else %}Cadastrar item no estoque{% endif %}</h2>
 
-<form method="post">
-    {% csrf_token %}
+            <p>
+                {% if item %}
+                    Altere os dados do item no estoque de {{ estudio.nome }}.
+                {% else %}
+                    Informe o material ou equipamento, a quantidade e o fornecedor. Se o
+                    item já estiver no estoque, edite a quantidade dele em vez de
+                    cadastrar de novo.
+                {% endif %}
+            </p>
+        </div>
 
-    <label for="nome">Nome do material ou equipamento</label>
-    <input type="text" id="nome" name="nome" maxlength="120"
-           value="{{ dados.nome|default:'' }}">
-    {% if erros.nome %}<p class="erro">{{ erros.nome }}</p>{% endif %}
+        <div class="vault-stamp" aria-hidden="true">
+            <span>INKA</span>
+            <strong>REG.</strong>
+            <small>CATÁLOGO</small>
+        </div>
+    </header>
 
-    <label for="tipo">Tipo</label>
-    <select id="tipo" name="tipo">
-        {% for codigo, rotulo in tipos %}
-            <option value="{{ codigo }}"{% if dados.tipo == codigo %} selected{% endif %}>{{ rotulo }}</option>
-        {% endfor %}
-    </select>
-    {% if erros.tipo %}<p class="erro">{{ erros.tipo }}</p>{% endif %}
+    <div class="vault-register-machine">
+        <div class="vault-register-top">
+            <span class="vault-top-screw"></span>
+            <span>FORMULÁRIO DE ENTRADA DE MATERIAL</span>
+            <span class="vault-top-screw"></span>
+        </div>
 
-    <label for="quantidade">Quantidade</label>
-    <input type="number" id="quantidade" name="quantidade" min="0"
-           max="1000000" step="1" value="{{ dados.quantidade|default:'' }}">
-    {% if erros.quantidade %}<p class="erro">{{ erros.quantidade }}</p>{% endif %}
+        <div class="vault-register-body">
+            <div class="vault-register-side">
+                <div class="vault-register-emblem">
+                    <span>INKA</span>
+                    <i>◆</i>
+                </div>
+                <div class="vault-register-side-lines"></div>
+                <small>CONTROLE<br>DE ESTOQUE</small>
+                <div class="vault-register-led"></div>
+            </div>
 
-    <label for="fornecedor">Fornecedor</label>
-    <input type="text" id="fornecedor" name="fornecedor" maxlength="120"
-           value="{{ dados.fornecedor|default:'' }}">
-    {% if erros.fornecedor %}<p class="erro">{{ erros.fornecedor }}</p>{% endif %}
+            <form method="post" class="vault-form">
+                {% csrf_token %}
 
-    <input type="submit" name="salvar" value="{% if item %}Salvar alterações{% else %}Cadastrar item{% endif %}">
-</form>
+                <div class="vault-form-intro">
+                    <span>FICHA DE REGISTRO</span>
+                    <small>01 / MATERIAL</small>
+                </div>
 
-<p><a href="{% url 'forum:estudio_estoque' estudio.id %}">Voltar ao estoque</a></p>
+                <div class="vault-form-field">
+                    <label for="nome">Nome do material ou equipamento</label>
+                    <input type="text" id="nome" name="nome" maxlength="120"
+                           value="{{ dados.nome|default:'' }}">
+                    {% if erros.nome %}<p class="erro">{{ erros.nome }}</p>{% endif %}
+                </div>
+
+                <div class="vault-form-field">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" name="tipo">
+                        {% for codigo, rotulo in tipos %}
+                            <option value="{{ codigo }}"{% if dados.tipo == codigo %} selected{% endif %}>{{ rotulo }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if erros.tipo %}<p class="erro">{{ erros.tipo }}</p>{% endif %}
+                </div>
+
+                <div class="vault-form-grid">
+                    <div class="vault-form-field">
+                        <label for="quantidade">Quantidade</label>
+                        <input type="number" id="quantidade" name="quantidade" min="0"
+                               max="1000000" step="1" value="{{ dados.quantidade|default:'' }}">
+                        {% if erros.quantidade %}<p class="erro">{{ erros.quantidade }}</p>{% endif %}
+                    </div>
+
+                    <div class="vault-form-field">
+                        <label for="fornecedor">Fornecedor</label>
+                        <input type="text" id="fornecedor" name="fornecedor" maxlength="120"
+                               value="{{ dados.fornecedor|default:'' }}">
+                        {% if erros.fornecedor %}<p class="erro">{{ erros.fornecedor }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="vault-form-footer">
+                    <span class="vault-form-seal">◆ INKA / ESTOQUE</span>
+                    <input type="submit" name="salvar"
+                           value="{% if item %}Salvar alterações{% else %}Cadastrar item{% endif %}">
+                </div>
+            </form>
+        </div>
+
+        <div class="vault-register-bottom">
+            <span>INKA INDUSTRIES</span>
+            <span>DOCUMENTO INTERNO • REGISTRO DE MATERIAL</span>
+        </div>
+    </div>
+
+    <a class="vault-back-link"
+       href="{% url 'forum:estudio_estoque' estudio.id %}">
+        <span>←</span> Voltar ao estoque
+    </a>
+</div>
 {% endblock %}

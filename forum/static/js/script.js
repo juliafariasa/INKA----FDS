@@ -646,9 +646,10 @@ function revelarSecoes() {
     });
 }
 
-// ==========================================
-// INKA - MÁQUINA DE ESCREVER
-// ==========================================
+
+/* ==========================================
+   INKA - MÁQUINA DE ESCREVER
+   ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
     const experiencia = document.querySelector("#type-experiencia");
@@ -658,18 +659,56 @@ document.addEventListener("DOMContentLoaded", () => {
     const fechar = document.querySelector("#type-fechar");
     const titulo = document.querySelector("#type-titulo");
     const subtitulo = document.querySelector("#type-subtitulo");
+    const somMaquina = document.querySelector("#som-maquina-escrever");
 
     if (!experiencia || !botao || !formulario || !fechar) return;
 
     let aberto = false;
     let digitando = false;
+    let temporizadores = [];
+
+    const agendar = (funcao, tempo) => {
+        const temporizador = setTimeout(funcao, tempo);
+        temporizadores.push(temporizador);
+    };
+
+    const limparTemporizadores = () => {
+        temporizadores.forEach(clearTimeout);
+        temporizadores = [];
+    };
+
+    const iniciarSom = () => {
+        if (!somMaquina) return;
+
+        somMaquina.pause();
+        somMaquina.currentTime = 0;
+
+        const reproducao = somMaquina.play();
+
+        if (reproducao) {
+            reproducao.catch(() => {
+                console.warn("Não foi possível reproduzir o áudio da máquina.");
+            });
+        }
+    };
+
+    const pararSom = () => {
+        if (!somMaquina) return;
+
+        somMaquina.pause();
+        somMaquina.currentTime = 0;
+    };
 
     const abrirMaquina = () => {
         if (aberto || digitando) return;
 
+        limparTemporizadores();
+
         digitando = true;
         experiencia.classList.add("type-digitando");
         textoBotao.textContent = "DIGITANDO...";
+
+        iniciarSom();
 
         const tituloFinal = "Toda conversa\ncomeça com uma ideia.";
         const subtituloFinal = "Escreva para a gente.";
@@ -678,13 +717,13 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitulo.textContent = "";
 
         let i = 0;
-        const textoCompleto = tituloFinal;
 
         const escrever = () => {
-            if (i < textoCompleto.length) {
-                titulo.textContent += textoCompleto[i];
+            if (i < tituloFinal.length) {
+                titulo.textContent += tituloFinal[i];
                 i++;
-                setTimeout(escrever, 65);
+
+                agendar(escrever, 65);
             } else {
                 let j = 0;
 
@@ -692,7 +731,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (j < subtituloFinal.length) {
                         subtitulo.textContent += subtituloFinal[j];
                         j++;
-                        setTimeout(escreverSubtitulo, 45);
+
+                        agendar(escreverSubtitulo, 45);
                     } else {
                         finalizar();
                     }
@@ -703,14 +743,18 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const finalizar = () => {
+            pararSom();
+
             experiencia.classList.remove("type-digitando");
             experiencia.classList.add("type-aberto");
+
             formulario.hidden = false;
             textoBotao.textContent = "MÁQUINA ACIONADA";
+
             aberto = true;
             digitando = false;
 
-            setTimeout(() => {
+            agendar(() => {
                 if (window.innerWidth <= 850) {
                     formulario.scrollIntoView({
                         behavior: "smooth",
@@ -719,7 +763,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 const primeiroCampo = formulario.querySelector("input");
-                if (primeiroCampo) primeiroCampo.focus({ preventScroll: true });
+
+                if (primeiroCampo) {
+                    primeiroCampo.focus({ preventScroll: true });
+                }
             }, 300);
         };
 
@@ -727,6 +774,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const fecharMaquina = () => {
+        limparTemporizadores();
+        pararSom();
+
         experiencia.classList.remove("type-aberto", "type-digitando");
         formulario.hidden = true;
 
@@ -734,6 +784,7 @@ document.addEventListener("DOMContentLoaded", () => {
         subtitulo.textContent = "Escreva para a gente.";
 
         textoBotao.textContent = "ACIONAR A MÁQUINA";
+
         aberto = false;
         digitando = false;
 
@@ -748,4 +799,197 @@ document.addEventListener("DOMContentLoaded", () => {
             fecharMaquina();
         }
     });
+});
+
+
+/* =========================================
+   INKA VAULT / INTERAÇÕES 3D
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const page = document.querySelector("#inka-vault");
+
+    if (!page) return;
+
+    const scene = page.querySelector("#vault-scene");
+    const control = page.querySelector("#vault-control");
+    const status = page.querySelector("#vault-status-text");
+    const drawers = page.querySelectorAll(".vault-drawer");
+
+    if (!scene || !control) return;
+
+    let vaultState = "closed";
+    let transitionTimer = null;
+
+    const setStatus = (message) => {
+        if (status) status.textContent = message;
+    };
+
+    const updateControl = () => {
+        const isOpen = vaultState === "open";
+
+        control.querySelector(".vault-control-text").textContent =
+            isOpen ? "FECHAR COFRE" : "ABRIR COFRE";
+
+        control.setAttribute(
+            "aria-label",
+            isOpen ? "Fechar cofre" : "Abrir cofre"
+        );
+    };
+
+    const openVault = () => {
+        if (vaultState === "open" || vaultState === "opening") return;
+
+        clearTimeout(transitionTimer);
+        vaultState = "opening";
+
+        scene.classList.remove("is-closing");
+        scene.classList.remove("is-open");
+        scene.classList.add("is-opening");
+
+        setStatus("DESTRAVANDO MECANISMO...");
+        updateControl();
+
+        transitionTimer = setTimeout(() => {
+            scene.classList.remove("is-opening");
+            scene.classList.add("is-open");
+
+            vaultState = "open";
+            setStatus("COFRE ABERTO / SISTEMA ATIVO");
+            updateControl();
+        }, 2050);
+    };
+
+    const closeVault = () => {
+        if (vaultState === "closed" || vaultState === "closing") return;
+
+        clearTimeout(transitionTimer);
+        vaultState = "closing";
+
+        scene.classList.remove("is-opening");
+        scene.classList.remove("is-open");
+        scene.classList.add("is-closing");
+
+        setStatus("TRAVANDO COFRE...");
+        updateControl();
+
+        transitionTimer = setTimeout(() => {
+            scene.classList.remove("is-closing");
+
+            vaultState = "closed";
+            setStatus("COFRE FECHADO / AGUARDANDO");
+            updateControl();
+        }, 1850);
+    };
+
+    control.addEventListener("click", () => {
+        if (vaultState === "opening" || vaultState === "closing") return;
+
+        if (vaultState === "open") {
+            closeVault();
+        } else {
+            openVault();
+        }
+    });
+
+    // Abertura cinematográfica ao entrar na página
+    updateControl();
+
+    setTimeout(() => {
+        openVault();
+    }, 650);
+
+    // Interação individual das gavetas
+    drawers.forEach((drawer) => {
+        const trigger = drawer.querySelector(".vault-drawer-pull");
+        const info = drawer.querySelector(".vault-drawer-info");
+
+        if (!trigger || !info) return;
+
+        trigger.addEventListener("click", () => {
+            const wasOpen = drawer.classList.contains("is-open");
+
+            drawers.forEach((other) => {
+                other.classList.remove("is-open");
+
+                const otherTrigger = other.querySelector(
+                    ".vault-drawer-pull"
+                );
+
+                const otherInfo = other.querySelector(
+                    ".vault-drawer-info"
+                );
+
+                if (otherTrigger) {
+                    otherTrigger.setAttribute("aria-expanded", "false");
+                }
+
+                if (otherInfo) {
+                    otherInfo.setAttribute("aria-hidden", "true");
+                }
+            });
+
+            if (wasOpen) return;
+
+            drawer.classList.add("is-open");
+            trigger.setAttribute("aria-expanded", "true");
+            info.setAttribute("aria-hidden", "false");
+        });
+    });
+
+    // Fecha gavetas abertas com Escape
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+
+        drawers.forEach((drawer) => {
+            drawer.classList.remove("is-open");
+
+            const trigger = drawer.querySelector(".vault-drawer-pull");
+            const info = drawer.querySelector(".vault-drawer-info");
+
+            if (trigger) {
+                trigger.setAttribute("aria-expanded", "false");
+            }
+
+            if (info) {
+                info.setAttribute("aria-hidden", "true");
+            }
+        });
+    });
+
+    // Perspectiva e iluminação que acompanham o mouse
+    const canHover = window.matchMedia("(hover: hover: fine)").matches;
+    const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (canHover && !reduceMotion) {
+        scene.addEventListener("pointermove", (event) => {
+            const bounds = scene.getBoundingClientRect();
+
+            const x = (event.clientX - bounds.left) / bounds.width;
+            const y = (event.clientY - bounds.top) / bounds.height;
+
+            const rotateY = (x - 0.5) * 2.8;
+            const rotateX = (0.5 - y) * 2.2;
+
+            scene.style.setProperty("--mouse-x", `${x * 100}%`);
+            scene.style.setProperty("--mouse-y", `${y * 100}%`);
+            scene.style.setProperty(
+                "--scene-rotate-x",
+                `${rotateX}deg`
+            );
+            scene.style.setProperty(
+                "--scene-rotate-y",
+                `${rotateY}deg`
+            );
+        });
+
+        scene.addEventListener("pointerleave", () => {
+            scene.style.setProperty("--mouse-x", "50%");
+            scene.style.setProperty("--mouse-y", "35%");
+            scene.style.setProperty("--scene-rotate-x", "0deg");
+            scene.style.setProperty("--scene-rotate-y", "0deg");
+        });
+    }
 });
