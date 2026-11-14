@@ -329,7 +329,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   https://youtu.be/Tpux6avEQaI
 
   ### Link do screencast CI/CD (integração contínua / deployment contínuo) com build e deployment automatizados
-  link
+  https://youtu.be/1C4FMtYysMk
 
   ### Link do screencast do código django:
   https://youtu.be/67dhWLMyejw
