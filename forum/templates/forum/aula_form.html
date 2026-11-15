@@ -4,149 +4,270 @@
 
 {% block titulo %}Cadastrar aula - {{ estudio.nome }} - INKA{% endblock %}
 
+{% block head_extra %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cadastrar-aula-film.css' %}">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="module" src="{% static 'js/cadastrar-aula-film.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+<section class="dc" id="inka-director"
+  data-obj="{% static 'models/cine-camera.obj' %}"
+  data-mtl="{% static 'models/cine-camera.mtl' %}"
+  data-errors="{% if erros.titulo or erros.url_video or erros.duracao %}1{% else %}0{% endif %}">
 
-<section class="aula-cadastro">
+  <div class="dc-grain" aria-hidden="true"></div>
 
-    <div class="aula-apresentacao">
+  <header class="dc-topline">
+    <span>INKA / FILMMAKER</span>
+    <span class="dc-topline-right">ESTÚDIO DE CONHECIMENTO · TAKE 001</span>
+  </header>
 
-        <span class="aula-identificacao">INKA / 01</span>
+  <div class="dc-space" id="dc-space">
+    <div class="dc-webgl" id="dc-webgl" aria-hidden="true"></div>
+    <div class="dc-vignette" aria-hidden="true"></div>
+    <div class="dc-iris" id="dc-iris" aria-hidden="true"></div>
 
-        <h2>Conhecimento que transforma<span>.</span></h2>
+    <div class="dc-camera-ui" id="dc-camera-ui">
+      <div class="dc-camera-meta">
+        <span><i class="dc-dot"></i><span id="dc-rec">STANDBY</span></span>
+        <span>CAM 01 / INKA</span>
+      </div>
+
+      <div class="dc-object-label" id="dc-object-label">
+        MODELO 3D / CÂMERA ANALÓGICA
+      </div>
+
+      <p class="dc-explore-hint" id="dc-explore-hint">
+        ARRASTE PARA EXPLORAR A CÂMERA <span>↔</span>
+      </p>
+
+      <span class="dc-status" id="dc-status" aria-live="polite">
+        PREPARANDO A CÂMERA...
+      </span>
+    </div>
+
+    <div class="dc-intro" id="dc-intro">
+      <span class="dc-overline"></span>
+
+      <h2>Conhecimento que transforma<span>.</span></h2>
+
+      <p>
+        Compartilhe conhecimento com sua equipe.
+        Cadastre conteúdos sobre inclusão, acessibilidade
+        e práticas mais conscientes no universo da tatuagem.
+      </p>
+
+      <button
+        type="button"
+        id="dc-start"
+        class="dc-start"
+        aria-controls="dc-form-shell"
+        aria-expanded="false"
+      >
+        <span>CADASTRAR VÍDEO</span>
+        <span aria-hidden="true">↗</span>
+      </button>
+
+      <span class="dc-strapline">
+        EDUCAÇÃO É PARTE DA TRANSFORMAÇÃO.
+      </span>
+    </div>
+
+    <div class="dc-room-title" id="dc-room-title" aria-hidden="true">
+      <span>INKA / SALA DE PROJEÇÃO</span>
+      <span class="dc-room-rec">
+        <i class="dc-dot"></i> REC · 02
+      </span>
+    </div>
+
+    <div class="dc-form-shell" id="dc-form-shell">
+      <div class="dc-film-head">
+        <span class="dc-overline">CADASTRO DE CONTEÚDO</span>
+        <span class="dc-shot" id="dc-shot">FRAME 01 / 04</span>
+      </div>
+
+      <div class="dc-form-intro">
+        <h3>Nova aula<span>.</span></h3>
 
         <p>
-            Compartilhe conhecimento com sua equipe.
-            Cadastre conteúdos sobre inclusão, acessibilidade
-            e práticas mais conscientes no universo da tatuagem.
+          Adicione os detalhes do conteúdo que será disponibilizado
+          para a equipe de {{ estudio.nome }}.
         </p>
+      </div>
 
-        <div class="aula-detalhe-decorativo">
-            <span class="aula-detalhe-simbolo">✳</span>
-            <span>APRENDER · COMPARTILHAR · TRANSFORMAR</span>
+      <nav class="dc-track" id="dc-track" aria-label="Etapas da produção">
+        <button class="dc-track-item" data-step-button="0" type="button">
+          <b>01</b><span>TÍTULO</span>
+        </button>
+
+        <button class="dc-track-item" data-step-button="1" type="button">
+          <b>02</b><span>DESCRIÇÃO</span>
+        </button>
+
+        <button class="dc-track-item" data-step-button="2" type="button">
+          <b>03</b><span>VÍDEO</span>
+        </button>
+
+        <button class="dc-track-item" data-step-button="3" type="button">
+          <b>04</b><span>DURAÇÃO</span>
+        </button>
+      </nav>
+
+      <form method="post" id="dc-form" class="dc-form">
+        {% csrf_token %}
+
+        <div class="dc-step" data-step="0">
+          <span class="dc-step-index">CENA 01 · O COMEÇO</span>
+
+          <div class="dc-field">
+            <label for="titulo">Título da aula</label>
+
+            <input
+              type="text"
+              id="titulo"
+              name="titulo"
+              maxlength="150"
+              placeholder="Ex.: Introdução à acessibilidade"
+              value="{{ dados.titulo|default:'' }}"
+              {% if erros.titulo %}aria-invalid="true"{% endif %}
+            >
+
+            {% if erros.titulo %}
+              <p class="erro" role="alert">{{ erros.titulo }}</p>
+            {% endif %}
+          </div>
         </div>
 
-        <span class="aula-legenda">
-            EDUCAÇÃO É PARTE DA TRANSFORMAÇÃO.
-        </span>
+        <div class="dc-step" data-step="1">
+          <span class="dc-step-index">CENA 02 · A HISTÓRIA</span>
 
-    </div>
+          <div class="dc-field">
+            <label for="descricao">
+              Descrição <span>(opcional)</span>
+            </label>
 
+            <textarea
+              id="descricao"
+              name="descricao"
+              rows="4"
+              placeholder="Conte um pouco sobre o que será abordado..."
+            >{{ dados.descricao|default:'' }}</textarea>
+          </div>
+        </div>
 
-    <div class="aula-formulario">
+        <div class="dc-step" data-step="2">
+          <span class="dc-step-index">CENA 03 · A IMAGEM</span>
 
-        <div class="aula-formulario-cabecalho">
-            <span>CADASTRO DE CONTEÚDO</span>
-            <h3>Nova aula</h3>
-            <p>
-                Adicione os detalhes do conteúdo que será disponibilizado
-                para a equipe de {{ estudio.nome }}.
+          <div class="dc-field">
+            <label for="url_video">Link do vídeo</label>
+
+            <input
+              type="url"
+              id="url_video"
+              name="url_video"
+              maxlength="500"
+              placeholder="https://www.youtube.com/watch?v=..."
+              value="{{ dados.url_video|default:'' }}"
+              {% if erros.url_video %}aria-invalid="true"{% endif %}
+            >
+
+            {% if erros.url_video %}
+              <p class="erro" role="alert">{{ erros.url_video }}</p>
+            {% endif %}
+
+            <p class="ajuda">
+              YouTube ou arquivo de vídeo (.mp4, .webm ou .ogg).
             </p>
+          </div>
         </div>
 
-        <form method="post" class="aula-form">
-            {% csrf_token %}
+        <div class="dc-step" data-step="3">
+          <span class="dc-step-index">CENA 04 · O TEMPO</span>
 
-            <div class="aula-campo">
-                <label for="titulo">Título da aula</label>
+          <div class="dc-duration">
+            <span class="dc-duration-title">Duração do vídeo</span>
+
+            <div class="dc-duration-fields">
+              <div class="dc-field">
+                <label for="minutos">Minutos</label>
+
                 <input
-                    type="text"
-                    id="titulo"
-                    name="titulo"
-                    maxlength="150"
-                    placeholder="Ex.: Introdução à acessibilidade"
-                    value="{{ dados.titulo|default:'' }}"
+                  type="number"
+                  id="minutos"
+                  name="minutos"
+                  min="0"
+                  max="600"
+                  value="{{ dados.minutos|default:'' }}"
                 >
-                {% if erros.titulo %}
-                    <p class="erro">{{ erros.titulo }}</p>
-                {% endif %}
-            </div>
+              </div>
 
-            <div class="aula-campo">
-                <label for="descricao">
-                    Descrição <span>(opcional)</span>
-                </label>
-                <textarea
-                    id="descricao"
-                    name="descricao"
-                    rows="4"
-                    placeholder="Conte um pouco sobre o que será abordado..."
-                >{{ dados.descricao|default:'' }}</textarea>
-            </div>
+              <div class="dc-field">
+                <label for="segundos">Segundos</label>
 
-            <div class="aula-campo">
-                <label for="url_video">Link do vídeo</label>
                 <input
-                    type="url"
-                    id="url_video"
-                    name="url_video"
-                    maxlength="500"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value="{{ dados.url_video|default:'' }}"
+                  type="number"
+                  id="segundos"
+                  name="segundos"
+                  min="0"
+                  max="59"
+                  value="{{ dados.segundos|default:'' }}"
                 >
-                {% if erros.url_video %}
-                    <p class="erro">{{ erros.url_video }}</p>
-                {% endif %}
-                <p class="ajuda">
-                    YouTube ou arquivo de vídeo (.mp4, .webm ou .ogg).
-                </p>
+              </div>
             </div>
 
-            <div class="aula-duracao">
-                <span class="aula-duracao-titulo">Duração do vídeo</span>
+            {% if erros.duracao %}
+              <p class="erro" role="alert">{{ erros.duracao }}</p>
+            {% endif %}
 
-                <div class="aula-duracao-campos">
+            <p class="ajuda">
+              Informe a duração exata. A aula só poderá ser concluída
+              depois de assistida até o final.
+            </p>
+          </div>
+        </div>
 
-                    <div class="aula-campo">
-                        <label for="minutos">Minutos</label>
-                        <input
-                            type="number"
-                            id="minutos"
-                            name="minutos"
-                            min="0"
-                            max="600"
-                            value="{{ dados.minutos|default:'' }}"
-                        >
-                    </div>
+        <div class="dc-form-actions">
+          <button type="button" class="dc-prev" id="dc-prev">
+            ← VOLTAR ETAPA
+          </button>
 
-                    <div class="aula-campo">
-                        <label for="segundos">Segundos</label>
-                        <input
-                            type="number"
-                            id="segundos"
-                            name="segundos"
-                            min="0"
-                            max="59"
-                            value="{{ dados.segundos|default:'' }}"
-                        >
-                    </div>
+          <button type="button" class="dc-next" id="dc-next">
+            PRÓXIMO QUADRO <span>↗</span>
+          </button>
 
-                </div>
+          <button
+            type="submit"
+            name="cadastrar"
+            class="dc-submit"
+            id="dc-submit"
+          >
+            CADASTRAR AULA <span>↗</span>
+          </button>
+        </div>
+      </form>
 
-                {% if erros.duracao %}
-                    <p class="erro">{{ erros.duracao }}</p>
-                {% endif %}
-
-                <p class="ajuda">
-                    Informe a duração exata. A aula só poderá ser concluída
-                    depois de assistida até o final.
-                </p>
-            </div>
-
-            <button type="submit" name="cadastrar" class="aula-submit">
-                Cadastrar aula <span>↗</span>
-            </button>
-
-        </form>
-
-        <a
-            class="aula-voltar"
-            href="{% url 'forum:estudio_aulas' estudio.id %}"
-        >
-            ← Voltar às aulas
-        </a>
-
+      <a
+        class="dc-back"
+        href="{% url 'forum:estudio_aulas' estudio.id %}"
+      >
+        ← Voltar às aulas
+      </a>
     </div>
+  </div>
 
+  <footer class="dc-footer">
+    <span>✳ APRENDER · COMPARTILHAR · TRANSFORMAR</span>
+    <span>INKA / 2026</span>
+  </footer>
 </section>
-
 {% endblock %}

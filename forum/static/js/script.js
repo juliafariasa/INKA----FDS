@@ -993,3 +993,153 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const livro = document.querySelector("#aula-livro");
+    const botaoAbrir = document.querySelector("#aula-abrir-livro");
+    const instrucao = document.querySelector("#aula-livro-instrucao");
+
+    if (!livro || !botaoAbrir) return;
+
+    botaoAbrir.addEventListener("click", () => {
+        livro.classList.add("aula-livro-aberto");
+
+        botaoAbrir.disabled = true;
+
+        if (instrucao) {
+            instrucao.textContent = "LIVRO ABERTO · NOVO REGISTRO";
+        }
+
+        setTimeout(() => {
+            const primeiroCampo = document.querySelector("#titulo");
+
+            if (primeiroCampo) {
+                primeiroCampo.focus({ preventScroll: true });
+            }
+        }, 1900);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const livro = document.querySelector("#aula-livro");
+    const botaoAbrir = document.querySelector("#aula-abrir-livro");
+    const instrucao = document.querySelector("#aula-livro-instrucao");
+    const folha = document.querySelector("#aula-folha-surpresa");
+
+    if (!livro || !botaoAbrir || !folha) return;
+
+    let livroAberto = false;
+
+    botaoAbrir.addEventListener("click", () => {
+
+        if (livroAberto) return;
+
+        livroAberto = true;
+        botaoAbrir.disabled = true;
+
+        // ETAPA 1: ABRIR A CAPA
+        livro.classList.add("aula-livro-aberto");
+
+        if (instrucao) {
+            instrucao.textContent = "ABRINDO O REGISTRO...";
+        }
+
+        // ETAPA 2: ARRANCAR A FOLHA
+        setTimeout(() => {
+
+            if (instrucao) {
+                instrucao.textContent = "REVELANDO O CONTEÚDO...";
+            }
+
+            // Prepara a revelação antes de iniciar a animação
+            const revelarFormulario = () => {
+
+                livro.classList.add("aula-conteudo-revelado");
+
+                if (instrucao) {
+                    instrucao.textContent = "NOVO REGISTRO DISPONÍVEL";
+                }
+
+                // Foca no primeiro campo depois da entrada
+                setTimeout(() => {
+
+                    const primeiroCampo = document.querySelector("#titulo");
+
+                    if (primeiroCampo) {
+                        primeiroCampo.focus({ preventScroll: true });
+                    }
+
+                }, 600);
+
+            };
+
+            folha.addEventListener(
+                "animationend",
+                revelarFormulario,
+                { once: true }
+            );
+
+            livro.classList.add("aula-folha-arrancando");
+
+        }, 1500);
+
+    });
+
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const livro = document.querySelector("#aula-livro");
+    const botaoAbrir = document.querySelector("#aula-abrir-livro");
+    const instrucao = document.querySelector("#aula-livro-instrucao");
+    const folha = document.querySelector("#aula-folha-surpresa");
+
+    if (!livro || !botaoAbrir || !folha) return;
+
+    let livroAberto = false;
+
+    botaoAbrir.addEventListener("click", () => {
+
+        if (livroAberto) return;
+
+        livroAberto = true;
+        botaoAbrir.disabled = true;
+
+        livro.classList.add("aula-livro-aberto");
+
+        if (instrucao) {
+            instrucao.textContent = "ABRINDO O LIVRO...";
+        }
+
+        setTimeout(() => {
+
+            if (instrucao) {
+                instrucao.textContent = "REVELANDO O CONTEÚDO...";
+            }
+
+            folha.addEventListener("animationend", () => {
+
+                livro.classList.add("aula-conteudo-revelado");
+
+                if (instrucao) {
+                    instrucao.textContent = "NOVO REGISTRO DISPONÍVEL";
+                }
+
+                setTimeout(() => {
+                    const primeiroCampo = document.querySelector("#titulo");
+
+                    if (primeiroCampo) {
+                        primeiroCampo.focus({ preventScroll: true });
+                    }
+                }, 700);
+
+            }, { once: true });
+
+            livro.classList.add("aula-folha-arrancando");
+
+        }, 1500);
+
+    });
+
+});

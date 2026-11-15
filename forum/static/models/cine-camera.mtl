@@ -1,0 +1,25 @@
+# Exported by three-d-stage
+newmtl black_lacquer
+Kd 0.0137 0.0123 0.0130
+Ks 0.2000 0.2000 0.2000
+Ns 110
+d 1.0000
+
+newmtl silver
+Kd 0.5520 0.5457 0.5271
+Ks 0.2000 0.2000 0.2000
+Ns 140
+d 1.0000
+
+newmtl matte_black
+Kd 0.0252 0.0232 0.0242
+Ks 0.2000 0.2000 0.2000
+Ns 30
+d 1.0000
+
+newmtl dark_steel
+Kd 0.1195 0.1170 0.1170
+Ks 0.2000 0.2000 0.2000
+Ns 110
+d 1.0000
+

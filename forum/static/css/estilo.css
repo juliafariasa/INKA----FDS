@@ -12777,3 +12777,2489 @@ body::after {
         transition: none !important;
     }
 }
+
+/* ==========================================
+   INKA — LIVRO 3D / CADASTRO DE AULA
+========================================== */
+
+.aula-livro-pagina {
+    --livro-preto: #121314;
+    --livro-verde: #223427;
+    --livro-musgo: #5F7B44;
+    --livro-claro: #B9D188;
+    --livro-papel: #F6F6EF;
+
+    min-height: 85vh;
+    padding: 55px 5% 45px;
+    overflow: hidden;
+    color: var(--livro-preto);
+}
+
+.aula-livro-topo {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto 55px;
+    color: var(--livro-musgo);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.aula-livro-cena {
+    perspective: 1800px;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 620px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective-origin: 50% 45%;
+}
+
+.aula-livro {
+    position: relative;
+    width: min(900px, 90vw);
+    height: 560px;
+    transform-style: preserve-3d;
+    transform: rotateX(7deg) rotateY(-5deg);
+    transition: transform 1s ease;
+}
+
+.aula-livro-aberto {
+    transform: rotateX(2deg) rotateY(0deg);
+}
+
+/* CAPA */
+
+.aula-livro-capa {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    width: 50%;
+    height: 100%;
+    transform-origin: right center;
+    transform-style: preserve-3d;
+    border-radius: 7px 3px 3px 7px;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,.08), transparent 35%),
+        repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,.018) 0px,
+            rgba(255,255,255,.018) 1px,
+            transparent 1px,
+            transparent 4px
+        ),
+        linear-gradient(145deg, #354c36, #223427 55%, #17251b);
+    box-shadow:
+        inset 5px 0 9px rgba(255,255,255,.08),
+        inset -5px 0 12px rgba(0,0,0,.35),
+        12px 15px 25px rgba(0,0,0,.3),
+        0 25px 45px rgba(0,0,0,.2);
+    transition:
+        transform 1.7s cubic-bezier(.2,.75,.2,1),
+        box-shadow 1.5s ease;
+    backface-visibility: visible;
+}
+
+.aula-livro-capa::before {
+    content: "";
+    position: absolute;
+    inset: 13px;
+    border: 1px solid rgba(185,209,136,.42);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.aula-livro-capa::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        110deg,
+        transparent 30%,
+        rgba(255,255,255,.12) 48%,
+        transparent 65%
+    );
+    opacity: .35;
+    pointer-events: none;
+}
+
+.aula-capa-detalhes {
+    position: absolute;
+    inset: 35px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--livro-papel);
+    text-align: center;
+}
+
+.aula-capa-marca {
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--livro-claro);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--livro-claro);
+    font-family: serif;
+    font-size: 30px;
+}
+
+.aula-capa-linha {
+    width: 45px;
+    height: 1px;
+    background: var(--livro-claro);
+    margin: 20px 0;
+}
+
+.aula-capa-pequeno,
+.aula-capa-detalhes p,
+.aula-capa-edicao {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #D5DCC9;
+}
+
+.aula-capa-detalhes h2 {
+    margin: 35px 0 20px;
+    color: #F6F6EF;
+    font-family: Georgia, serif;
+    font-size: clamp(25px, 3vw, 39px);
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.aula-capa-detalhes h2 span {
+    color: var(--livro-claro);
+}
+
+.aula-capa-selo {
+    display: grid;
+    place-items: center;
+    width: 65px;
+    height: 65px;
+    margin: 28px 0;
+    border: 1px solid rgba(185,209,136,.55);
+    border-radius: 50%;
+    color: var(--livro-claro);
+    font-size: 35px;
+}
+
+.aula-capa-edicao {
+    margin-top: auto;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aula-abrir-livro {
+    position: absolute;
+    z-index: 3;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 18px;
+    border: 1px solid rgba(185,209,136,.5);
+    background: rgba(18,19,20,.25);
+    color: #F6F6EF;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: .3s ease;
+}
+
+.aula-abrir-livro:hover {
+    background: var(--livro-claro);
+    color: var(--livro-preto);
+}
+
+.aula-abrir-livro span {
+    font-size: 16px;
+}
+
+.aula-capa-cantoneira {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #A9A17B;
+    border-style: solid;
+    opacity: .85;
+}
+
+.aula-capa-cantoneira-1 {
+    top: 7px;
+    left: 7px;
+    border-width: 2px 0 0 2px;
+}
+
+.aula-capa-cantoneira-2 {
+    top: 7px;
+    right: 7px;
+    border-width: 2px 2px 0 0;
+}
+
+.aula-capa-cantoneira-3 {
+    bottom: 7px;
+    left: 7px;
+    border-width: 0 0 2px 2px;
+}
+
+.aula-capa-cantoneira-4 {
+    bottom: 7px;
+    right: 7px;
+    border-width: 0 2px 2px 0;
+}
+
+/* PARTE INTERNA */
+
+.aula-livro-miolo {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #E5E2D4;
+    box-shadow: 0 25px 50px rgba(0,0,0,.22);
+}
+
+.aula-livro-pagina-esquerda,
+.aula-livro-pagina-direita {
+    position: relative;
+    min-width: 0;
+    padding: 35px 34px;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(40,50,35,.025) 0px,
+            rgba(40,50,35,.025) 1px,
+            transparent 1px,
+            transparent 5px
+        ),
+        linear-gradient(100deg, #F0EFE5, #F8F7EF 50%, #EAE8DC);
+    box-shadow: inset 0 0 18px rgba(40,35,20,.07);
+}
+
+.aula-livro-pagina-esquerda {
+    border-right: 1px solid rgba(70,65,45,.2);
+    transform: rotateY(1deg);
+    transform-origin: right center;
+}
+
+.aula-livro-pagina-direita {
+    padding: 35px 38px;
+    box-shadow:
+        inset 8px 0 16px rgba(40,35,20,.08),
+        inset -3px 0 10px rgba(40,35,20,.04);
+}
+
+.aula-pagina-numero {
+    padding-bottom: 13px;
+    border-bottom: 1px solid rgba(34,52,39,.2);
+    color: #66735A;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+}
+
+.aula-pagina-conteudo {
+    padding: 65px 10px 0;
+}
+
+.aula-pagina-identificacao {
+    color: #73815F;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.aula-pagina-conteudo h2 {
+    margin: 23px 0;
+    color: #223427;
+    font-family: Georgia, serif;
+    font-size: clamp(27px, 3vw, 37px);
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.aula-pagina-conteudo h2 span {
+    color: #81975D;
+}
+
+.aula-pagina-conteudo > p {
+    max-width: 310px;
+    color: #5D6257;
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.aula-pagina-ilustracao {
+    margin-top: 45px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #72865B;
+}
+
+.aula-pagina-ilustracao span {
+    font-size: 47px;
+}
+
+.aula-pagina-ilustracao div {
+    width: 75px;
+    height: 1px;
+    margin: 12px 0;
+    background: #9AA889;
+}
+
+.aula-pagina-ilustracao small {
+    font-size: 8px;
+    letter-spacing: 2px;
+}
+
+.aula-pagina-rodape {
+    position: absolute;
+    bottom: 23px;
+    left: 35px;
+    right: 35px;
+    color: #829078;
+    font-size: 8px;
+    letter-spacing: 1.3px;
+}
+
+/* FORMULÁRIO */
+
+.aula-formulario-livro {
+    position: relative;
+    padding: 22px 2px 30px;
+}
+
+.aula-formulario-cabecalho > span {
+    color: #758265;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.aula-formulario-cabecalho h3 {
+    margin: 9px 0 5px;
+    color: #223427;
+    font-family: Georgia, serif;
+    font-size: 28px;
+    font-weight: 400;
+}
+
+.aula-formulario-cabecalho h3 span {
+    color: #849A63;
+}
+
+.aula-formulario-cabecalho p {
+    margin: 0 0 18px;
+    color: #74776B;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.aula-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.aula-form .aula-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.aula-form .aula-campo label,
+.aula-duracao-titulo {
+    color: #354333;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .4px;
+}
+
+.aula-form .aula-campo label span {
+    color: #858779;
+    font-weight: 400;
+}
+
+.aula-form .aula-campo input,
+.aula-form .aula-campo textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 11px;
+    border: 1px solid #D5D5C7;
+    border-radius: 2px;
+    outline: none;
+    background: rgba(255,255,255,.45);
+    color: #263328;
+    font-family: inherit;
+    font-size: 11px;
+    transition: .25s ease;
+}
+
+.aula-form .aula-campo input:focus,
+.aula-form .aula-campo textarea:focus {
+    border-color: #71865B;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(113,134,91,.12);
+}
+
+.aula-form .aula-campo textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.aula-form .aula-campo input::placeholder,
+.aula-form .aula-campo textarea::placeholder {
+    color: #A2A395;
+}
+
+.aula-form .ajuda {
+    margin: 2px 0 0;
+    color: #858779;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.aula-duracao {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.aula-duracao-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.aula-form .erro {
+    margin: 2px 0 0;
+    color: #9B4038;
+    font-size: 10px;
+}
+
+.aula-submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    width: 100%;
+    margin-top: 5px;
+    padding: 12px 15px;
+    border: 1px solid #223427;
+    background: #223427;
+    color: #F6F6EF;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: .3s ease;
+}
+
+.aula-submit:hover {
+    background: #5F7B44;
+    border-color: #5F7B44;
+    transform: translateY(-2px);
+}
+
+.aula-submit span {
+    font-size: 17px;
+}
+
+/* LOMBADA E ESPESSURA DAS PÁGINAS */
+
+.aula-livro-lombada {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: calc(50% - 7px);
+    width: 14px;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        #18251B,
+        #71805B,
+        #26382A,
+        #17251B
+    );
+    box-shadow: 0 0 9px rgba(0,0,0,.25);
+    transform: translateZ(2px);
+}
+
+.aula-livro-paginas {
+    position: absolute;
+    z-index: 1;
+    inset: 7px -8px -8px 7px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(
+        0deg,
+        #D6D3C5 0px,
+        #F6F4E9 2px,
+        #D7D4C7 3px
+    );
+    transform: translateZ(-5px);
+    box-shadow: 8px 12px 20px rgba(0,0,0,.2);
+}
+
+/* ABERTURA 3D */
+
+.aula-livro-cena .aula-livro-capa {
+    cursor: pointer;
+}
+
+.aula-livro-aberto .aula-livro-capa {
+    transform: rotateY(-180deg);
+    box-shadow:
+        -10px 15px 25px rgba(0,0,0,.18),
+        inset 5px 0 10px rgba(255,255,255,.06);
+}
+
+.aula-livro-aberto .aula-capa-detalhes,
+.aula-livro-aberto .aula-abrir-livro,
+.aula-livro-aberto .aula-capa-cantoneira {
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+
+.aula-livro-miolo {
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+    transition:
+        opacity .7s ease .55s,
+        transform 1s cubic-bezier(.2,.7,.2,1) .5s;
+}
+
+.aula-livro-aberto .aula-livro-miolo {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.aula-livro-aberto .aula-livro-pagina-esquerda,
+.aula-livro-aberto .aula-livro-pagina-direita {
+    animation: aula-pagina-revelada .9s ease both;
+}
+
+.aula-livro-aberto .aula-livro-pagina-direita {
+    animation-delay: .15s;
+}
+
+@keyframes aula-pagina-revelada {
+    from {
+        opacity: .4;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* CONTROLES */
+
+.aula-livro-controles {
+    max-width: 900px;
+    margin: 30px auto 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.aula-livro-controles > span {
+    color: #758265;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+}
+
+.aula-voltar {
+    color: #5F7B44;
+    font-size: 11px;
+    text-decoration: none;
+    transition: .25s ease;
+}
+
+.aula-voltar:hover {
+    color: #223427;
+    transform: translateX(-4px);
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 760px) {
+    .aula-livro-pagina {
+        padding: 35px 15px;
+    }
+
+    .aula-livro-topo {
+        margin-bottom: 30px;
+        font-size: 8px;
+    }
+
+    .aula-livro-cena {
+        min-height: 900px;
+        perspective: 1400px;
+    }
+
+    .aula-livro {
+        width: 100%;
+        height: 830px;
+        transform: none;
+    }
+
+    .aula-livro-miolo {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+    }
+
+    .aula-livro-pagina-esquerda {
+        min-height: 290px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(70,65,45,.2);
+    }
+
+    .aula-pagina-conteudo {
+        padding-top: 30px;
+    }
+
+    .aula-pagina-ilustracao {
+        margin-top: 20px;
+    }
+
+    .aula-livro-pagina-direita {
+        min-height: 520px;
+        padding: 25px;
+    }
+
+    .aula-livro-capa {
+        width: 100%;
+    }
+
+    .aula-livro-lombada {
+        display: none;
+    }
+
+    .aula-livro-aberto .aula-livro-capa {
+        transform: rotateY(-180deg);
+    }
+
+    .aula-livro-controles {
+        flex-wrap: wrap;
+    }
+
+    .aula-livro-controles > span {
+        font-size: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aula-livro-capa,
+    .aula-livro-miolo,
+    .aula-livro-pagina-esquerda,
+    .aula-livro-pagina-direita {
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+}
+
+/* CORREÇÃO — VERSO DA CAPA DO LIVRO */
+
+.aula-livro-capa {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Garante que o miolo fique visível quando a capa girar */
+.aula-livro-miolo {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.aula-livro-aberto .aula-livro-miolo {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+/* A capa fica por cima apenas enquanto está fechada */
+.aula-livro-capa {
+    z-index: 5;
+}
+
+.aula-livro-aberto .aula-livro-capa {
+    z-index: 5;
+}
+
+/* ==========================================
+   INKA — AJUSTE DE ALTURA DO LIVRO
+========================================== */
+
+/* Aumenta o espaço reservado para o livro */
+.aula-livro-cena {
+    min-height: 900px;
+    align-items: center;
+}
+
+/* Livro mais alto */
+.aula-livro {
+    height: 800px;
+}
+
+/* As páginas acompanham a nova altura */
+.aula-livro-miolo {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Mais espaço para o formulário */
+.aula-livro-pagina-direita {
+    padding: 32px 38px 55px;
+    overflow-y: auto;
+}
+
+/* Distribuição mais compacta dos campos */
+.aula-formulario-livro {
+    padding-top: 18px;
+    padding-bottom: 35px;
+}
+
+.aula-form {
+    gap: 10px;
+}
+
+.aula-form .aula-campo input,
+.aula-form .aula-campo textarea {
+    padding: 8px 10px;
+}
+
+.aula-form .aula-campo textarea {
+    min-height: 55px;
+}
+
+.aula-formulario-cabecalho p {
+    margin-bottom: 13px;
+}
+
+.aula-duracao {
+    gap: 6px;
+}
+
+.aula-submit {
+    margin-top: 3px;
+}
+
+/* Rodapé permanece dentro da página */
+.aula-livro-pagina-direita .aula-pagina-rodape {
+    bottom: 15px;
+}
+
+/* Celular */
+@media (max-width: 760px) {
+    .aula-livro-cena {
+        min-height: 1050px;
+    }
+
+    .aula-livro {
+        height: 1000px;
+    }
+
+    .aula-livro-pagina-direita {
+        min-height: 650px;
+        overflow: visible;
+        padding: 25px;
+    }
+}
+
+/* ==========================================
+   INKA — LIVRO 3D RESPONSIVO PARA MOBILE
+========================================== */
+
+@media (max-width: 760px) {
+
+    .aula-livro-pagina {
+        width: 100%;
+        min-height: 100vh;
+        box-sizing: border-box;
+        padding: 25px 14px 35px;
+        overflow: hidden;
+    }
+
+    .aula-livro-topo {
+        margin-bottom: 30px;
+        font-size: 8px;
+        letter-spacing: 1px;
+    }
+
+    /* CENA */
+
+    .aula-livro-cena {
+        display: block;
+        width: 100%;
+        min-height: 560px;
+        height: auto;
+        perspective: 1200px;
+    }
+
+    /* LIVRO */
+
+    .aula-livro {
+        position: relative;
+        width: 100%;
+        height: 560px;
+        margin: 0 auto;
+        transform: none;
+        transform-style: preserve-3d;
+    }
+
+    /* CAPA FECHADA */
+
+    .aula-livro-capa {
+        position: absolute;
+        z-index: 5;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 560px;
+        transform-origin: center center;
+        border-radius: 7px;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+
+    .aula-capa-detalhes {
+        inset: 35px 25px;
+    }
+
+    .aula-capa-detalhes h2 {
+        font-size: 34px;
+    }
+
+    .aula-capa-selo {
+        margin: 22px 0;
+    }
+
+    /* MIOLO: PÁGINAS EMPILHADAS */
+
+    .aula-livro-miolo {
+        position: relative;
+        inset: auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        opacity: 0;
+        transform: translateY(15px);
+        pointer-events: none;
+        border-radius: 5px;
+        box-shadow: 0 15px 35px rgba(0,0,0,.22);
+        transition:
+            opacity .7s ease .45s,
+            transform .8s ease .45s;
+    }
+
+    .aula-livro-aberto {
+        height: auto;
+    }
+
+    .aula-livro-aberto .aula-livro-miolo {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* PRIMEIRA PÁGINA */
+
+    .aula-livro-pagina-esquerda {
+        min-height: 390px;
+        padding: 28px 25px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(70,65,45,.2);
+        transform: none;
+    }
+
+    .aula-pagina-conteudo {
+        padding: 45px 5px 25px;
+    }
+
+    .aula-pagina-conteudo h2 {
+        font-size: 34px;
+    }
+
+    .aula-pagina-conteudo > p {
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .aula-pagina-ilustracao {
+        margin-top: 25px;
+    }
+
+    .aula-pagina-rodape {
+        position: static;
+        margin-top: 25px;
+    }
+
+    /* SEGUNDA PÁGINA: FORMULÁRIO */
+
+    .aula-livro-pagina-direita {
+        min-height: 0;
+        height: auto;
+        padding: 28px 23px 35px;
+        overflow: visible;
+        box-shadow: inset 0 5px 14px rgba(40,35,20,.06);
+    }
+
+    .aula-formulario-livro {
+        padding: 25px 0 15px;
+    }
+
+    .aula-formulario-cabecalho h3 {
+        font-size: 31px;
+    }
+
+    .aula-formulario-cabecalho p {
+        font-size: 11px;
+        line-height: 1.7;
+        margin-bottom: 22px;
+    }
+
+    .aula-form {
+        gap: 17px;
+    }
+
+    .aula-form .aula-campo {
+        gap: 7px;
+    }
+
+    .aula-form .aula-campo label,
+    .aula-duracao-titulo {
+        font-size: 11px;
+    }
+
+    .aula-form .aula-campo input,
+    .aula-form .aula-campo textarea {
+        min-height: 43px;
+        padding: 11px 12px;
+        font-size: 13px;
+    }
+
+    .aula-form .aula-campo textarea {
+        min-height: 100px;
+    }
+
+    .aula-form .ajuda {
+        font-size: 10px;
+        line-height: 1.6;
+    }
+
+    .aula-duracao {
+        gap: 10px;
+    }
+
+    .aula-duracao-campos {
+        gap: 10px;
+    }
+
+    .aula-submit {
+        min-height: 48px;
+        padding: 13px 15px;
+        font-size: 11px;
+    }
+
+    .aula-livro-pagina-direita .aula-pagina-rodape {
+        position: static;
+        margin-top: 25px;
+        line-height: 1.5;
+    }
+
+    /* ELEMENTOS 3D */
+
+    .aula-livro-lombada,
+    .aula-livro-paginas {
+        display: none;
+    }
+
+    .aula-livro-aberto .aula-livro-capa {
+        transform: rotateY(-180deg);
+        pointer-events: none;
+    }
+
+    .aula-livro-aberto .aula-capa-detalhes,
+    .aula-livro-aberto .aula-abrir-livro,
+    .aula-livro-aberto .aula-capa-cantoneira {
+        opacity: 0;
+    }
+
+    /* CONTROLES */
+
+    .aula-livro-controles {
+        width: 100%;
+        margin-top: 25px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .aula-livro-controles > span {
+        font-size: 8px;
+    }
+}
+
+/* CELULARES PEQUENOS */
+
+@media (max-width: 380px) {
+
+    .aula-livro-pagina {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .aula-livro-pagina-esquerda,
+    .aula-livro-pagina-direita {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .aula-capa-detalhes h2 {
+        font-size: 29px;
+    }
+
+    .aula-pagina-conteudo h2 {
+        font-size: 29px;
+    }
+
+    .aula-duracao-campos {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ==========================================
+   INKA — EFEITO DE FOLHA ARRANCADA
+========================================== */
+
+.aula-livro-pagina-direita {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Folha que cobre o formulário */
+
+.aula-folha-surpresa {
+    position: absolute;
+    z-index: 20;
+    inset: 0;
+    padding: 18px;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(34,52,39,.035) 0px,
+            rgba(34,52,39,.035) 1px,
+            transparent 1px,
+            transparent 5px
+        ),
+        linear-gradient(135deg, #F9F8EF, #E8E6D9);
+    box-shadow: 5px 8px 22px rgba(0,0,0,.2);
+    transform-origin: 15% 90%;
+    backface-visibility: hidden;
+    pointer-events: none;
+}
+
+.aula-folha-moldura {
+    width: 100%;
+    height: 100%;
+    min-height: 430px;
+    box-sizing: border-box;
+    border: 1px solid rgba(95,123,68,.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 25px;
+    color: #223427;
+    position: relative;
+}
+
+.aula-folha-moldura > span {
+    position: absolute;
+    top: 25px;
+    color: #71815E;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.aula-folha-simbolo {
+    color: #82996A;
+    font-size: 58px;
+    margin-bottom: 20px;
+}
+
+.aula-folha-moldura h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(28px, 3vw, 39px);
+    font-weight: 400;
+    line-height: 1.25;
+    margin: 10px 0 25px;
+}
+
+.aula-folha-moldura h2 span {
+    color: #82996A;
+}
+
+.aula-folha-linha {
+    width: 65%;
+    height: 1px;
+    background: #9BA88B;
+    margin-bottom: 20px;
+}
+
+.aula-folha-moldura p {
+    color: #78836B;
+    font-size: 9px;
+    letter-spacing: 1.7px;
+}
+
+.aula-folha-moldura small {
+    position: absolute;
+    bottom: 22px;
+    color: #89917E;
+    font-size: 8px;
+    letter-spacing: 2px;
+}
+
+/* A folha começa a ser arrancada */
+
+.aula-livro.aula-folha-arrancando .aula-folha-surpresa {
+    animation: aula-arrancar-folha 1.5s cubic-bezier(.55,.05,.35,1) forwards;
+}
+
+@keyframes aula-arrancar-folha {
+    0% {
+        opacity: 1;
+        transform: rotate(0deg) translate(0, 0);
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+
+    25% {
+        transform: rotate(-2deg) translate(-5px, -8px);
+        clip-path: polygon(
+            0 0, 100% 0, 100% 100%,
+            82% 98%, 66% 100%, 48% 97%,
+            30% 100%, 14% 97%, 0 100%
+        );
+    }
+
+    55% {
+        transform: rotate(-7deg) translate(25px, -35px) skewY(-2deg);
+        clip-path: polygon(
+            0 0, 100% 0, 100% 100%,
+            85% 93%, 69% 100%, 52% 92%,
+            35% 98%, 17% 91%, 0 96%
+        );
+    }
+
+    100% {
+        opacity: 0;
+        transform: rotate(-17deg) translate(115%, -125%) scale(.82);
+        clip-path: polygon(
+            0 0, 100% 0, 100% 100%,
+            85% 93%, 69% 100%, 52% 92%,
+            35% 98%, 17% 91%, 0 96%
+        );
+    }
+}
+
+/* Formulário aparece depois que a folha sai */
+
+.aula-formulario-livro {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+        opacity .8s ease,
+        transform .8s cubic-bezier(.2,.7,.2,1);
+}
+
+.aula-livro.aula-conteudo-revelado .aula-formulario-livro {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mobile */
+
+@media (max-width: 760px) {
+    .aula-folha-surpresa {
+        padding: 12px;
+    }
+
+    .aula-folha-moldura {
+        min-height: 450px;
+        padding: 20px;
+    }
+
+    .aula-folha-moldura h2 {
+        font-size: 32px;
+    }
+
+    .aula-folha-moldura > span {
+        font-size: 8px;
+    }
+}
+
+/* ==========================================
+   INKA — LIVRO DE CAPA ÚNICA
+========================================== */
+
+.aula-livro-cena {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1800px;
+    padding: 45px 20px;
+}
+
+.aula-livro {
+    position: relative;
+    width: min(620px, 90vw);
+    min-height: 720px;
+    transform-style: preserve-3d;
+}
+
+/* CAPA */
+
+.aula-livro-capa {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    min-height: 720px;
+    border-radius: 5px 12px 12px 5px;
+    overflow: hidden;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    background:
+        linear-gradient(145deg, #314936, #1b2b20 75%);
+
+    box-shadow:
+        inset 4px 0 8px rgba(255,255,255,.08),
+        inset -5px 0 12px rgba(0,0,0,.3),
+        12px 20px 45px rgba(0,0,0,.35);
+}
+
+/* TEXTURA DE TECIDO FELPUDO */
+
+.aula-capa-textura {
+    position: absolute;
+    inset: 0;
+    opacity: .65;
+    background:
+        repeating-linear-gradient(
+            95deg,
+            rgba(255,255,255,.035) 0px,
+            transparent 1px,
+            transparent 3px
+        ),
+        repeating-linear-gradient(
+            5deg,
+            rgba(0,0,0,.09) 0px,
+            transparent 1px,
+            transparent 4px
+        ),
+        radial-gradient(
+            ellipse at 30% 20%,
+            rgba(185,209,136,.16),
+            transparent 55%
+        );
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+/* MICROFIBRAS E RELEVO */
+
+.aula-livro-capa::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+    opacity: .24;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+}
+
+.aula-livro-capa::after {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(185,209,136,.28);
+    border-radius: 3px 8px 8px 3px;
+    box-shadow:
+        inset 0 0 20px rgba(0,0,0,.12),
+        0 0 0 1px rgba(0,0,0,.1);
+    pointer-events: none;
+}
+
+/* CAPA TIPOGRAFIA */
+
+.aula-capa-detalhes {
+    position: relative;
+    z-index: 2;
+    min-height: 590px;
+    padding: 70px 55px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #F6F6EF;
+}
+
+.aula-capa-marca {
+    font-size: 16px;
+    letter-spacing: 8px;
+    color: #B9D188;
+}
+
+.aula-capa-ornamento {
+    font-size: 48px;
+    color: #B9D188;
+    margin: 40px 0 20px;
+    text-shadow: 0 3px 15px rgba(185,209,136,.2);
+}
+
+.aula-capa-pequeno {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: #B9D188;
+}
+
+.aula-capa-detalhes h2 {
+    font-family: Georgia, serif;
+    font-size: clamp(42px, 6vw, 60px);
+    font-weight: 400;
+    line-height: 1.12;
+    margin: 25px 0;
+    text-shadow: 0 3px 12px rgba(0,0,0,.3);
+}
+
+.aula-capa-detalhes h2 span {
+    color: #B9D188;
+}
+
+.aula-capa-detalhes p {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #d0d9c2;
+}
+
+.aula-capa-edicao {
+    position: absolute;
+    bottom: 40px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #B9D188;
+}
+
+/* BOTÃO */
+
+.aula-abrir-livro {
+    position: absolute;
+    z-index: 4;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid rgba(185,209,136,.5);
+    background: rgba(18,19,20,.3);
+    color: #F6F6EF;
+    padding: 13px 25px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: .3s ease;
+}
+
+.aula-abrir-livro:hover {
+    background: #B9D188;
+    color: #121314;
+    box-shadow: 0 0 25px rgba(185,209,136,.2);
+}
+
+/* PÁGINA ÚNICA */
+
+.aula-livro-conteudo {
+    position: relative;
+    min-height: 720px;
+    background: #F6F6EF;
+    color: #223427;
+    overflow: hidden;
+    border-radius: 5px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.2);
+}
+
+/* FOLHA QUE COBRE O FORMULÁRIO */
+
+.aula-folha-surpresa {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(34,52,39,.025) 0px,
+            transparent 2px,
+            transparent 5px
+        ),
+        #F6F6EF;
+    transform-origin: 10% 90%;
+    backface-visibility: hidden;
+}
+
+.aula-folha-moldura {
+    position: absolute;
+    inset: 18px;
+    border: 1px solid rgba(95,123,68,.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 25px;
+}
+
+.aula-folha-moldura > span,
+.aula-folha-moldura p,
+.aula-folha-moldura small {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #71815E;
+}
+
+.aula-folha-simbolo {
+    font-size: 55px;
+    color: #5F7B44;
+    margin: 25px 0;
+}
+
+.aula-folha-moldura h2 {
+    font: 400 42px/1.2 Georgia, serif;
+    color: #223427;
+}
+
+.aula-folha-moldura h2 span {
+    color: #5F7B44;
+}
+
+.aula-folha-linha {
+    width: 60%;
+    height: 1px;
+    background: #B9D188;
+    margin: 20px 0;
+}
+
+/* FORMULÁRIO */
+
+.aula-formulario-livro {
+    position: relative;
+    z-index: 1;
+    padding: 55px 65px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .7s ease, transform .7s ease;
+}
+
+.aula-livro.aula-conteudo-revelado .aula-formulario-livro {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ANIMAÇÃO DA CAPA */
+
+.aula-livro.aula-livro-aberto .aula-livro-capa {
+    animation: aula-capa-abrir 1.4s cubic-bezier(.65,0,.25,1) forwards;
+}
+
+@keyframes aula-capa-abrir {
+    0% {
+        transform: rotateY(0deg);
+    }
+    100% {
+        transform: rotateY(-155deg);
+    }
+}
+
+/* ANIMAÇÃO DA FOLHA */
+
+.aula-livro.aula-folha-arrancando .aula-folha-surpresa {
+    animation: aula-arrancar-folha 1.5s cubic-bezier(.55,.05,.35,1) forwards;
+}
+
+@keyframes aula-arrancar-folha {
+    0% {
+        opacity: 1;
+        transform: rotate(0deg) translate(0,0);
+    }
+    35% {
+        transform: rotate(-5deg) translate(15px,-20px);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(-18deg) translate(110%,-120%) scale(.8);
+    }
+}
+
+/* MOBILE */
+
+@media (max-width: 760px) {
+
+    .aula-livro-cena {
+        padding: 25px 10px;
+    }
+
+    .aula-livro {
+        width: min(440px, 92vw);
+        min-height: 600px;
+    }
+
+    .aula-livro-capa {
+        min-height: 600px;
+    }
+
+    .aula-capa-detalhes {
+        min-height: 490px;
+        padding: 50px 25px 25px;
+    }
+
+    .aula-capa-detalhes h2 {
+        font-size: 40px;
+    }
+
+    .aula-livro-conteudo {
+        min-height: 0;
+    }
+
+    .aula-formulario-livro {
+        padding: 35px 24px;
+    }
+
+    .aula-folha-moldura h2 {
+        font-size: 32px;
+    }
+}
+/* =========================================
+   INKA | CAPA INTEIRA DO LIVRO
+========================================= */
+
+#aula-livro {
+    position: relative;
+    width: min(100%, 900px);
+    min-height: 760px;
+    margin: 40px auto;
+    perspective: 1800px;
+    isolation: isolate;
+}
+
+#aula-livro .aula-livro-capa {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 760px;
+    z-index: 5;
+
+    transform-origin: left center;
+    transform: rotateY(0deg);
+    backface-visibility: hidden;
+
+    border-radius: 5px 16px 16px 5px;
+    overflow: hidden;
+}
+
+/* A página fica escondida atrás da capa */
+#aula-livro .aula-livro-conteudo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 760px;
+    z-index: 1;
+}
+/* =========================================
+   INKA | FUZZY FABRIC COVER
+========================================= */
+
+#aula-livro .aula-livro-capa {
+    background:
+        /* fibras mais longas e delicadas */
+        repeating-linear-gradient(
+            93deg,
+            transparent 0px,
+            rgba(185, 209, 136, 0.10) 1px,
+            transparent 2px,
+            rgba(0, 0, 0, 0.12) 4px,
+            transparent 6px
+        ),
+
+        /* textura de fibras cruzadas */
+        repeating-linear-gradient(
+            7deg,
+            rgba(246, 246, 239, 0.07) 0px,
+            transparent 1px,
+            rgba(0, 0, 0, 0.13) 3px,
+            transparent 5px
+        ),
+
+        /* profundidade de tecido */
+        radial-gradient(
+            ellipse at 25% 20%,
+            rgba(185, 209, 136, 0.23),
+            transparent 48%
+        ),
+
+        linear-gradient(
+            135deg,
+            #354b35 0%,
+            #223427 42%,
+            #17231b 100%
+        );
+
+    box-shadow:
+        inset 5px 0 9px rgba(0, 0, 0, 0.38),
+        inset -3px 0 12px rgba(0, 0, 0, 0.25),
+        inset 0 4px 12px rgba(185, 209, 136, 0.10),
+        12px 18px 35px rgba(0, 0, 0, 0.30);
+}
+
+/* Pelinhos finos nas bordas e na superfície */
+#aula-livro .aula-livro-capa::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='.8'/%3E%3C/svg%3E");
+
+    opacity: 0.23;
+    mix-blend-mode: screen;
+}
+
+/* Halo macio de tecido */
+#aula-livro .aula-livro-capa::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse at 50% 50%,
+            transparent 45%,
+            rgba(0, 0, 0, 0.20) 100%
+        );
+
+    box-shadow:
+        inset 0 0 0 1px rgba(185, 209, 136, 0.12);
+}
+/* ==========================================
+   INKA | LIVRO RESPONSIVO E COMPACTO
+========================================== */
+
+#aula-livro {
+    position: relative;
+    width: min(92%, 560px);
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 0.82 / 1;
+    margin: 24px auto;
+    perspective: 1400px;
+    isolation: isolate;
+}
+
+/* CAPA */
+#aula-livro .aula-livro-capa {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    z-index: 5;
+
+    transform-origin: left center;
+    backface-visibility: hidden;
+    border-radius: 4px 12px 12px 4px;
+    overflow: hidden;
+}
+
+/* PÁGINA */
+#aula-livro .aula-livro-conteudo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    border-radius: 4px 12px 12px 4px;
+}
+
+/* CONTEÚDO DO FORMULÁRIO */
+#aula-livro .aula-formulario-livro {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 900px) {
+    #aula-livro {
+        width: min(88%, 490px);
+        margin: 20px auto;
+    }
+}
+
+/* ==========================================
+   CELULAR
+========================================== */
+
+@media (max-width: 600px) {
+    #aula-livro {
+        width: min(88%, 360px);
+        aspect-ratio: 0.78 / 1;
+        margin: 16px auto;
+        perspective: 1100px;
+    }
+
+    #aula-livro .aula-livro-capa {
+        border-radius: 4px 9px 9px 4px;
+    }
+
+    #aula-livro .aula-livro-conteudo {
+        border-radius: 4px 9px 9px 4px;
+        overflow-y: auto;
+    }
+
+    #aula-livro .aula-formulario-livro {
+        padding: 18px !important;
+    }
+}
+
+/* CELULARES PEQUENOS */
+@media (max-width: 380px) {
+    #aula-livro {
+        width: 94%;
+    }
+}
+
+/* ==========================================
+   INKA | BIBLIOTECA DE AULAS
+========================================== */
+
+.biblioteca-inka {
+    --madeira: #19271d;
+    --madeira-luz: #2b3d2e;
+    --papel: #e7e5d8;
+
+    width: min(100% - 40px, 1100px);
+    margin: 100px auto 55px;
+}
+
+.biblioteca-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 38px;
+}
+
+.biblioteca-cabecalho h3 {
+    margin: 10px 0;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    color: var(--inka-preto, #121314);
+}
+
+.biblioteca-cabecalho p {
+    max-width: 480px;
+    color: #777b70;
+    line-height: 1.6;
+}
+
+.biblioteca-contagem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #5F7B44;
+}
+
+.biblioteca-contagem span {
+    font-size: 2.4rem;
+    font-family: inherit;
+}
+
+.biblioteca-contagem small {
+    font-size: .65rem;
+    letter-spacing: .18em;
+}
+
+/* ESTANTE */
+
+.biblioteca-estante {
+    position: relative;
+    padding: 35px 25px 0;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(95,123,68,.18), transparent 70%),
+        linear-gradient(145deg, #25372a, #121d16);
+    border: 1px solid rgba(185,209,136,.16);
+    border-radius: 5px 5px 2px 2px;
+    box-shadow:
+        0 18px 35px rgba(0,0,0,.17),
+        inset 0 1px rgba(255,255,255,.08);
+}
+
+.biblioteca-livros {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    min-height: 260px;
+}
+
+/* LIVROS */
+
+.biblioteca-livro {
+    position: relative;
+    display: flex;
+    width: 88px;
+    height: 220px;
+    text-decoration: none;
+    perspective: 700px;
+    transform-origin: bottom center;
+    transition: transform .35s ease, filter .35s ease;
+    filter: drop-shadow(5px 8px 5px rgba(0,0,0,.35));
+}
+
+.biblioteca-livro:nth-child(3n) {
+    height: 195px;
+    width: 78px;
+}
+
+.biblioteca-livro:nth-child(4n) {
+    height: 235px;
+    width: 94px;
+}
+
+.biblioteca-livro:hover {
+    transform: translateY(-13px) rotate(-2deg);
+    filter: drop-shadow(8px 15px 8px rgba(0,0,0,.4));
+    z-index: 3;
+}
+
+.biblioteca-lombada {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 9px 13px;
+    overflow: hidden;
+    text-align: center;
+    color: #e9e8d8;
+
+    background:
+        linear-gradient(90deg,
+            rgba(0,0,0,.35),
+            transparent 15%,
+            rgba(255,255,255,.07) 48%,
+            transparent 75%,
+            rgba(0,0,0,.25)
+        ),
+        #354b35;
+
+    border-left: 3px solid rgba(0,0,0,.2);
+    border-right: 1px solid rgba(255,255,255,.12);
+    border-radius: 3px 5px 4px 2px;
+
+    box-shadow:
+        inset 3px 0 5px rgba(255,255,255,.08),
+        inset -4px 0 7px rgba(0,0,0,.2);
+}
+
+.biblioteca-livro:nth-child(2n) .biblioteca-lombada {
+    background-color: #5F7B44;
+}
+
+.biblioteca-livro:nth-child(3n) .biblioteca-lombada {
+    background-color: #223427;
+}
+
+.biblioteca-livro:nth-child(4n) .biblioteca-lombada {
+    background-color: #526044;
+}
+
+.biblioteca-livro:nth-child(5n) .biblioteca-lombada {
+    background-color: #303b2c;
+}
+
+.livro-numero {
+    font-size: .68rem;
+    letter-spacing: .12em;
+    opacity: .8;
+}
+
+.livro-titulo {
+    font-size: .85rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    max-height: 125px;
+    overflow: hidden;
+}
+
+.livro-decoracao {
+    font-size: 1.2rem;
+    color: #B9D188;
+}
+
+.livro-categoria {
+    font-size: .48rem;
+    letter-spacing: .13em;
+    opacity: .75;
+}
+
+/* PÁGINAS NA LATERAL */
+
+.biblioteca-paginas {
+    width: 7px;
+    flex-shrink: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        #d8d5c5 0px,
+        #f0eddf 2px,
+        #c9c5b5 3px
+    );
+    border-radius: 0 2px 2px 0;
+}
+
+/* PRATELEIRA */
+
+.biblioteca-prateleira {
+    position: relative;
+    height: 19px;
+    margin: 0 -25px;
+    background:
+        linear-gradient(180deg, #506044, #263629 35%, #17231b);
+    box-shadow:
+        0 8px 12px rgba(0,0,0,.28),
+        inset 0 2px rgba(185,209,136,.22);
+}
+
+.biblioteca-prateleira span {
+    display: block;
+    height: 3px;
+    background: rgba(185,209,136,.13);
+}
+
+/* RODAPÉ */
+
+.biblioteca-rodape {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 17px;
+    color: #777b70;
+    font-size: .65rem;
+    letter-spacing: .13em;
+}
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+    .biblioteca-inka {
+        width: calc(100% - 24px);
+        margin: 65px auto 35px;
+    }
+
+    .biblioteca-cabecalho {
+        align-items: flex-start;
+    }
+
+    .biblioteca-cabecalho p {
+        font-size: .88rem;
+    }
+
+    .biblioteca-contagem span {
+        font-size: 1.8rem;
+    }
+
+    .biblioteca-estante {
+        padding: 25px 12px 0;
+    }
+
+    .biblioteca-livros {
+        gap: 6px;
+        min-height: 200px;
+    }
+
+    .biblioteca-livro {
+        width: 65px;
+        height: 175px;
+    }
+
+    .biblioteca-livro:nth-child(3n) {
+        width: 58px;
+        height: 155px;
+    }
+
+    .biblioteca-livro:nth-child(4n) {
+        width: 70px;
+        height: 185px;
+    }
+
+    .biblioteca-lombada {
+        padding: 12px 5px;
+    }
+
+    .livro-titulo {
+        font-size: .72rem;
+    }
+
+    .livro-categoria {
+        font-size: .4rem;
+    }
+
+    .biblioteca-prateleira {
+        margin: 0 -12px;
+    }
+
+    .biblioteca-rodape {
+        flex-direction: column;
+        font-size: .58rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .biblioteca-livro {
+        transition: none;
+    }
+}
+
+/* ==========================================
+   INKA ACADEMY | BIBLIOTECA
+========================================== */
+
+.biblioteca-inka {
+    --bib-madeira: #19271d;
+    --bib-madeira-clara: #344832;
+    --bib-papel: #e8e5d7;
+
+    width: min(100% - 40px, 1100px);
+    margin: 100px auto 55px;
+}
+
+.biblioteca-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 35px;
+}
+
+.biblioteca-cabecalho h3 {
+    margin: 10px 0;
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    color: var(--inka-preto, #121314);
+}
+
+.biblioteca-cabecalho p {
+    max-width: 480px;
+    color: #777b70;
+    line-height: 1.6;
+}
+
+.biblioteca-contagem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #5F7B44;
+    flex-shrink: 0;
+}
+
+.biblioteca-contagem span {
+    font-size: 2.5rem;
+}
+
+.biblioteca-contagem small {
+    font-size: .65rem;
+    letter-spacing: .18em;
+}
+
+/* ESTANTE */
+
+.biblioteca-estante {
+    position: relative;
+    padding: 35px 25px 0;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(95,123,68,.18), transparent 70%),
+        linear-gradient(145deg, #25372a, #121d16);
+    border: 1px solid rgba(185,209,136,.16);
+    border-radius: 5px;
+    box-shadow:
+        0 18px 35px rgba(0,0,0,.17),
+        inset 0 1px rgba(255,255,255,.08);
+}
+
+/* LIVROS */
+
+.biblioteca-livros {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    min-height: 260px;
+    perspective: 1000px;
+}
+
+.biblioteca-livro {
+    --cor-livro: #354b35;
+
+    position: relative;
+    display: flex;
+    width: 88px;
+    height: 220px;
+    flex-shrink: 0;
+    text-decoration: none;
+    transform-origin: bottom center;
+    transform-style: preserve-3d;
+
+    filter: drop-shadow(5px 8px 5px rgba(0,0,0,.35));
+
+    transition:
+        transform .35s cubic-bezier(.2,.8,.2,1),
+        filter .35s ease;
+}
+
+.biblioteca-livro:nth-child(5n + 1) {
+    --cor-livro: #354b35;
+}
+
+.biblioteca-livro:nth-child(5n + 2) {
+    --cor-livro: #5F7B44;
+}
+
+.biblioteca-livro:nth-child(5n + 3) {
+    --cor-livro: #223427;
+}
+
+.biblioteca-livro:nth-child(5n + 4) {
+    --cor-livro: #526044;
+}
+
+.biblioteca-livro:nth-child(5n) {
+    --cor-livro: #303b2c;
+}
+
+.biblioteca-livro:nth-child(3n) {
+    height: 195px;
+    width: 78px;
+}
+
+.biblioteca-livro:nth-child(4n) {
+    height: 235px;
+    width: 94px;
+}
+
+/* MOVIMENTO AO PASSAR O MOUSE */
+
+.biblioteca-livro:hover {
+    transform:
+        translateY(-13px)
+        rotateY(-9deg)
+        rotateZ(-2deg)
+        scale(1.035);
+
+    filter: drop-shadow(9px 17px 9px rgba(0,0,0,.42));
+    z-index: 3;
+}
+
+/* LOMBADA */
+
+.biblioteca-lombada {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 9px 13px;
+    overflow: hidden;
+    text-align: center;
+    color: #e9e8d8;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,0,0,.35),
+            transparent 15%,
+            rgba(255,255,255,.09) 48%,
+            transparent 75%,
+            rgba(0,0,0,.25)
+        ),
+        var(--cor-livro);
+
+    border-left: 3px solid rgba(0,0,0,.2);
+    border-right: 1px solid rgba(255,255,255,.12);
+    border-radius: 3px 5px 4px 2px;
+
+    box-shadow:
+        inset 3px 0 5px rgba(255,255,255,.08),
+        inset -4px 0 7px rgba(0,0,0,.2);
+}
+
+/* DETALHES DECORATIVOS DA LOMBADA */
+
+.biblioteca-lombada::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 5px;
+    right: 5px;
+    border-top: 1px solid rgba(185,209,136,.35);
+    border-bottom: 1px solid rgba(185,209,136,.35);
+    pointer-events: none;
+}
+
+.livro-numero {
+    font-size: .68rem;
+    letter-spacing: .12em;
+    opacity: .8;
+}
+
+.livro-titulo {
+    font-size: .85rem;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    max-height: 125px;
+    overflow: hidden;
+}
+
+.livro-decoracao {
+    font-size: 1.2rem;
+    color: #B9D188;
+}
+
+.livro-categoria {
+    font-size: .48rem;
+    letter-spacing: .13em;
+    opacity: .75;
+}
+
+.livro-concluido {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #B9D188;
+    font-size: .8rem;
+}
+
+/* PÁGINAS DO LIVRO */
+
+.biblioteca-paginas {
+    width: 7px;
+    flex-shrink: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        #d8d5c5 0px,
+        #f0eddf 2px,
+        #c9c5b5 3px
+    );
+    border-radius: 0 2px 2px 0;
+}
+
+/* PRATELEIRA */
+
+.biblioteca-prateleira {
+    position: relative;
+    height: 19px;
+    margin: 0 -25px;
+    background:
+        linear-gradient(180deg, #506044, #263629 35%, #17231b);
+    box-shadow:
+        0 8px 12px rgba(0,0,0,.28),
+        inset 0 2px rgba(185,209,136,.22);
+}
+
+.biblioteca-prateleira span {
+    display: block;
+    height: 3px;
+    background: rgba(185,209,136,.13);
+}
+
+.biblioteca-sombra {
+    height: 15px;
+    margin: 0 -25px;
+    background: linear-gradient(
+        180deg,
+        rgba(0,0,0,.18),
+        transparent
+    );
+}
+
+/* ANIMAÇÃO DE RETIRAR O LIVRO */
+
+.biblioteca-livro.livro-saindo {
+    animation: retirarLivro .65s cubic-bezier(.2,.75,.3,1) forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes retirarLivro {
+    0% {
+        transform: translateY(-13px) rotateY(-9deg) rotateZ(-2deg) scale(1.035);
+        opacity: 1;
+    }
+
+    35% {
+        transform: translateY(-35px) translateZ(90px) rotateY(-22deg) rotateZ(-5deg) scale(1.12);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-80px) translateZ(160px) rotateY(-30deg) rotateZ(-8deg) scale(1.22);
+        opacity: 0;
+    }
+}
+
+/* RODAPÉ E INSTRUÇÃO */
+
+.biblioteca-rodape {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 17px;
+    color: #777b70;
+    font-size: .65rem;
+    letter-spacing: .13em;
+}
+
+.biblioteca-instrucao {
+    margin-top: 22px;
+    text-align: center;
+    color: #777b70;
+    font-size: .65rem;
+    letter-spacing: .13em;
+}
+
+.biblioteca-instrucao span {
+    color: #5F7B44;
+    margin-right: 6px;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 650px) {
+
+    .biblioteca-inka {
+        width: calc(100% - 24px);
+        margin: 65px auto 35px;
+    }
+
+    .biblioteca-cabecalho {
+        align-items: flex-start;
+    }
+
+    .biblioteca-cabecalho p {
+        font-size: .88rem;
+    }
+
+    .biblioteca-contagem span {
+        font-size: 1.8rem;
+    }
+
+    .biblioteca-estante {
+        padding: 25px 12px 0;
+    }
+
+    .biblioteca-livros {
+        gap: 6px;
+        min-height: 200px;
+    }
+
+    .biblioteca-livro {
+        width: 65px;
+        height: 175px;
+    }
+
+    .biblioteca-livro:nth-child(3n) {
+        width: 58px;
+        height: 155px;
+    }
+
+    .biblioteca-livro:nth-child(4n) {
+        width: 70px;
+        height: 185px;
+    }
+
+    .biblioteca-lombada {
+        padding: 12px 5px;
+    }
+
+    .livro-titulo {
+        font-size: .72rem;
+    }
+
+    .livro-categoria {
+        font-size: .4rem;
+    }
+
+    .biblioteca-prateleira,
+    .biblioteca-sombra {
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+
+    .biblioteca-rodape {
+        flex-direction: column;
+        font-size: .58rem;
+    }
+
+    .biblioteca-instrucao {
+        font-size: .57rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .biblioteca-livro,
+    .biblioteca-livro.livro-saindo {
+        animation: none;
+        transition: none;
+    }
+}
+.biblioteca-cabecalho h3 {
+    color: #F6F6EF !important;
+}
