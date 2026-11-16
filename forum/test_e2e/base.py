@@ -99,6 +99,21 @@ class BaseE2E(StaticLiveServerTestCase):
         else:
             campo.send_keys(texto)
 
+    def esperar_titulo(self, texto):
+        """Espera o título da página (h2) com este texto.
+
+        Procura pelo texto do HTML, e não pelo que aparece na tela: o CSS
+        mostra vários títulos em maiúsculas, e o .text do Selenium devolveria
+        'ESTOQUE DE TINTA VERDE'.
+        """
+        self.espera.until(EC.visibility_of_element_located(
+            (By.XPATH, f'//h2[contains(normalize-space(), "{texto}")]')
+        ))
+
+    def esperar_pagina(self, texto):
+        """Espera a página cujo título da aba do navegador contém o texto."""
+        self.espera.until(EC.title_contains(texto))
+
     def esperar_mensagem(self, texto, tipo='success'):
         """Espera o aviso do Django (p.aviso-success ou p.aviso-error)."""
         self.espera.until(EC.text_to_be_present_in_element(

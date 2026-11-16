@@ -1,0 +1,9 @@
+Redefinição de senha - INKA
+
+Use o código abaixo para redefinir a senha da conta do seu estúdio:
+
+{{ codigo }}
+
+O código vale por {{ validade_minutos }} minutos e só pode ser usado uma vez.
+
+Se não foi você que pediu, ignore este e-mail. Sua senha continua a mesma.

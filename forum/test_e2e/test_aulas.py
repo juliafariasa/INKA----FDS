@@ -48,17 +48,24 @@ class AulasTest(BaseE2E):
 
     def ir_para_as_aulas(self):
         self.clicar(By.LINK_TEXT, 'Aulas de inclusão')
-        self.esperar_titulo('Aulas de inclusão e acessibilidade')
+        self.esperar_pagina('Aulas de inclusão')
 
-    def esperar_titulo(self, texto):
-        self.espera.until(EC.text_to_be_present_in_element(
-            (By.TAG_NAME, 'h2'), texto
-        ))
+    def cartao_da_aula(self, titulo):
+        """Cartão da aula na lista. O cartão inteiro é o link para a aula."""
+        return self.espera.until(EC.visibility_of_element_located((
+            By.XPATH,
+            '//a[contains(@class, "aula-card")]'
+            f'[.//h4[normalize-space()="{titulo}"]]',
+        )))
 
-    def linha_da_aula(self, titulo):
-        return self.espera.until(EC.visibility_of_element_located(
-            (By.XPATH, f'//table//tr[td/a[normalize-space()="{titulo}"]]')
-        ))
+    def abrir_aula(self, titulo):
+        cartao = self.cartao_da_aula(titulo)
+        self.navegador.execute_script(
+            'arguments[0].scrollIntoView({block: "center"});', cartao
+        )
+        self.pausar()
+        cartao.click()
+        self.esperar_titulo(titulo)
 
     def test_aulas_listar_assistir_e_concluir_sem_assistir(self):
         # DADO que estou logado
@@ -70,14 +77,13 @@ class AulasTest(BaseE2E):
         self.ir_para_as_aulas()
 
         # ENTÃO a plataforma lista as aulas disponíveis
-        self.assertIn('Não iniciada', self.linha_da_aula(AULA_CURTA).text)
+        self.assertIn('Não iniciada', self.cartao_da_aula(AULA_CURTA).text)
         self.assertIn('Assistida até 10:00',
-                      self.linha_da_aula(AULA_LGBT).text)
+                      self.cartao_da_aula(AULA_LGBT).text)
         self.narrar('Cenário 1: a plataforma lista as aulas disponíveis')
 
         # E permite assistir ao conteúdo escolhido
-        self.clicar(By.LINK_TEXT, AULA_CURTA)
-        self.esperar_titulo(AULA_CURTA)
+        self.abrir_aula(AULA_CURTA)
         video = self.espera.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, 'video#aula-video')
         ))
@@ -98,7 +104,7 @@ class AulasTest(BaseE2E):
         self.clicar(By.CSS_SELECTOR, 'input[name="concluir"]')
 
         self.esperar_mensagem(f'Aula concluída: {AULA_CURTA}.')
-        self.assertIn('Concluída', self.linha_da_aula(AULA_CURTA).text)
+        self.assertIn('Concluída', self.cartao_da_aula(AULA_CURTA).text)
         self.assertTrue(
             ProgressoAula.objects.get(aula=self.aula_curta).concluida
         )
@@ -107,8 +113,7 @@ class AulasTest(BaseE2E):
         # 2) MARCAR COMO CONCLUÍDA SEM ASSISTIR (cenário 2)
         self.narrar('Cenário 2: o tatuador assistiu só 10 dos 15 minutos da '
                     'aula Acolhimento de pessoas LGBTQIA+')
-        self.clicar(By.LINK_TEXT, AULA_LGBT)
-        self.esperar_titulo(AULA_LGBT)
+        self.abrir_aula(AULA_LGBT)
         self.espera.until(EC.text_to_be_present_in_element(
             (By.ID, 'texto-assistido'), '10:00'
         ))

@@ -23,21 +23,51 @@ class EstoqueTest(BaseE2E):
         self.clicar(By.LINK_TEXT, 'Estoque')
         self.esperar_titulo('Estoque de Tinta Verde')
 
-    def esperar_titulo(self, texto):
-        self.espera.until(EC.text_to_be_present_in_element(
-            (By.TAG_NAME, 'h2'), texto
-        ))
-
     def preencher_item(self, nome, tipo, quantidade, fornecedor):
         self.preencher(By.ID, 'nome', nome)
         Select(self.navegador.find_element(By.ID, 'tipo')).select_by_value(tipo)
         self.preencher(By.ID, 'quantidade', str(quantidade))
         self.preencher(By.ID, 'fornecedor', fornecedor)
 
-    def linha_do_item(self, nome):
-        return self.espera.until(EC.visibility_of_element_located(
-            (By.XPATH, f'//table//tr[td[normalize-space()="{nome}"]]')
+    def etiquetas_do_item(self, nome):
+        """Etiquetas das gavetas do cofre com este nome (uma por item)."""
+        return self.navegador.find_elements(
+            By.XPATH,
+            '//span[contains(@class, "vault-label-name")]'
+            f'[normalize-space()="{nome}"]',
+        )
+
+    def abrir_gaveta(self, nome):
+        """Abre a gaveta do item no cofre e devolve a gaveta aberta.
+
+        Cada item do estoque é uma gaveta: a ficha (tipo, quantidade,
+        fornecedor) e os links Editar e Remover só aparecem com ela aberta.
+        """
+        # A porta do cofre abre sozinha ao entrar na página (uns 3 s).
+        self.espera.until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, '#vault-scene.is-open')
         ))
+        gaveta = self.espera.until(EC.visibility_of_element_located((
+            By.XPATH,
+            '//article[contains(@class, "vault-drawer")]'
+            '[.//span[contains(@class, "vault-label-name")]'
+            f'[normalize-space()="{nome}"]]',
+        )))
+        self.navegador.execute_script(
+            'arguments[0].scrollIntoView({block: "center"});', gaveta
+        )
+        self.pausar()
+        gaveta.find_element(By.CSS_SELECTOR, '.vault-drawer-pull').click()
+        self.espera.until(EC.visibility_of(
+            gaveta.find_element(By.CSS_SELECTOR, '.vault-info-actions')
+        ))
+        return gaveta
+
+    def ficha_da_gaveta(self, gaveta):
+        """Valores da ficha, na ordem: item, tipo, quantidade, fornecedor."""
+        return [campo.text for campo in gaveta.find_elements(
+            By.CSS_SELECTOR, '.vault-info-grid strong'
+        )]
 
     def test_estoque_adicionar_duplicar_editar_e_remover(self):
         # DADO que estou logado no painel do estúdio
@@ -46,7 +76,7 @@ class EstoqueTest(BaseE2E):
 
         # 1) ADICIONAR (cenário 1)
         # QUANDO cadastro um material com quantidade e fornecedor
-        self.clicar(By.LINK_TEXT, 'Cadastrar item')
+        self.clicar(By.PARTIAL_LINK_TEXT, 'Cadastrar item')
         self.narrar('Cenário 1: cadastrando Copinho de tinta, 50 unidades, '
                     'da EcoTattoo')
         self.preencher_item('Copinho de tinta', 'material', 50, 'EcoTattoo')
@@ -54,16 +84,15 @@ class EstoqueTest(BaseE2E):
 
         # ENTÃO a plataforma adiciona o item ao estoque
         self.esperar_mensagem('Copinho de tinta entrou no estoque.')
-        linha = self.linha_do_item('Copinho de tinta')
-        celulas = [td.text for td in linha.find_elements(By.TAG_NAME, 'td')]
-        self.assertEqual(celulas[:4],
+        gaveta = self.abrir_gaveta('Copinho de tinta')
+        self.assertEqual(self.ficha_da_gaveta(gaveta),
                          ['Copinho de tinta', 'Material', '50', 'EcoTattoo'])
         self.assertEqual(ItemEstoque.objects.count(), 1)
         self.narrar('O material entrou no estoque')
 
         # 2) TENTAR ADICIONAR DE NOVO (cenário 2)
         # QUANDO o dono tenta cadastrar o mesmo material do mesmo fornecedor
-        self.clicar(By.LINK_TEXT, 'Cadastrar item')
+        self.clicar(By.PARTIAL_LINK_TEXT, 'Cadastrar item')
         self.narrar('Cenário 2: tentando cadastrar de novo o mesmo material '
                     'do mesmo fornecedor')
         self.preencher_item('Copinho de tinta', 'material', 30, 'EcoTattoo')
@@ -76,38 +105,34 @@ class EstoqueTest(BaseE2E):
         # E um novo item NÃO é criado
         self.assertEqual(ItemEstoque.objects.count(), 1)
         self.assertEqual(ItemEstoque.objects.get().quantidade, 50)
-        self.clicar(By.LINK_TEXT, 'Voltar ao estoque')
+        self.clicar(By.PARTIAL_LINK_TEXT, 'Voltar ao estoque')
         self.esperar_titulo('Estoque de Tinta Verde')
-        self.assertEqual(len(self.navegador.find_elements(
-            By.XPATH, '//td[normalize-space()="Copinho de tinta"]'
-        )), 1)
+        self.assertEqual(len(self.etiquetas_do_item('Copinho de tinta')), 1)
         self.narrar('O estoque continua com um único Copinho de tinta')
 
         # 3) EDITAR (cenário 1: permitir editar o item depois)
-        linha = self.linha_do_item('Copinho de tinta')
+        gaveta = self.abrir_gaveta('Copinho de tinta')
         self.pausar()
-        linha.find_element(By.LINK_TEXT, 'Editar').click()
+        gaveta.find_element(By.LINK_TEXT, 'Editar').click()
         self.esperar_titulo('Editar Copinho de tinta')
         self.narrar('Editando o item: a quantidade passa para 80')
         self.preencher(By.ID, 'quantidade', '80')
         self.clicar(By.CSS_SELECTOR, 'input[name="salvar"]')
 
         self.esperar_mensagem('Copinho de tinta atualizado no estoque.')
-        linha = self.linha_do_item('Copinho de tinta')
-        self.assertEqual(linha.find_elements(By.TAG_NAME, 'td')[2].text, '80')
+        gaveta = self.abrir_gaveta('Copinho de tinta')
+        self.assertEqual(self.ficha_da_gaveta(gaveta)[2], '80')
         self.assertEqual(ItemEstoque.objects.get().quantidade, 80)
         self.narrar('A quantidade foi atualizada para 80')
 
         # 4) REMOVER (cenário 1: permitir remover o item depois)
         self.pausar()
-        linha.find_element(By.LINK_TEXT, 'Remover').click()
+        gaveta.find_element(By.LINK_TEXT, 'Remover').click()
         self.esperar_titulo('Remover item do estoque')
         self.narrar('Por fim, removendo o item do estoque')
         self.clicar(By.CSS_SELECTOR, 'input[name="remover"]')
 
         self.esperar_mensagem('Copinho de tinta saiu do estoque.')
-        self.assertFalse(self.navegador.find_elements(
-            By.XPATH, '//td[normalize-space()="Copinho de tinta"]'
-        ))
+        self.assertFalse(self.etiquetas_do_item('Copinho de tinta'))
         self.assertFalse(ItemEstoque.objects.exists())
         self.narrar('O item saiu do estoque. Teste da US 3 finalizado!')

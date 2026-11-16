@@ -723,3 +723,59 @@ class ProgressoAula(models.Model):
 
     def assistido_formatado(self):
         return formatar_tempo(self.segundos_assistidos)
+
+
+class PasswordResetCode(models.Model):
+    """Código de 6 dígitos enviado por e-mail para redefinir a senha.
+
+    O código em si nunca é guardado, só o hash (HMAC com a SECRET_KEY).
+    """
+
+    TENTATIVAS_MAXIMAS = 5
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='password_reset_codes',
+        verbose_name='Conta',
+    )
+    code_hash = models.CharField('Hash do código', max_length=64)
+    expires_at = models.DateTimeField('Expira em')
+    attempts = models.PositiveSmallIntegerField('Tentativas', default=0)
+    used_at = models.DateTimeField('Usado em', null=True, blank=True)
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    ip = models.GenericIPAddressField('IP do pedido', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Código de redefinição de senha'
+        verbose_name_plural = 'Códigos de redefinição de senha'
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f'Código de {self.user} ({self.created_at:%d/%m/%Y %H:%M})'
+
+
+class PasswordResetToken(models.Model):
+    """Token de uso único entregue a quem acertou o código.
+
+    É ele que autoriza a troca da senha. Também só o hash fica no banco.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens',
+        verbose_name='Conta',
+    )
+    token_hash = models.CharField('Hash do token', max_length=64, unique=True)
+    expires_at = models.DateTimeField('Expira em')
+    used_at = models.DateTimeField('Usado em', null=True, blank=True)
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Token de redefinição de senha'
+        verbose_name_plural = 'Tokens de redefinição de senha'
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f'Token de {self.user} ({self.created_at:%d/%m/%Y %H:%M})'

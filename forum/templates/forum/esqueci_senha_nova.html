@@ -1,0 +1,42 @@
+{% extends "forum/base.html" %}
+{% load static %}
+
+{% block titulo %}Criar nova senha - INKA{% endblock %}
+
+{% block classe_body %}pagina-acesso{% endblock %}
+
+{% block head_extra %}
+<script src="{% static 'js/redefinir-senha.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<h2>Criar nova senha</h2>
+
+<p>Código confirmado. Agora crie a senha nova da conta do seu estúdio.</p>
+
+<form id="form-redefinir" data-etapa="senha" novalidate
+      data-url="{% url 'forum:api_redefinir_confirmar' %}"
+      data-inicio="{% url 'forum:esqueci_senha' %}"
+      data-proxima="{% url 'forum:entrar' %}">
+    {% csrf_token %}
+
+    <label for="senha">Nova senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="new-password"
+           required>
+
+    <label for="senha2">Confirme a nova senha</label>
+    <input type="password" id="senha2" name="senha2"
+           autocomplete="new-password" required>
+
+    <p class="erro" id="redefinir-erro" role="alert" hidden></p>
+
+    <p class="ajuda">
+        Use pelo menos 8 caracteres. A senha não pode ser só números, nem
+        muito comum, nem parecida com o e-mail, nem igual à senha atual.
+    </p>
+
+    <input type="submit" value="Salvar nova senha">
+</form>
+
+<p><a href="{% url 'forum:entrar' %}">Voltar para a tela de entrada</a></p>
+{% endblock %}

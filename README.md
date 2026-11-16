@@ -347,3 +347,12 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 
 
+
+## Redefinição de senha ("Esqueci minha senha")
+
+Na tela de entrada, o link **Esqueci minha senha** leva a três passos: informar o e-mail, digitar o código de 6 dígitos recebido e criar a senha nova.
+
+- O código vale 10 minutos e aceita no máximo 5 tentativas.
+- No computador de desenvolvimento o e-mail não é enviado: ele aparece no terminal do `runserver`.
+- Em produção o envio é por SMTP, configurado só por variáveis de ambiente. A lista está no arquivo `.env.example`: `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `EMAIL_USE_SSL` e `DEFAULT_FROM_EMAIL`.
+- Para apagar os códigos vencidos: `python manage.py limpar_codigos_expirados`.

@@ -1,0 +1,45 @@
+{% extends "forum/base.html" %}
+{% load static %}
+
+{% block titulo %}Digite o código - INKA{% endblock %}
+
+{% block classe_body %}pagina-acesso{% endblock %}
+
+{% block head_extra %}
+<script src="{% static 'js/redefinir-senha.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<h2>Digite o código</h2>
+
+<p>
+    Se houver uma conta com o e-mail <strong id="redefinir-email"></strong>,
+    enviamos um código de 6 dígitos para ele. O código vale por 10 minutos.
+</p>
+
+<form id="form-redefinir" data-etapa="codigo" novalidate
+      data-url="{% url 'forum:api_redefinir_conferir' %}"
+      data-url-reenviar="{% url 'forum:api_redefinir_pedir' %}"
+      data-inicio="{% url 'forum:esqueci_senha' %}"
+      data-proxima="{% url 'forum:esqueci_senha_nova' %}">
+    {% csrf_token %}
+
+    <label for="codigo">Código de 6 dígitos</label>
+    <input type="text" id="codigo" name="codigo" class="campo-codigo"
+           inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+           autocomplete="one-time-code" required>
+
+    <p class="erro" id="redefinir-erro" role="alert" hidden></p>
+
+    <input type="submit" value="Confirmar código">
+
+    <p class="ajuda">
+        Não recebeu? Confira a caixa de spam ou
+        <button type="button" class="botao-reenviar" id="botao-reenviar"
+                disabled>Reenviar código</button>
+        <span id="reenviar-contador" aria-live="polite"></span>
+    </p>
+</form>
+
+<p><a href="{% url 'forum:esqueci_senha' %}">Usar outro e-mail</a></p>
+{% endblock %}

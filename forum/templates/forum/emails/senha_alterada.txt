@@ -1,0 +1,7 @@
+Sua senha foi alterada - INKA
+
+A senha da conta do seu estúdio no INKA foi alterada em {{ data_hora|date:"d/m/Y" }} às {{ data_hora|date:"H:i" }} (horário de Brasília).
+
+Todas as sessões abertas da conta foram encerradas.
+
+Se não foi você, redefina a senha agora pela opção "Esqueci minha senha" na tela de entrada e fale com a equipe do INKA.

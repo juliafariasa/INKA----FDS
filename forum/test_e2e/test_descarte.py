@@ -48,17 +48,13 @@ class DescarteTest(BaseE2E):
     def ir_para_o_descarte(self):
         self.abrir_menu()
         self.clicar(By.XPATH, '//nav//a[normalize-space()="Descarte"]')
-        self.esperar_titulo('Descarte de resíduos')
-
-    def esperar_titulo(self, texto):
-        self.espera.until(EC.text_to_be_present_in_element(
-            (By.TAG_NAME, 'h2'), texto
-        ))
+        self.esperar_pagina('Descarte de resíduos')
 
     def lista_do_formato(self, formato):
         return self.navegador.find_element(
             By.XPATH,
-            f'//h4[normalize-space()="{formato}"]/following-sibling::ul[1]',
+            f'//h4[normalize-space()="{formato}"]/following-sibling::'
+            'div[contains(@class, "inka-descarte-lista")][1]',
         )
 
     def test_descarte_listar_abrir_e_conteudo_indisponivel(self):
@@ -83,7 +79,9 @@ class DescarteTest(BaseE2E):
 
         # E exibe as empresas de descarte com seus contatos
         empresa = self.espera.until(EC.visibility_of_element_located(
-            (By.XPATH, '//table//tr[td[normalize-space()="Coleta Segura"]]')
+            (By.XPATH,
+             '//article[contains(@class, "inka-descarte-empresa")]'
+             '[.//strong[normalize-space()="Coleta Segura"]]')
         ))
         self.navegador.execute_script(
             'arguments[0].scrollIntoView({block: "center"});', empresa
@@ -108,12 +106,21 @@ class DescarteTest(BaseE2E):
         self.narrar('Ao abrir o vídeo, o player aparece')
 
         # CENÁRIO 2 - conteúdo com link indisponível
-        self.clicar(By.LINK_TEXT, 'Voltar aos conteúdos sobre descarte')
-        self.esperar_titulo('Descarte de resíduos')
+        # O clique é feito pelo JavaScript, direto no link: o player do
+        # YouTube desloca a página quando termina de carregar, e um clique
+        # pela posição na tela às vezes caía em cima do vídeo.
+        voltar = self.espera.until(EC.element_to_be_clickable(
+            (By.LINK_TEXT, 'Voltar aos conteúdos sobre descarte')
+        ))
+        self.pausar()
+        self.navegador.execute_script('arguments[0].click();', voltar)
+        self.esperar_pagina('Descarte de resíduos')
         item = self.navegador.find_element(
-            By.XPATH, f'//li[a[normalize-space()="{VIDEO_FORA_DO_AR}"]]'
+            By.XPATH,
+            '//div[contains(@class, "inka-descarte-conteudo-info")]'
+            f'[a[normalize-space()="{VIDEO_FORA_DO_AR}"]]',
         )
-        self.assertIn('(indisponível no momento)', item.text)
+        self.assertIn('Indisponível no momento', item.text)
         self.narrar('Este vídeo está com o link fora do ar')
 
         # QUANDO tento abrir esse vídeo

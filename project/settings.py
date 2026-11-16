@@ -152,8 +152,43 @@ if 'test' in sys.argv:
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# Os e-mails (código de redefinição de senha e aviso de senha alterada) saem
+# por SMTP quando EMAIL_HOST está definido. As credenciais vêm só de variáveis
+# de ambiente (painel do Render); veja o .env.example.
+#
+# Sem EMAIL_HOST: no computador de desenvolvimento o e-mail é impresso no
+# terminal; no Render ele é descartado, para o código de redefinição nunca
+# aparecer nos logs do servidor.
+if os.environ.get('EMAIL_HOST'):
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+            'OPTIONS': {
+                'host': os.environ['EMAIL_HOST'],
+                'port': int(os.environ.get('EMAIL_PORT', '587')),
+                'username': os.environ.get('EMAIL_HOST_USER', ''),
+                'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+                'use_tls': os.environ.get('EMAIL_USE_TLS', 'True') == 'True',
+                'use_ssl': os.environ.get('EMAIL_USE_SSL', 'False') == 'True',
+                'timeout': 10,
+            },
+        },
+    }
+elif 'RENDER' in os.environ:
+    MAILERS = {
+        'default': {'BACKEND': 'django.core.mail.backends.dummy.EmailBackend'},
+    }
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'INKA <nao-responda@localhost>'
+)
+
+# Atrás do proxy do Render o IP do visitante vem no cabeçalho X-Forwarded-For;
+# ele é usado no limite de pedidos de redefinição de senha.
+IP_VEM_DO_PROXY = 'RENDER' in os.environ

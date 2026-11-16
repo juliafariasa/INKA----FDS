@@ -1,4 +1,5 @@
 import hashlib
+import json
 
 from django.contrib import messages
 from django.contrib.auth import (
@@ -22,6 +23,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 import segno
 
+from . import redefinicao_senha
 from .models import (
     Aula,
     CalculoResiduo,
@@ -161,9 +163,7 @@ class EntrarView(View):
         criadas no admin podem ter outro nome de usuário; para elas vale o
         campo e-mail.
         """
-        contas = get_user_model().objects
-        return (contas.filter(username__iexact=email).first()
-                or contas.filter(email__iexact=email).order_by('pk').first())
+        return redefinicao_senha.buscar_conta(email)
 
     def chave_tentativas(self, conta, email):
         # O contador é da conta, e não do texto digitado: entrar pelo e-mail
@@ -224,6 +224,123 @@ class AlterarSenhaView(LoginObrigatorioMixin, View):
         update_session_auth_hash(request, request.user)
         messages.success(request, 'Senha alterada.')
         return redirect(reverse('forum:minha_area'))
+
+
+class EsqueciSenhaPaginaView(View):
+    """As três telas do "esqueci minha senha": e-mail, código e senha nova.
+
+    As telas só mostram o formulário; quem faz o trabalho são os três
+    endereços /api/auth/password-reset/, chamados pelo redefinir-senha.js.
+    """
+
+    modelo = None
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect(reverse('forum:minha_area'))
+        return render(request, self.modelo)
+
+
+class EsqueciSenhaView(EsqueciSenhaPaginaView):
+    modelo = 'forum/esqueci_senha.html'
+
+
+class EsqueciSenhaCodigoView(EsqueciSenhaPaginaView):
+    modelo = 'forum/esqueci_senha_codigo.html'
+
+
+class EsqueciSenhaNovaView(EsqueciSenhaPaginaView):
+    modelo = 'forum/esqueci_senha_nova.html'
+
+
+class RedefinicaoApiView(View):
+    """Base dos endereços de redefinição: lê o JSON e aplica o limite."""
+
+    MENSAGEM_LIMITE = 'Muitas tentativas. Aguarde alguns minutos e tente de novo.'
+    etapa_limite = None
+
+    def post(self, request):
+        try:
+            dados = json.loads(request.body or b'{}')
+        except ValueError:
+            dados = None
+        if not isinstance(dados, dict):
+            return self.erro('Envie os dados em JSON.')
+
+        email = self.texto(dados, 'email').strip().lower()
+        if self.etapa_limite and redefinicao_senha.limite_excedido(
+            self.etapa_limite, email, redefinicao_senha.ip_do_pedido(request)
+        ):
+            return self.erro(self.MENSAGEM_LIMITE, status=429)
+        return self.responder(request, dados, email)
+
+    def texto(self, dados, campo):
+        valor = dados.get(campo, '')
+        return valor if isinstance(valor, str) else ''
+
+    def erro(self, mensagem, status=400):
+        return JsonResponse({'erro': mensagem}, status=status)
+
+
+class RedefinicaoPedirView(RedefinicaoApiView):
+    """POST /api/auth/password-reset/request  { email }"""
+
+    # A mesma resposta para e-mail com e sem conta, para não revelar quais
+    # e-mails estão cadastrados.
+    MENSAGEM = ('Se houver uma conta com este e-mail, enviamos um código de '
+                '6 dígitos para ele.')
+    etapa_limite = 'request'
+
+    def responder(self, request, dados, email):
+        if not email or len(email) > 254:
+            return self.erro('Informe o e-mail.')
+        redefinicao_senha.pedir_codigo(
+            email, redefinicao_senha.ip_do_pedido(request)
+        )
+        return JsonResponse({'mensagem': self.MENSAGEM})
+
+
+class RedefinicaoConferirView(RedefinicaoApiView):
+    """POST /api/auth/password-reset/verify  { email, code }"""
+
+    MENSAGEM_ERRO = 'Código inválido ou expirado.'
+    etapa_limite = 'verify'
+
+    def responder(self, request, dados, email):
+        codigo = self.texto(dados, 'code').strip()
+        token = None
+        if email and len(codigo) == 6 and codigo.isdecimal():
+            token = redefinicao_senha.conferir_codigo(email, codigo)
+        if token is None:
+            return self.erro(self.MENSAGEM_ERRO)
+        return JsonResponse({'reset_token': token})
+
+
+class RedefinicaoConfirmarView(RedefinicaoApiView):
+    """POST /api/auth/password-reset/confirm  { reset_token, new_password }"""
+
+    MENSAGEM_TOKEN = ('Este pedido de redefinição não vale mais. Peça um novo '
+                      'código.')
+
+    def responder(self, request, dados, email):
+        token = self.texto(dados, 'reset_token')
+        senha = self.texto(dados, 'new_password')
+        if not senha:
+            return self.erro('Crie uma senha.')
+        try:
+            conta = redefinicao_senha.redefinir_senha(token, senha)
+        except redefinicao_senha.TokenInvalido:
+            return JsonResponse(
+                {'erro': self.MENSAGEM_TOKEN, 'token_invalido': True},
+                status=400,
+            )
+        except redefinicao_senha.SenhaRecusada as erro:
+            return self.erro(' '.join(erro.mensagens))
+
+        # Quem provou ser dono do e-mail não fica preso no bloqueio de login.
+        cache.delete(EntrarView().chave_tentativas(conta, ''))
+        messages.success(request, 'Senha alterada. Entre com a nova senha.')
+        return JsonResponse({'mensagem': 'Senha alterada.'})
 
 
 class IndexView(View):

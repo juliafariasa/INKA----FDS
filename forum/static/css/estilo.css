@@ -15263,3 +15263,30 @@ body::after {
 .biblioteca-cabecalho h3 {
     color: #F6F6EF !important;
 }
+/* Esqueci minha senha: codigo de 6 digitos e botao de reenviar. */
+.erro[hidden] {
+    display: none;
+}
+
+.campo-codigo {
+    font-size: 28px;
+    letter-spacing: 0.45em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.botao-reenviar {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--inka-verde-claro);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.botao-reenviar:disabled {
+    color: var(--inka-suave);
+    text-decoration: none;
+    cursor: default;
+}

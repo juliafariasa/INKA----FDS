@@ -1,10 +1,15 @@
+import json
+import re
+from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.db import IntegrityError
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -20,6 +25,8 @@ from .models import (
     ItemLista,
     Material,
     MembroEquipe,
+    PasswordResetCode,
+    PasswordResetToken,
     Pilar,
     PraticaEstudio,
     ProgressoAula,
@@ -355,9 +362,13 @@ class DiagnosticoTest(TestCase):
             'E': [2, 2, 2, 1], 'S': [2, 1, 0, 0], 'G': [2, 2, 1, 1],
         })
         resposta = self.client.post(self.url, dados, follow=True)
-        self.assertContains(resposta, 'Resultado do último diagnóstico')
-        self.assertContains(resposta, '67 de 100')
-        self.assertContains(resposta, 'Plano de ação')
+        self.assertContains(resposta, 'DIAGNÓSTICO CONCLUÍDO')
+        self.assertContains(
+            resposta,
+            '<div class="inka-resultado-numero">67 <span>/100</span></div>',
+            html=True,
+        )
+        self.assertContains(resposta, 'Seu plano de ação')
         self.assertContains(resposta, 'Formação de novos profissionais')
 
     def test_resposta_faltando_nao_salva(self):
@@ -368,7 +379,7 @@ class DiagnosticoTest(TestCase):
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(Diagnostico.objects.count(), 0)
         self.assertEqual(len(resposta.context['pendentes']), 1)
-        self.assertContains(resposta, 'class="pendente"', count=1)
+        self.assertContains(resposta, 'class="diagnostico-erro"', count=1)
 
     def test_valor_invalido_conta_como_pendente(self):
         dados = self.responder({
@@ -404,7 +415,7 @@ class DiagnosticoTest(TestCase):
             estudio=self.estudio, nota_e=8, nota_s=5, nota_g=7
         )
         resposta = self.client.get(self.url)
-        self.assertContains(resposta, 'Resultado do último diagnóstico')
+        self.assertContains(resposta, 'DIAGNÓSTICO CONCLUÍDO')
         self.assertContains(resposta, self.MENSAGEM_JA_REALIZADO)
         self.assertNotContains(resposta, 'type="radio"')
         self.assertNotContains(resposta, 'Salvar diagnóstico')
@@ -729,7 +740,7 @@ class ResiduoTest(TestCase):
             self.url, {'atendimentos': '10', 'materiais': [self.luva.id]},
             follow=True,
         )
-        self.assertContains(resposta, 'Materiais usados:')
+        self.assertContains(resposta, 'MATERIAIS UTILIZADOS')
         self.assertContains(resposta, 'Luva de teste')
 
     def test_formulario_vem_preenchido_com_ultimo_calculo(self):
@@ -749,7 +760,7 @@ class ResiduoTest(TestCase):
         resposta = self.client.get(self.url)
         self.assertContains(resposta, 'value="7"')
         self.assertNotContains(resposta, 'checked')
-        self.assertNotContains(resposta, 'Materiais usados:')
+        self.assertNotContains(resposta, 'MATERIAIS UTILIZADOS')
 
     def test_erro_preserva_os_materiais_marcados(self):
         resposta = self.client.post(
@@ -764,7 +775,7 @@ class ResiduoTest(TestCase):
             self.url, {'atendimentos': '10', 'materiais': self.todos},
             follow=True,
         )
-        self.assertContains(resposta, 'Resultado do último cálculo')
+        self.assertContains(resposta, 'Panorama do mês')
         self.assertContains(resposta, '350 g')
         self.assertEqual(len(resposta.context['recomendacoes']), 4)
         self.assertContains(resposta, 'Redução de descartáveis')
@@ -789,7 +800,12 @@ class ResiduoTest(TestCase):
         total = resposta.context['calculo'].resultado()[-1]
         self.assertEqual(total['situacao'], 'Diminuiu')
         self.assertEqual(total['diferenca'], 140)
-        self.assertContains(resposta, 'Diminuiu 140 g')
+        self.assertContains(
+            resposta,
+            '<span class="inka-residuos-situacao">Diminuiu</span>',
+            html=True,
+        )
+        self.assertContains(resposta, '<small>140 g</small>', html=True)
 
     def test_segundo_calculo_mostra_que_aumentou(self):
         self.client.post(
@@ -913,7 +929,7 @@ class EstoqueTest(TestCase):
         self.criar_item(quantidade=0)
         resposta = self.client.get(self.url_lista)
         self.assertContains(resposta, '(em falta)')
-        self.assertContains(resposta, 'class="pendente"', count=1)
+        self.assertContains(resposta, 'class="is-warning"', count=1)
 
     def test_formulario_de_edicao_vem_preenchido(self):
         item = self.criar_item()
@@ -1185,7 +1201,7 @@ class DescarteTest(TestCase):
         resposta = self.client.get(self.url)
         self.assertEqual(resposta.status_code, 200)
         self.assertContains(resposta, 'Ainda não há conteúdos sobre descarte')
-        self.assertContains(resposta, 'Nenhuma empresa de descarte')
+        self.assertContains(resposta, 'Nenhuma empresa por aqui ainda')
 
     def test_formato_sem_conteudo_mostra_aviso(self):
         self.podcast.delete()
@@ -1199,7 +1215,7 @@ class DescarteTest(TestCase):
         self.video.save()
         resposta = self.client.get(self.url)
         self.assertContains(resposta, 'Como descartar agulhas corretamente')
-        self.assertContains(resposta, '(indisponível no momento)', count=1)
+        self.assertContains(resposta, 'Indisponível no momento', count=1)
 
     def test_video_do_youtube_e_incorporado(self):
         resposta = self.client.get(self.url_conteudo(self.video))
@@ -1387,7 +1403,7 @@ class DescarteCadastroTest(TestCase):
 
         resposta = self.client.get(self.url_lista)
         self.assertContains(resposta, 'Como descartar agulhas corretamente')
-        self.assertContains(resposta, 'Cadastrado pelo seu estúdio')
+        self.assertContains(resposta, 'CADASTRADO PELO SEU ESTÚDIO')
 
     def test_conteudo_cadastrado_abre_o_player(self):
         self.client.post(self.url_novo_conteudo, self.dados_conteudo())
@@ -1738,7 +1754,9 @@ class AulasTest(TestCase):
         self.assistir(900)
         resposta = self.client.post(self.url_aula(), follow=True)
         self.assertContains(resposta, 'aviso-success')
-        self.assertContains(resposta, '<b>Concluída</b>', html=True)
+        self.assertContains(
+            resposta, '<b class="status-concluida">Concluída ✓</b>', html=True
+        )
         self.assertEqual(resposta.context['concluidas'], 1)
 
     def test_aula_concluida_nao_mostra_mais_o_botao(self):
@@ -2348,3 +2366,316 @@ class ContaTest(TestCase):
         self.assertContains(resposta, f'href="{self.url_minha_area}"')
         self.assertContains(resposta, 'class="form-sair"')
         self.assertContains(resposta, f'href="{url_descarte}"')
+
+
+class RedefinirSenhaTest(TestCase):
+    """Esqueci minha senha: código por e-mail, token de uso único e limites."""
+
+    EMAIL = 'contato@tintaverde.com'
+    SENHA = 'Tatuagem-Verde-2026'
+    NOVA_SENHA = 'Agulha-Nova-Recife-26'
+    ERRO_CODIGO = 'Código inválido ou expirado.'
+
+    def setUp(self):
+        # Os contadores de limite ficam no cache; zera entre os testes.
+        cache.clear()
+        # No site o e-mail sai numa thread. No teste ele é enviado na hora,
+        # para a caixa de saída (mail.outbox) já estar preenchida.
+        envio_na_hora = mock.patch(
+            'forum.redefinicao_senha.em_segundo_plano',
+            lambda funcao: funcao(),
+        )
+        envio_na_hora.start()
+        self.addCleanup(envio_na_hora.stop)
+
+        self.usuario = get_user_model().objects.create_user(
+            username=self.EMAIL, email=self.EMAIL, password=self.SENHA
+        )
+        self.url_pedir = reverse('forum:api_redefinir_pedir')
+        self.url_conferir = reverse('forum:api_redefinir_conferir')
+        self.url_confirmar = reverse('forum:api_redefinir_confirmar')
+
+    def postar(self, url, **dados):
+        return self.client.post(url, json.dumps(dados),
+                                content_type='application/json')
+
+    def pedir(self, email=None):
+        return self.postar(self.url_pedir, email=email or self.EMAIL)
+
+    def conferir(self, codigo, email=None):
+        return self.postar(self.url_conferir, email=email or self.EMAIL,
+                           code=codigo)
+
+    def confirmar(self, token, senha=None):
+        return self.postar(self.url_confirmar, reset_token=token,
+                           new_password=senha or self.NOVA_SENHA)
+
+    def codigo_do_email(self):
+        return re.search(r'\b(\d{6})\b', mail.outbox[-1].body)[1]
+
+    def outro_codigo(self, codigo):
+        return f'{(int(codigo) + 1) % 10 ** 6:06d}'
+
+    def obter_token(self):
+        self.pedir()
+        return self.conferir(self.codigo_do_email()).json()['reset_token']
+
+    # Endereços e telas
+
+    def test_enderecos_da_api(self):
+        self.assertEqual(self.url_pedir, '/api/auth/password-reset/request')
+        self.assertEqual(self.url_conferir, '/api/auth/password-reset/verify')
+        self.assertEqual(self.url_confirmar,
+                         '/api/auth/password-reset/confirm')
+
+    def test_as_tres_telas_abrem(self):
+        for nome in ('esqueci_senha', 'esqueci_senha_codigo',
+                     'esqueci_senha_nova'):
+            resposta = self.client.get(reverse(f'forum:{nome}'))
+            self.assertEqual(resposta.status_code, 200)
+            self.assertContains(resposta, 'id="form-redefinir"')
+
+    def test_tela_de_entrada_tem_link_esqueci_minha_senha(self):
+        resposta = self.client.get(reverse('forum:entrar'))
+        self.assertContains(
+            resposta, f'href="{reverse("forum:esqueci_senha")}"'
+        )
+
+    # Passo 1: pedir o código
+
+    def test_pedido_envia_codigo_de_6_digitos_e_guarda_so_o_hash(self):
+        resposta = self.pedir()
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.EMAIL])
+
+        codigo = self.codigo_do_email()
+        self.assertIn(codigo, mail.outbox[0].alternatives[0].content)
+        self.assertIn('ignore este e-mail', mail.outbox[0].body)
+
+        registro = PasswordResetCode.objects.get(user=self.usuario)
+        self.assertNotIn(codigo, registro.code_hash)
+        self.assertEqual(len(registro.code_hash), 64)
+        validade = registro.expires_at - registro.created_at
+        self.assertAlmostEqual(validade.total_seconds(), 600, delta=5)
+        self.assertEqual(registro.ip, '127.0.0.1')
+
+    def test_email_inexistente_recebe_a_mesma_resposta_e_nenhum_email(self):
+        existente = self.pedir()
+        mail.outbox.clear()
+
+        inexistente = self.pedir('ninguem@example.com')
+        self.assertEqual(inexistente.status_code, 200)
+        self.assertEqual(inexistente.json(), existente.json())
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(PasswordResetCode.objects.count(), 1)
+
+    def test_novo_pedido_invalida_o_codigo_anterior(self):
+        self.pedir()
+        primeiro = self.codigo_do_email()
+        self.pedir()
+        segundo = self.codigo_do_email()
+
+        if primeiro != segundo:
+            self.assertEqual(self.conferir(primeiro).status_code, 400)
+        self.assertEqual(self.conferir(segundo).status_code, 200)
+
+    # Passo 2: conferir o código
+
+    def test_codigo_errado_e_recusado_e_conta_tentativa(self):
+        self.pedir()
+        resposta = self.conferir(self.outro_codigo(self.codigo_do_email()))
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(resposta.json(), {'erro': self.ERRO_CODIGO})
+        self.assertEqual(PasswordResetCode.objects.get().attempts, 1)
+        self.assertEqual(PasswordResetToken.objects.count(), 0)
+
+    def test_codigo_de_email_inexistente_tem_a_mesma_resposta(self):
+        resposta = self.conferir('123456', email='ninguem@example.com')
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(resposta.json(), {'erro': self.ERRO_CODIGO})
+
+    def test_codigo_expirado_e_recusado(self):
+        self.pedir()
+        PasswordResetCode.objects.update(
+            expires_at=timezone.now() - timedelta(seconds=1)
+        )
+        resposta = self.conferir(self.codigo_do_email())
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(resposta.json(), {'erro': self.ERRO_CODIGO})
+
+    def test_cinco_tentativas_erradas_invalidam_o_codigo(self):
+        self.pedir()
+        codigo = self.codigo_do_email()
+        for _ in range(5):
+            self.assertEqual(
+                self.conferir(self.outro_codigo(codigo)).status_code, 400
+            )
+        # Agora nem o código certo passa.
+        self.assertEqual(self.conferir(codigo).status_code, 400)
+        self.assertEqual(PasswordResetCode.objects.get().attempts, 5)
+
+    def test_codigo_certo_devolve_token_e_nao_pode_ser_usado_de_novo(self):
+        self.pedir()
+        codigo = self.codigo_do_email()
+        resposta = self.conferir(codigo)
+        self.assertEqual(resposta.status_code, 200)
+
+        token = resposta.json()['reset_token']
+        self.assertGreaterEqual(len(token), 43)  # 32 bytes em base64
+        registro = PasswordResetToken.objects.get(user=self.usuario)
+        self.assertNotEqual(registro.token_hash, token)
+        validade = registro.expires_at - registro.created_at
+        self.assertAlmostEqual(validade.total_seconds(), 900, delta=5)
+        self.assertIsNotNone(PasswordResetCode.objects.get().used_at)
+
+        self.assertEqual(self.conferir(codigo).status_code, 400)
+
+    # Passo 3: gravar a senha nova
+
+    def test_confirmar_troca_a_senha_e_guarda_com_hash(self):
+        resposta = self.confirmar(self.obter_token())
+        self.assertEqual(resposta.status_code, 200)
+
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(self.NOVA_SENHA))
+        self.assertFalse(self.usuario.check_password(self.SENHA))
+        self.assertTrue(self.usuario.password.startswith('pbkdf2_sha256$'))
+
+    def test_token_reutilizado_e_recusado(self):
+        token = self.obter_token()
+        self.assertEqual(self.confirmar(token).status_code, 200)
+
+        resposta = self.confirmar(token, 'Outra-Senha-Forte-27')
+        self.assertEqual(resposta.status_code, 400)
+        self.assertTrue(resposta.json()['token_invalido'])
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(self.NOVA_SENHA))
+
+    def test_token_expirado_ou_inventado_e_recusado(self):
+        self.assertEqual(self.confirmar('token-inventado').status_code, 400)
+
+        token = self.obter_token()
+        PasswordResetToken.objects.update(
+            expires_at=timezone.now() - timedelta(seconds=1)
+        )
+        self.assertEqual(self.confirmar(token).status_code, 400)
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(self.SENHA))
+
+    def test_senha_fraca_ou_igual_a_atual_e_recusada_sem_gastar_o_token(self):
+        token = self.obter_token()
+        for senha in ('curta1', '12345678', self.SENHA):
+            resposta = self.confirmar(token, senha)
+            self.assertEqual(resposta.status_code, 400, senha)
+            self.assertNotIn('token_invalido', resposta.json())
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password(self.SENHA))
+
+        # O mesmo token ainda serve para uma senha boa.
+        self.assertEqual(self.confirmar(token).status_code, 200)
+
+    def test_sessoes_abertas_sao_encerradas_apos_a_troca(self):
+        url_minha_area = reverse('forum:minha_area')
+        outro_navegador = Client()
+        outro_navegador.login(username=self.EMAIL, password=self.SENHA)
+        # Logada, a conta sem estúdio é mandada para a página inicial.
+        self.assertRedirects(outro_navegador.get(url_minha_area),
+                             reverse('forum:index'))
+
+        self.confirmar(self.obter_token())
+
+        resposta = outro_navegador.get(url_minha_area)
+        self.assertRedirects(
+            resposta, f'{reverse("forum:entrar")}?next={url_minha_area}'
+        )
+        self.assertTrue(
+            Client().login(username=self.EMAIL, password=self.NOVA_SENHA)
+        )
+
+    def test_email_avisa_que_a_senha_foi_alterada_com_data_e_hora(self):
+        token = self.obter_token()
+        mail.outbox.clear()
+        self.confirmar(token)
+
+        self.assertEqual(len(mail.outbox), 1)
+        aviso = mail.outbox[0]
+        self.assertEqual(aviso.to, [self.EMAIL])
+        self.assertIn('foi alterada', aviso.subject)
+        agora = timezone.localtime()
+        self.assertIn(agora.strftime('%d/%m/%Y'), aviso.body)
+        self.assertRegex(aviso.body, r'às \d{2}:\d{2}')
+        self.assertNotIn(self.NOVA_SENHA, aviso.body)
+
+    def test_troca_de_senha_libera_o_bloqueio_de_login(self):
+        url_entrar = reverse('forum:entrar')
+        for _ in range(6):
+            self.client.post(url_entrar,
+                             {'email': self.EMAIL, 'senha': 'senha-errada'})
+        self.confirmar(self.obter_token())
+
+        self.client.post(url_entrar,
+                         {'email': self.EMAIL, 'senha': self.NOVA_SENHA})
+        self.assertIn('_auth_user_id', self.client.session)
+
+    # Limites e segurança
+
+    def test_limite_de_3_pedidos_por_email(self):
+        for _ in range(3):
+            self.assertEqual(self.pedir().status_code, 200)
+        self.assertEqual(self.pedir().status_code, 429)
+        self.assertEqual(len(mail.outbox), 3)
+
+        # O limite é por e-mail digitado: vale igual para quem não tem conta.
+        for _ in range(3):
+            self.assertEqual(self.pedir('ninguem@example.com').status_code,
+                             200)
+        self.assertEqual(self.pedir('ninguem@example.com').status_code, 429)
+
+    def test_limite_de_pedidos_por_ip(self):
+        for numero in range(10):
+            resposta = self.pedir(f'pessoa{numero}@example.com')
+            self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(self.pedir('pessoa10@example.com').status_code, 429)
+
+    def test_limite_de_conferencias_por_email(self):
+        for _ in range(10):
+            self.assertEqual(self.conferir('000000').status_code, 400)
+        self.assertEqual(self.conferir('000000').status_code, 429)
+
+    def test_fluxo_completo_nao_escreve_nada_nos_logs(self):
+        with self.assertNoLogs(level='INFO'):
+            self.confirmar(self.obter_token())
+
+    def test_dados_fora_do_formato_sao_recusados(self):
+        resposta = self.client.post(self.url_pedir, 'isto não é json',
+                                    content_type='application/json')
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(self.postar(self.url_pedir).status_code, 400)
+        self.assertEqual(self.client.get(self.url_pedir).status_code, 405)
+
+    # Limpeza
+
+    def test_comando_apaga_codigos_e_tokens_vencidos(self):
+        token = self.obter_token()          # código usado + token válido
+        outra = get_user_model().objects.create_user(
+            username='outra@example.com', email='outra@example.com'
+        )
+        self.pedir('outra@example.com')     # código ainda válido
+        vencido = PasswordResetCode.objects.create(
+            user=outra, code_hash='x' * 64,
+            expires_at=timezone.now() - timedelta(minutes=1),
+        )
+
+        call_command('limpar_codigos_expirados', stdout=mock.MagicMock())
+
+        self.assertFalse(
+            PasswordResetCode.objects.filter(user=self.usuario).exists()
+        )
+        self.assertFalse(
+            PasswordResetCode.objects.filter(pk=vencido.pk).exists()
+        )
+        self.assertEqual(PasswordResetCode.objects.filter(user=outra).count(),
+                         1)
+        # O token ainda válido continua funcionando.
+        self.assertEqual(self.confirmar(token).status_code, 200)
