@@ -5,10 +5,12 @@ O diário não tem tabela própria. Ele é montado a partir do que as outras
 e campanhas), então nada precisa ser digitado duas vezes.
 """
 
+from django.utils import timezone
+
 LIMITE_DO_DIARIO = 40
 
 
-def diario_do_estudio(estudio):
+def diario_do_estudio(estudio, limite=LIMITE_DO_DIARIO):
     """Devolve os eventos do estúdio, do mais recente para o mais antigo.
 
     Cada evento é um dicionário com 'quando' (data e hora), 'tipo' (usado
@@ -20,17 +22,28 @@ def diario_do_estudio(estudio):
         'texto': 'Estúdio cadastrado no INKA.',
     }]
 
-    for diagnostico in estudio.diagnosticos.all():
+    indice_anterior = None
+    for diagnostico in estudio.diagnosticos.order_by('data', 'id'):
         selo = diagnostico.selo()
-        eventos.append({
-            'quando': diagnostico.data,
-            'tipo': 'Diagnóstico',
-            'texto': (
-                f'Diagnóstico de maturidade ESG: índice '
-                f'{diagnostico.indice():.0f} de 100, '
-                + (f'selo {selo}.' if selo else 'ainda sem selo.')
-            ),
-        })
+        final = f'selo {selo}.' if selo else 'ainda sem selo.'
+        indice = diagnostico.indice()
+        if diagnostico.tipo == diagnostico.REAVALIACAO:
+            texto = f'Reavaliação ESG: índice {indice:.0f} de 100'
+            if indice_anterior is not None:
+                variacao = round(indice - indice_anterior)
+                if variacao:
+                    texto += f' ({variacao:+d} em relação à anterior)'
+                else:
+                    texto += ' (igual à anterior)'
+            texto += f', {final}'
+            rotulo = 'Reavaliação'
+        else:
+            texto = (f'Diagnóstico de maturidade ESG: índice {indice:.0f} '
+                     f'de 100, {final}')
+            rotulo = 'Diagnóstico'
+        indice_anterior = indice
+        eventos.append({'quando': diagnostico.data, 'tipo': rotulo,
+                        'texto': texto})
 
     anterior = None
     for calculo in estudio.calculos_residuo.order_by('id'):
@@ -93,5 +106,40 @@ def diario_do_estudio(estudio):
                       f'com {campanha.ong}.'),
         })
 
+    for documento in estudio.documentos.all():
+        texto = f'Documento cadastrado: {documento.get_tipo_display()}'
+        if documento.validade:
+            texto += f', válido até {documento.validade:%d/%m/%Y}'
+        eventos.append({
+            'quando': documento.criado_em,
+            'tipo': 'Documento',
+            'texto': texto + '.',
+        })
+
     eventos.sort(key=lambda evento: evento['quando'], reverse=True)
-    return eventos[:LIMITE_DO_DIARIO]
+    # limite=None devolve o diário inteiro (usado no painel da equipe).
+    return eventos[:limite]
+
+
+def marcar_metas_atingidas(estudio):
+    """Marca as metas que os indicadores de hoje já alcançaram.
+
+    Devolve as metas marcadas agora, para a tela avisar o estúdio. É chamada
+    pelo painel de evolução e pela Minha Área, para as duas mostrarem a
+    situação certa, seja qual for a página que o estúdio abrir primeiro.
+    """
+    atingidas = []
+    # Cada indicador é medido uma vez só, mesmo com várias metas nele.
+    valores = {}
+    for meta in estudio.metas.filter(atingida_em__isnull=True):
+        if not meta.em_andamento():
+            continue
+        if meta.indicador not in valores:
+            valores[meta.indicador] = meta.valor_do_indicador(
+                estudio, meta.indicador
+            )
+        if meta.alcanca(meta.indicador, valores[meta.indicador], meta.alvo):
+            meta.atingida_em = timezone.now()
+            meta.save(update_fields=['atingida_em'])
+            atingidas.append(meta)
+    return atingidas

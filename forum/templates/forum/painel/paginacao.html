@@ -1,0 +1,11 @@
+{% if pagina.paginator.num_pages > 1 %}
+    <nav class="painel-paginacao" aria-label="Páginas">
+        {% if pagina.has_previous %}
+            <a href="?{{ filtros_url }}{% if filtros_url %}&amp;{% endif %}pagina={{ pagina.previous_page_number }}">← Anterior</a>
+        {% endif %}
+        <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+        {% if pagina.has_next %}
+            <a href="?{{ filtros_url }}{% if filtros_url %}&amp;{% endif %}pagina={{ pagina.next_page_number }}">Próxima →</a>
+        {% endif %}
+    </nav>
+{% endif %}

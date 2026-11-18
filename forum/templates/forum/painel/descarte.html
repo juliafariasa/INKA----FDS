@@ -1,0 +1,84 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Descarte - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Descarte de resíduos</h2>
+    <p>Conteúdos e empresas que aparecem para todos os estúdios.</p>
+</header>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">01 / CONTEÚDOS</span>
+        <h3>Vídeos, podcasts e slides</h3>
+    </div>
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{% url 'forum:painel_conteudo_novo' %}"><span>+</span> Novo conteúdo</a>
+    </div>
+    {% if conteudos %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Conteúdo</th><th>Formato</th><th>Link</th><th></th></tr></thead>
+                <tbody>
+                    {% for conteudo in conteudos %}
+                        <tr>
+                            <td>{{ conteudo.titulo }}<small>{{ conteudo.url }}</small></td>
+                            <td>{{ conteudo.get_formato_display }}</td>
+                            <td>
+                                <form method="post" action="{% url 'forum:painel_conteudo_disponivel' conteudo.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="voltar" value="descarte">
+                                    {% if conteudo.disponivel %}Funcionando{% else %}<span class="painel-desativado">Fora do ar</span>{% endif %}
+                                    <button type="submit" class="evo-meta-remover">
+                                        {% if conteudo.disponivel %}Marcar fora do ar{% else %}Marcar funcionando{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="painel-links">
+                                <a href="{% url 'forum:painel_conteudo_editar' conteudo.id %}">Editar</a>
+                                <a href="{% url 'forum:painel_conteudo_remover' conteudo.id %}">Remover</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Nenhum conteúdo da plataforma.</p>
+    {% endif %}
+</section>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">02 / EMPRESAS</span>
+        <h3>Rede de coleta</h3>
+    </div>
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{% url 'forum:painel_empresa_nova' %}"><span>+</span> Nova empresa</a>
+    </div>
+    {% if empresas %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Empresa</th><th>Cidade</th><th>Recolhe</th><th></th></tr></thead>
+                <tbody>
+                    {% for empresa in empresas %}
+                        <tr>
+                            <td>{{ empresa.nome }}<small>{{ empresa.telefone }}{% if empresa.email %} · {{ empresa.email }}{% endif %}</small></td>
+                            <td>{{ empresa.cidade }}</td>
+                            <td>{{ empresa.tipos_residuo }}</td>
+                            <td class="painel-links">
+                                <a href="{% url 'forum:painel_empresa_editar' empresa.id %}">Editar</a>
+                                <a href="{% url 'forum:painel_empresa_remover' empresa.id %}">Remover</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Nenhuma empresa da plataforma.</p>
+    {% endif %}
+</section>
+{% endblock %}

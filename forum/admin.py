@@ -20,6 +20,8 @@ from .models import (
     Pilar,
     PraticaEstudio,
     ProgressoAula,
+    RegistroEquipe,
+    Resposta,
     SecaoConteudo,
     Tecnologia,
 )
@@ -62,6 +64,13 @@ class ContatoAdmin(admin.ModelAdmin):
     list_filter = ['assunto', 'respondido', 'data_envio']
     search_fields = ['nome', 'email', 'empresa', 'mensagem']
     date_hierarchy = 'data_envio'
+    actions = ['marcar_respondido']
+
+    @admin.action(description='Marcar como respondido')
+    def marcar_respondido(self, request, queryset):
+        total = queryset.update(respondido=True)
+        self.message_user(request,
+                          f'{total} contato(s) marcado(s) como respondido.')
 
 
 @admin.register(PraticaEstudio)
@@ -73,14 +82,37 @@ class PraticaEstudioAdmin(admin.ModelAdmin):
 
 @admin.register(Estudio)
 class EstudioAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'cidade', 'usuario', 'criado_em']
+    list_display = ['nome', 'cidade', 'usuario', 'ativo', 'criado_em']
+    list_filter = ['ativo']
+    list_select_related = ['usuario']
     search_fields = ['nome', 'cidade', 'usuario__email']
+    autocomplete_fields = ['usuario']
+
+
+class RespostaInline(admin.TabularInline):
+    """Respostas do diagnóstico, só para leitura.
+
+    Mudar uma resposta aqui não recalcularia as notas, e a nota ficaria
+    diferente das respostas.
+    """
+
+    model = Resposta
+    fields = ['pratica', 'valor']
+    readonly_fields = ['pratica', 'valor']
+    extra = 0
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Diagnostico)
 class DiagnosticoAdmin(admin.ModelAdmin):
     list_display = ['estudio', 'data', 'nota_e', 'nota_s', 'nota_g']
     list_filter = ['estudio']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
+    inlines = [RespostaInline]
 
 
 @admin.register(Material)
@@ -95,6 +127,8 @@ class CalculoResiduoAdmin(admin.ModelAdmin):
                     'gramas_perfurocortante', 'gramas_contaminado',
                     'gramas_comum']
     list_filter = ['estudio']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(ItemEstoque)
@@ -102,6 +136,8 @@ class ItemEstoqueAdmin(admin.ModelAdmin):
     list_display = ['nome', 'tipo', 'quantidade', 'fornecedor', 'estudio']
     list_filter = ['tipo', 'estudio']
     search_fields = ['nome', 'fornecedor']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(ConteudoDescarte)
@@ -109,7 +145,17 @@ class ConteudoDescarteAdmin(admin.ModelAdmin):
     list_display = ['titulo', 'formato', 'disponivel', 'estudio']
     list_filter = ['formato', 'disponivel', 'estudio']
     list_editable = ['disponivel']
+    list_select_related = ['estudio']
     search_fields = ['titulo', 'descricao']
+    autocomplete_fields = ['estudio']
+    actions = ['marcar_indisponivel']
+
+    @admin.action(description='Marcar como indisponível')
+    def marcar_indisponivel(self, request, queryset):
+        total = queryset.update(disponivel=False)
+        self.message_user(
+            request, f'{total} conteúdo(s) marcado(s) como indisponível.'
+        )
 
 
 @admin.register(EmpresaDescarte)
@@ -117,6 +163,8 @@ class EmpresaDescarteAdmin(admin.ModelAdmin):
     list_display = ['nome', 'cidade', 'telefone', 'email', 'estudio']
     list_filter = ['cidade', 'estudio']
     search_fields = ['nome', 'cidade', 'tipos_residuo']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(Aula)
@@ -124,6 +172,8 @@ class AulaAdmin(admin.ModelAdmin):
     list_display = ['titulo', 'duracao', 'estudio', 'ordem']
     list_filter = ['estudio']
     search_fields = ['titulo', 'descricao']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
     @admin.display(description='Duração')
     def duracao(self, aula):
@@ -134,6 +184,8 @@ class AulaAdmin(admin.ModelAdmin):
 class ProgressoAulaAdmin(admin.ModelAdmin):
     list_display = ['estudio', 'aula', 'segundos_assistidos', 'concluida']
     list_filter = ['concluida', 'aula', 'estudio']
+    list_select_related = ['estudio', 'aula']
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(ItemChecklist)
@@ -147,17 +199,22 @@ class ItemChecklistAdmin(admin.ModelAdmin):
 class ChecklistAdmin(admin.ModelAdmin):
     list_display = ['estudio', 'data', 'cumpridos', 'total_itens']
     list_filter = ['estudio']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(MetaEsg)
 class MetaEsgAdmin(admin.ModelAdmin):
     list_display = ['estudio', 'indicador', 'alvo', 'prazo', 'atingida_em']
     list_filter = ['indicador', 'estudio']
+    list_select_related = ['estudio']
+    autocomplete_fields = ['estudio']
 
 
 class ParticipacaoCampanhaInline(admin.TabularInline):
     model = ParticipacaoCampanha
     extra = 0
+    autocomplete_fields = ['estudio']
 
 
 @admin.register(Campanha)
@@ -166,3 +223,19 @@ class CampanhaAdmin(admin.ModelAdmin):
     list_filter = ['ativa', 'cidade']
     search_fields = ['titulo', 'ong', 'descricao']
     inlines = [ParticipacaoCampanhaInline]
+
+
+@admin.register(RegistroEquipe)
+class RegistroEquipeAdmin(admin.ModelAdmin):
+    """Só leitura: o registro é a memória do que a equipe fez."""
+
+    list_display = ['criado_em', 'nome_usuario', 'acao', 'alvo']
+    list_filter = ['acao']
+    search_fields = ['nome_usuario', 'acao', 'alvo']
+    readonly_fields = ['usuario', 'nome_usuario', 'acao', 'alvo', 'criado_em']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

@@ -1,0 +1,205 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}{{ estudio.nome }} - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE / ESTÚDIO #{{ estudio.id }}</span>
+    <h2>{{ estudio.nome }}</h2>
+    <p>
+        {{ estudio.cidade }} · cadastrado em {{ estudio.criado_em|date:"d/m/Y" }} ·
+        {% if estudio.ativo %}Ativo{% else %}<span class="painel-desativado">Desativado</span>{% endif %}
+    </p>
+</header>
+
+<div class="painel-acoes">
+    {% if estudio.ativo %}
+        <a class="evo-acao" href="{% url 'forum:estudio_perfil' estudio.id %}" target="_blank" rel="noopener">Ver perfil público ↗</a>
+    {% endif %}
+    <a class="evo-acao" href="{% url 'forum:painel_estudio_situacao' estudio.id %}">
+        {% if estudio.ativo %}Desativar estúdio{% else %}Reativar estúdio{% endif %}
+    </a>
+    <a class="evo-acao" href="{% url 'admin:forum_estudio_change' estudio.id %}">Abrir no admin ↗</a>
+</div>
+
+{% if diagnostico %}
+    <p class="evo-detalhe">
+        {% if reavaliacao_disponivel %}
+            Reavaliação disponível para o estúdio.
+        {% else %}
+            Próxima reavaliação em {{ reavaliacao_em|date:"d/m/Y" }}.
+        {% endif %}
+    </p>
+    {% if not reavaliacao_disponivel %}
+        <form method="post" action="{% url 'forum:painel_liberar_reavaliacao' estudio.id %}">
+            {% csrf_token %}
+            <button type="submit" class="evo-meta-remover">Liberar reavaliação antes do prazo</button>
+        </form>
+    {% endif %}
+{% endif %}
+
+<!-- CONTA -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">01 / CONTA</span>
+        <h3>Conta de acesso</h3>
+    </div>
+    {% if conta %}
+        <table class="painel-tabela painel-ficha">
+            <tr><th>E-mail</th><td>{{ conta.email|default:"—" }}</td></tr>
+            <tr><th>Conta criada em</th><td>{{ conta.date_joined|date:"d/m/Y H:i" }}</td></tr>
+            <tr><th>Último login</th><td>{{ conta.last_login|date:"d/m/Y H:i"|default:"Nunca entrou" }}</td></tr>
+        </table>
+    {% else %}
+        <p class="evo-vazio">Este estúdio não tem conta de acesso ligada.</p>
+    {% endif %}
+</section>
+
+<!-- INDICADORES -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">02 / INDICADORES</span>
+        <h3>Situação atual</h3>
+    </div>
+    <div class="evo-indicadores">
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Índice de sustentabilidade</span>
+            {% if diagnostico %}
+                <strong>{{ diagnostico.indice|floatformat:0 }}<small>/100</small></strong>
+                <span class="evo-detalhe">{% if diagnostico.selo %}Selo {{ diagnostico.selo }}{% else %}Sem selo{% endif %} · E {{ diagnostico.nota_e|floatformat:1 }} · S {{ diagnostico.nota_s|floatformat:1 }} · G {{ diagnostico.nota_g|floatformat:1 }}</span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Ainda sem diagnóstico</span>
+            {% endif %}
+        </div>
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Último checklist</span>
+            {% if checklist %}
+                <strong>{{ checklist.percentual }}<small>%</small></strong>
+                <span class="evo-detalhe">em {{ checklist.data|date:"d/m/Y" }}</span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Nenhuma verificação</span>
+            {% endif %}
+        </div>
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Resíduos por mês</span>
+            {% if calculo %}
+                <strong>{{ calculo.total }}<small> g</small></strong>
+                <span class="evo-detalhe">em {{ calculo.criado_em|date:"d/m/Y" }}</span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Nenhum cálculo</span>
+            {% endif %}
+        </div>
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Aulas concluídas</span>
+            <strong>{{ aulas_concluidas }}<small>/{{ total_aulas }}</small></strong>
+            <span class="evo-detalhe">{{ campanhas|length }} campanha(s)</span>
+        </div>
+    </div>
+</section>
+
+<!-- DIAGNÓSTICOS -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">03 / DIAGNÓSTICOS</span>
+        <h3>Histórico de diagnósticos</h3>
+    </div>
+    {% for item in diagnosticos %}
+        <details class="painel-detalhes"{% if forloop.first %} open{% endif %}>
+            <summary>
+                {{ item.data|date:"d/m/Y" }} · índice {{ item.indice|floatformat:0 }} ·
+                {% if item.selo %}selo {{ item.selo }}{% else %}sem selo{% endif %}
+                {% if forloop.first %}(atual){% endif %}
+            </summary>
+            <table class="painel-tabela">
+                <thead><tr><th>Pilar</th><th>Prática</th><th>Resposta</th></tr></thead>
+                <tbody>
+                    {% for resposta in item.respostas.all %}
+                        <tr>
+                            <td>{{ resposta.pratica.pilar.sigla }}</td>
+                            <td>{{ resposta.pratica.titulo }}</td>
+                            <td>{{ resposta.get_valor_display }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3">Sem respostas registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+    {% empty %}
+        <p class="evo-vazio">Este estúdio ainda não fez o diagnóstico.</p>
+    {% endfor %}
+</section>
+
+<!-- METAS, ESTOQUE E CAMPANHAS -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">04 / ROTINA</span>
+        <h3>Metas, estoque e campanhas</h3>
+    </div>
+
+    <h4 class="painel-subtitulo">Metas</h4>
+    {% if metas %}
+        <ul class="painel-lista">
+            {% for meta in metas %}
+                <li>{{ meta.descricao }} · {{ meta.situacao }} · prazo {{ meta.prazo|date:"d/m/Y" }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="evo-vazio">Nenhuma meta.</p>
+    {% endif %}
+
+    <h4 class="painel-subtitulo">Estoque</h4>
+    {% if itens_estoque %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Item</th><th>Tipo</th><th>Quantidade</th><th>Fornecedor</th></tr></thead>
+                <tbody>
+                    {% for item in itens_estoque %}
+                        <tr>
+                            <td>{{ item.nome }}</td>
+                            <td>{{ item.get_tipo_display }}</td>
+                            <td>{{ item.quantidade }}{% if item.quantidade == 0 %} (em falta){% endif %}</td>
+                            <td>{{ item.fornecedor }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Estoque vazio.</p>
+    {% endif %}
+
+    <h4 class="painel-subtitulo">Campanhas</h4>
+    {% if campanhas %}
+        <ul class="painel-lista">
+            {% for campanha in campanhas %}
+                <li>{{ campanha.titulo }}, com {{ campanha.ong }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="evo-vazio">Não participa de campanhas.</p>
+    {% endif %}
+</section>
+
+<!-- DIÁRIO -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">05 / HISTÓRICO</span>
+        <h3>Diário de evolução completo</h3>
+    </div>
+    <ol class="evo-diario">
+        {% for evento in diario %}
+            <li>
+                <time datetime="{{ evento.quando|date:'c' }}">{{ evento.quando|date:"d/m/Y" }}</time>
+                <span class="evo-diario-tipo">{{ evento.tipo }}</span>
+                <p>{{ evento.texto }}</p>
+            </li>
+        {% endfor %}
+    </ol>
+</section>
+
+<a class="evo-voltar" href="{% url 'forum:painel_estudios' %}">← Voltar para a lista de estúdios</a>
+{% endblock %}

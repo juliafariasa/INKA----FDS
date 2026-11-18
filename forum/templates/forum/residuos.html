@@ -91,17 +91,49 @@
                 <h3>Reduza seu impacto<span>.</span></h3>
             </div>
 
+            {% if tipo_principal %}
+                <p class="inka-residuos-foco">
+                    O resíduo que mais pesou no seu cálculo foi o
+                    <strong>{{ tipo_principal|lower }}</strong>. As práticas
+                    marcadas abaixo ajudam a reduzir esse tipo.
+                </p>
+            {% endif %}
+
             <div class="inka-residuos-recomendacoes-lista">
                 {% for pratica in recomendacoes %}
-                    <article class="inka-residuos-recomendacao">
+                    <article class="inka-residuos-recomendacao{% if pratica.destaque %} inka-residuos-destaque{% endif %}">
                         <span class="inka-residuos-asterisco">✳</span>
                         <div>
+                            {% if pratica.destaque %}<span class="inka-residuos-selo">Para o seu resíduo principal</span>{% endif %}
                             <strong>{{ pratica.titulo }}</strong>
                             <p>{{ pratica.descricao }}</p>
                         </div>
                     </article>
                 {% endfor %}
             </div>
+
+            {% if tipo_principal %}
+                <div class="inka-residuos-empresas">
+                    <h4>Quem recolhe resíduo {{ tipo_principal|lower }} em {{ estudio.cidade }}</h4>
+                    {% if empresas_recomendadas %}
+                        <ul>
+                            {% for empresa in empresas_recomendadas %}
+                                <li>
+                                    <strong>{{ empresa.nome }}</strong> ·
+                                    <a href="tel:{{ empresa.telefone_link }}">{{ empresa.telefone }}</a>
+                                    {% if empresa.email %}· <a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>
+                            Nenhuma empresa cadastrada na sua cidade para esse tipo.
+                            Veja a rede de coleta completa em
+                            <a href="{% url 'forum:descarte' %}">Descarte de resíduos</a>.
+                        </p>
+                    {% endif %}
+                </div>
+            {% endif %}
         </section>
 
         <div class="inka-residuos-divisor"></div>
@@ -204,7 +236,7 @@
 
     <footer class="inka-residuos-rodape">
         <span>INKA / IMPACTO EM CADA ESCOLHA</span>
-        <a href="{% url 'forum:estudio_perfil' estudio.id %}">← Voltar ao perfil do estúdio</a>
+        <a href="{% url 'forum:minha_area' %}">← Voltar para a Minha Área</a>
     </footer>
 
 </div>

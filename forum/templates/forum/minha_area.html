@@ -1,0 +1,181 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Minha Área - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<section class="evo-pagina minha-area">
+
+    <!-- CABEÇALHO -->
+    <header class="evo-intro">
+        <span class="evo-etiqueta">INKA / MINHA ÁREA</span>
+        <h2>Olá, {{ estudio.nome }}</h2>
+        <p>
+            {{ estudio.cidade }} ·
+            {% if diagnostico %}
+                {% if diagnostico.selo %}Selo {{ diagnostico.selo }}{% else %}Sem selo{% endif %}
+                · índice {{ diagnostico.indice|floatformat:0 }}/100
+            {% else %}
+                Ainda sem diagnóstico
+            {% endif %}
+        </p>
+    </header>
+
+    {% url 'forum:estudio_perfil' estudio.id as url_perfil_relativa %}
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{{ url_perfil_relativa }}">Ver meu perfil público</a>
+        <a class="evo-acao" href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code da recepção</a>
+        <button type="button" class="evo-acao ma-copiar"
+                data-copiar="{{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}">
+            Copiar link do perfil
+        </button>
+        <span class="ma-copiado" aria-live="polite"></span>
+    </div>
+    <p class="evo-vazio ma-link">
+        Link para a bio do Instagram:
+        <a href="{{ url_perfil_relativa }}">{{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}</a>
+    </p>
+
+    <!-- PRÓXIMOS PASSOS -->
+    <section class="evo-bloco" id="proximos-passos">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">01 / PRÓXIMOS PASSOS</span>
+            <h3>O que fazer agora</h3>
+        </div>
+        {% if pendencias %}
+            <ol class="ma-pendencias">
+                {% for item in pendencias %}
+                    <li class="{% if item.destaque %}ma-pendencia-destaque{% endif %}">
+                        <p>{{ item.texto }}</p>
+                        <a href="{{ item.url }}">{{ item.acao }}</a>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p class="evo-lembrete">Tudo em dia por aqui.</p>
+        {% endif %}
+    </section>
+
+    <!-- INDICADORES -->
+    <section class="evo-bloco">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">02 / INDICADORES</span>
+            <h3>Como o estúdio está</h3>
+        </div>
+        <div class="evo-indicadores">
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Notas do diagnóstico</span>
+                {% if diagnostico %}
+                    <strong>{{ diagnostico.indice|floatformat:0 }}<small>/100</small></strong>
+                    <span class="evo-detalhe">E {{ diagnostico.nota_e|floatformat:1 }} · S {{ diagnostico.nota_s|floatformat:1 }} · G {{ diagnostico.nota_g|floatformat:1 }}</span>
+                {% else %}
+                    <strong>—</strong>
+                    <span class="evo-detalhe">Faça o diagnóstico</span>
+                {% endif %}
+            </div>
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Último checklist</span>
+                {% if checklist %}
+                    <strong>{{ checklist.percentual }}<small>%</small></strong>
+                    <span class="evo-detalhe">em {{ checklist.data|date:"d/m/Y" }}</span>
+                {% else %}
+                    <strong>—</strong>
+                    <span class="evo-detalhe">Nenhuma verificação</span>
+                {% endif %}
+            </div>
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Resíduos por mês</span>
+                {% if calculo %}
+                    <strong>{{ calculo.total }}<small> g</small></strong>
+                    <span class="evo-detalhe">
+                        {% if variacao_residuos %}{{ variacao_residuos.situacao }}{% if variacao_residuos.situacao != 'Igual' %} {{ variacao_residuos.diferenca }} g{% endif %} em relação ao anterior{% else %}Primeiro cálculo{% endif %}
+                    </span>
+                {% else %}
+                    <strong>—</strong>
+                    <span class="evo-detalhe">Nenhum cálculo</span>
+                {% endif %}
+            </div>
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Aulas concluídas</span>
+                <strong>{{ aulas_concluidas }}<small>/{{ total_aulas }}</small></strong>
+                <span class="evo-detalhe">aulas disponíveis</span>
+            </div>
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Metas</span>
+                <strong>{{ metas_em_andamento }}</strong>
+                <span class="evo-detalhe">em andamento · {{ metas_atingidas }} atingida(s)</span>
+            </div>
+            <div class="evo-indicador">
+                <span class="evo-rotulo">Campanhas sociais</span>
+                <strong>{{ total_campanhas }}</strong>
+                <span class="evo-detalhe">com participação do estúdio</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MÓDULOS -->
+    <section class="evo-bloco">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">03 / MÓDULOS</span>
+            <h3>Tudo o que o estúdio pode fazer</h3>
+        </div>
+        <div class="ma-modulos">
+            <div class="ma-grupo">
+                <span class="evo-rotulo">E · Ambiental</span>
+                <ul>
+                    <li><a href="{% url 'forum:estudio_residuos' estudio.id %}">Calculadora de resíduos</a></li>
+                    <li><a href="{% url 'forum:descarte' %}">Descarte de resíduos</a></li>
+                    <li><a href="{% url 'forum:estudio_estoque' estudio.id %}">Estoque</a></li>
+                </ul>
+            </div>
+            <div class="ma-grupo">
+                <span class="evo-rotulo">S · Social</span>
+                <ul>
+                    <li><a href="{% url 'forum:estudio_aulas' estudio.id %}">Aulas</a></li>
+                    <li><a href="{% url 'forum:campanhas' %}">Campanhas sociais</a></li>
+                </ul>
+            </div>
+            <div class="ma-grupo">
+                <span class="evo-rotulo">G · Governança</span>
+                <ul>
+                    <li><a href="{% url 'forum:estudio_diagnostico' estudio.id %}">Diagnóstico ESG</a></li>
+                    <li><a href="{% url 'forum:estudio_evolucao' estudio.id %}">Painel de evolução</a></li>
+                    <li><a href="{% url 'forum:estudio_documentos' estudio.id %}">Documentos e licenças</a></li>
+                    <li><a href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code</a></li>
+                </ul>
+            </div>
+            <div class="ma-grupo">
+                <span class="evo-rotulo">Conta</span>
+                <ul>
+                    <li><a href="{% url 'forum:minha_area_dados' %}">Dados do estúdio</a></li>
+                    <li><a href="{% url 'forum:alterar_senha' %}">Alterar senha</a></li>
+                    <li>
+                        <form method="post" action="{% url 'forum:sair' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="evo-meta-remover">Sair</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ÚLTIMOS REGISTROS -->
+    <section class="evo-bloco">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">04 / HISTÓRICO</span>
+            <h3>Últimos registros</h3>
+        </div>
+        <ol class="evo-diario">
+            {% for evento in ultimos_registros %}
+                <li>
+                    <time datetime="{{ evento.quando|date:'c' }}">{{ evento.quando|date:"d/m/Y" }}</time>
+                    <span class="evo-diario-tipo">{{ evento.tipo }}</span>
+                    <p>{{ evento.texto }}</p>
+                </li>
+            {% endfor %}
+        </ol>
+        <a class="evo-voltar" href="{% url 'forum:estudio_evolucao' estudio.id %}#diario">Ver o diário completo →</a>
+    </section>
+
+</section>
+{% endblock %}

@@ -57,14 +57,12 @@ class BaseE2E(StaticLiveServerTestCase):
         self.navegador.delete_all_cookies()  # começa deslogado
 
     def entrar(self):
-        """Faz login pelo formulário e espera chegar ao perfil do estúdio."""
+        """Faz login pelo formulário e espera chegar à Minha Área."""
         self.navegador.get(self.live_server_url + reverse('forum:entrar'))
         self.preencher(By.ID, 'email', self.EMAIL)
         self.preencher(By.ID, 'senha', self.SENHA)
         self.clicar(By.CSS_SELECTOR, 'input[name="entrar"]')
-        self.espera.until(EC.url_contains(
-            reverse('forum:estudio_perfil', args=[self.estudio.id])
-        ))
+        self.espera.until(EC.url_contains(reverse('forum:minha_area')))
 
     def pausar(self, vezes=1):
         # Pausa só para visualização. Para ESPERAR a página, use self.espera.

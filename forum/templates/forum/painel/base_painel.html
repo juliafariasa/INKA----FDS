@@ -1,0 +1,48 @@
+{% extends "forum/base.html" %}
+
+{% block classe_container %}container painel{% endblock %}
+
+{% block content %}
+{# "rota", e não "pagina": as telas do painel usam "pagina" para a paginação. #}
+{% with rota=request.resolver_match.url_name %}
+<div class="painel-layout">
+
+    <aside class="painel-lateral">
+        <span class="evo-etiqueta">INKA / EQUIPE</span>
+        <nav class="painel-menu" aria-label="Painel da equipe">
+            <a class="{% if rota == 'painel' %}ativo{% endif %}"
+               href="{% url 'forum:painel' %}">Visão geral</a>
+            <a class="{% if 'painel_estudio' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_estudios' %}">Estúdios</a>
+            <a class="{% if 'painel_contato' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_contatos' %}">Fale Conosco</a>
+            <a class="{% if 'painel_campanha' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_campanhas' %}">Campanhas</a>
+            <a class="{% if 'painel_aula' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_aulas' %}">Aulas</a>
+            <a class="{% if rota == 'painel_descarte' or 'painel_conteudo' in rota or 'painel_empresa' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_descarte' %}">Descarte</a>
+            <a class="{% if 'painel_checklist' in rota %}ativo{% endif %}"
+               href="{% url 'forum:painel_checklist' %}">Checklist</a>
+            <a class="{% if rota == 'painel_referencias' %}ativo{% endif %}"
+               href="{% url 'forum:painel_referencias' %}">Diagnóstico e calculadora</a>
+            <a class="{% if rota == 'painel_moderacao' or rota == 'painel_publicar' %}ativo{% endif %}"
+               href="{% url 'forum:painel_moderacao' %}">Moderação</a>
+            <a class="{% if rota == 'painel_registros' %}ativo{% endif %}"
+               href="{% url 'forum:painel_registros' %}">Registro de ações</a>
+            <a href="{% url 'forum:painel_relatorio_estudios' %}">Relatório CSV ↓</a>
+            <a href="{% url 'admin:index' %}">Admin do Django ↗</a>
+        </nav>
+        <p class="painel-conta">
+            Conectado como <b>{{ user.get_username }}</b>
+            {% if user.is_superuser %}(administrador principal){% endif %}
+        </p>
+    </aside>
+
+    <div class="painel-conteudo">
+        {% block painel %}{% endblock %}
+    </div>
+
+</div>
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Moderação - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Moderação</h2>
+    <p>
+        O que os estúdios cadastraram só para eles. "Publicar para todos" cria
+        uma cópia que aparece para todos os estúdios; o item original continua
+        com o estúdio que cadastrou.
+    </p>
+</header>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">01 / AULAS</span>
+        <h3>Aulas cadastradas por estúdios</h3>
+    </div>
+    {% if aulas %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Aula</th><th>Estúdio</th><th></th></tr></thead>
+                <tbody>
+                    {% for aula in aulas %}
+                        <tr>
+                            <td>{{ aula.titulo }}<small><a href="{{ aula.url_video }}" target="_blank" rel="noopener">{{ aula.url_video }}</a></small></td>
+                            <td><a href="{% url 'forum:painel_estudio' aula.estudio.id %}">{{ aula.estudio.nome }}</a></td>
+                            <td>
+                                <form method="post" action="{% url 'forum:painel_publicar' 'aula' aula.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="evo-meta-remover">Publicar para todos</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Nenhuma aula cadastrada por estúdios.</p>
+    {% endif %}
+</section>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">02 / DESCARTE</span>
+        <h3>Conteúdos cadastrados por estúdios</h3>
+    </div>
+    {% if conteudos %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Conteúdo</th><th>Estúdio</th><th>Link</th><th></th></tr></thead>
+                <tbody>
+                    {% for conteudo in conteudos %}
+                        <tr>
+                            <td>{{ conteudo.titulo }}<small>{{ conteudo.get_formato_display }} · <a href="{{ conteudo.url }}" target="_blank" rel="noopener">{{ conteudo.url }}</a></small></td>
+                            <td><a href="{% url 'forum:painel_estudio' conteudo.estudio.id %}">{{ conteudo.estudio.nome }}</a></td>
+                            <td>
+                                <form method="post" action="{% url 'forum:painel_conteudo_disponivel' conteudo.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="voltar" value="moderacao">
+                                    {% if conteudo.disponivel %}Funcionando{% else %}<span class="painel-desativado">Fora do ar</span>{% endif %}
+                                    <button type="submit" class="evo-meta-remover">
+                                        {% if conteudo.disponivel %}Marcar fora do ar{% else %}Marcar funcionando{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'forum:painel_publicar' 'conteudo' conteudo.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="evo-meta-remover">Publicar para todos</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Nenhum conteúdo cadastrado por estúdios.</p>
+    {% endif %}
+
+    <h4 class="painel-subtitulo">Empresas cadastradas por estúdios</h4>
+    {% if empresas %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead><tr><th>Empresa</th><th>Estúdio</th><th></th></tr></thead>
+                <tbody>
+                    {% for empresa in empresas %}
+                        <tr>
+                            <td>{{ empresa.nome }}<small>{{ empresa.cidade }} · {{ empresa.tipos_residuo }}</small></td>
+                            <td><a href="{% url 'forum:painel_estudio' empresa.estudio.id %}">{{ empresa.estudio.nome }}</a></td>
+                            <td>
+                                <form method="post" action="{% url 'forum:painel_publicar' 'empresa' empresa.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="evo-meta-remover">Publicar para todos</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">Nenhuma empresa cadastrada por estúdios.</p>
+    {% endif %}
+</section>
+{% endblock %}

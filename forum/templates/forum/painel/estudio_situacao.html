@@ -1,0 +1,39 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}{% if estudio.ativo %}Desativar{% else %}Reativar{% endif %} {{ estudio.nome }} - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE / ESTÚDIO #{{ estudio.id }}</span>
+    <h2>{% if estudio.ativo %}Desativar{% else %}Reativar{% endif %} {{ estudio.nome }}</h2>
+</header>
+
+{% if estudio.ativo %}
+    <div class="caixa">
+        <p>Ao desativar o estúdio:</p>
+        <ul>
+            <li>ele sai da lista pública de estúdios;</li>
+            <li>o perfil e o QR Code da recepção passam a mostrar "Selo não encontrado ou inválido!";</li>
+            <li>a conta do estúdio continua entrando, mas a área exclusiva mostra o aviso de conta suspensa.</li>
+        </ul>
+        <p>Nada é apagado: diagnósticos, cálculos e o diário continuam guardados, e o estúdio pode ser reativado depois.</p>
+    </div>
+{% else %}
+    <div class="caixa">
+        <p>Ao reativar, o estúdio volta para a lista pública, o selo volta a aparecer no perfil e no QR Code, e a conta volta a usar a área exclusiva.</p>
+    </div>
+{% endif %}
+
+{% if pode_alterar %}
+    <form method="post" class="painel-acoes">
+        {% csrf_token %}
+        <button type="submit" class="camp-botao">
+            {% if estudio.ativo %}Desativar estúdio{% else %}Reativar estúdio{% endif %}
+        </button>
+        <a class="evo-voltar" href="{% url 'forum:painel_estudio' estudio.id %}">Cancelar</a>
+    </form>
+{% else %}
+    <p class="evo-lembrete">{{ mensagem_sem_permissao }}</p>
+    <a class="evo-voltar" href="{% url 'forum:painel_estudio' estudio.id %}">← Voltar ao estúdio</a>
+{% endif %}
+{% endblock %}

@@ -11498,3 +11498,531 @@ body .evo-voltar:hover {
     color: var(--inka-suave);
     font-size: 13px;
 }
+
+/* =========================================
+   PAINEL DA EQUIPE INKA
+========================================= */
+
+.container.painel {
+    max-width: 1240px;
+}
+
+.painel-layout {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+}
+
+.painel-lateral {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 16px;
+    padding-right: 24px;
+    border-right: 1px solid var(--inka-linha);
+}
+
+.painel-menu {
+    display: grid;
+    gap: 4px;
+}
+
+body .painel-menu a {
+    padding: 10px 12px;
+    border-left: 3px solid transparent;
+    color: var(--inka-claro);
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+body .painel-menu a:hover,
+body .painel-menu a:focus-visible,
+body .painel-menu a.ativo {
+    border-left-color: var(--inka-verde-claro);
+    background-color: var(--inka-painel-alto);
+    outline: none;
+}
+
+.painel-conta {
+    margin: 0;
+    color: var(--inka-suave);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.painel-conteudo {
+    display: grid;
+    gap: 36px;
+    min-width: 0;
+}
+
+.painel-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.painel-subtitulo {
+    margin: 10px 0 0;
+    color: var(--inka-verde-claro);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.painel-lista {
+    margin: 0;
+}
+
+.painel-barras {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.painel-barras li {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) 70px;
+    gap: 14px;
+    align-items: center;
+    margin: 0;
+}
+
+.painel-barras b {
+    color: var(--inka-claro);
+    font-weight: normal;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.painel-barra {
+    height: 10px;
+    background-color: var(--inka-linha);
+}
+
+.painel-barra i {
+    display: block;
+    width: calc(var(--valor) * 1%);
+    height: 100%;
+    background-color: var(--inka-verde-claro);
+}
+
+.painel-filtros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0 16px;
+    align-items: end;
+}
+
+.painel-filtros label {
+    margin-top: 0;
+}
+
+.painel-filtros-acoes {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding-top: 12px;
+}
+
+.painel-tabela-rolagem {
+    overflow-x: auto;
+}
+
+.painel-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.painel-tabela th,
+.painel-tabela td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--inka-linha-suave);
+    text-align: left;
+    vertical-align: top;
+}
+
+.painel-tabela th {
+    color: var(--inka-verde-claro);
+    font-size: 11px;
+    font-weight: normal;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.painel-tabela td small {
+    display: block;
+    color: var(--inka-suave);
+}
+
+.painel-ficha th {
+    width: 180px;
+}
+
+.painel-desativado {
+    color: var(--inka-suave);
+    text-decoration: line-through;
+}
+
+.painel-paginacao {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    color: var(--inka-suave);
+}
+
+.painel-detalhes {
+    padding: 12px 16px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.painel-detalhes summary {
+    cursor: pointer;
+}
+
+.painel-detalhes table {
+    margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+    .painel-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .painel-lateral {
+        position: static;
+        padding: 0 0 16px;
+        border-right: 0;
+        border-bottom: 1px solid var(--inka-linha);
+    }
+
+    .painel-menu {
+        grid-auto-flow: column;
+        overflow-x: auto;
+    }
+
+    .painel-barras li {
+        grid-template-columns: 110px minmax(0, 1fr) 60px;
+        gap: 10px;
+    }
+}
+
+/* Painel da equipe: cartões, formulários e ações em linha */
+
+.painel-cartao {
+    display: grid;
+    gap: 12px;
+    padding: 20px 22px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.painel-cartao h3 {
+    margin: 0;
+}
+
+.painel-cartao-feito {
+    border-style: dashed;
+    opacity: 0.75;
+}
+
+.painel-mensagem {
+    margin: 0;
+    white-space: normal;
+}
+
+.painel-formulario {
+    max-width: 620px;
+}
+
+.painel-formulario textarea {
+    resize: vertical;
+}
+
+.painel-conteudo .painel-marcar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--inka-claro);
+    font-size: 14px;
+    font-stretch: normal;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.painel-marcar input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.painel-duracao {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.painel-duracao input {
+    width: 110px;
+}
+
+.painel-duracao span {
+    color: var(--inka-suave);
+}
+
+.painel-links {
+    white-space: nowrap;
+}
+
+.painel-links a + a {
+    margin-left: 14px;
+}
+
+.painel-linha-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.painel-linha-form input[type="number"] {
+    width: 80px;
+    padding: 6px 8px;
+}
+
+.painel-linha-form .painel-marcar {
+    margin: 0;
+}
+
+/* =========================================
+   MINHA ÁREA
+========================================= */
+
+.ma-link {
+    margin-top: -24px;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.ma-copiar {
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.ma-copiado {
+    color: var(--inka-verde-claro);
+    font-size: 13px;
+}
+
+.ma-pendencias {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ma-pendencias li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 14px 18px;
+    border: 1px solid var(--inka-linha);
+    border-left: 3px solid var(--inka-verde);
+    background-color: var(--inka-painel);
+}
+
+.ma-pendencias li.ma-pendencia-destaque {
+    border-color: var(--inka-verde-claro);
+    border-left-width: 6px;
+    background-color: var(--inka-painel-alto);
+}
+
+.ma-pendencias p {
+    flex: 1 1 280px;
+    margin: 0;
+}
+
+.ma-pendencias a {
+    flex: none;
+    color: var(--inka-verde-claro);
+}
+
+.ma-modulos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.ma-grupo {
+    padding: 18px 20px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.ma-grupo ul {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ma-grupo li {
+    margin: 0;
+    padding: 6px 0;
+}
+
+.ma-grupo form {
+    margin: 0;
+}
+
+/* Documentos e licenças */
+
+.doc-situacao {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--inka-linha);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.doc-situacao.doc-em_dia {
+    border-color: var(--inka-verde);
+    color: var(--inka-verde-claro);
+}
+
+.doc-situacao.doc-vencendo {
+    border-color: var(--inka-verde-claro);
+    color: var(--inka-claro);
+}
+
+.doc-situacao.doc-vencido {
+    border-style: dashed;
+    border-color: var(--inka-claro);
+    color: var(--inka-claro);
+    font-weight: bold;
+}
+
+/* Perfil público: dados novos e Índice INKA */
+
+.perfil-aviso-dono {
+    margin-bottom: 24px;
+}
+
+.perfil-descricao {
+    max-width: 640px;
+}
+
+.perfil-contato {
+    margin: 18px 0 8px;
+}
+
+.perfil-indice-inka .painel-barras li {
+    grid-template-columns: minmax(150px, 280px) minmax(0, 1fr) 50px;
+}
+
+.perfil-indice-inka small {
+    color: var(--inka-suave);
+}
+
+/* Diagnóstico: próximos passos depois do resultado */
+
+.diagnostico-proximo {
+    margin-top: 18px;
+}
+
+/* Lista de estúdios: filtros quebram linha no celular */
+
+.estudios-filtro-campos {
+    flex-wrap: wrap;
+}
+
+.estudios-filtro-campos select {
+    flex: 1 1 160px;
+}
+
+/* Calculadora: recomendações ligadas ao resíduo principal */
+
+.inka-residuos-foco {
+    margin: 0 0 18px;
+    color: var(--inka-claro);
+}
+
+.inka-residuos-recomendacao.inka-residuos-destaque {
+    border-color: var(--inka-verde-claro);
+}
+
+.inka-residuos-selo {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--inka-verde-claro);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.inka-residuos-empresas {
+    margin-top: 24px;
+    padding: 18px 20px;
+    border: 1px solid var(--inka-linha);
+}
+
+.inka-residuos-empresas h4 {
+    margin: 0 0 10px;
+    color: var(--inka-verde-claro);
+}
+
+.inka-residuos-empresas ul {
+    margin: 0;
+}
+
+/* Aulas agrupadas por categoria */
+
+.aulas-categoria {
+    margin: 28px 0 14px;
+    color: var(--inka-verde-claro);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* Estoque: alertas de mínimo e validade */
+
+.vault-drawer-indicator i.is-alert {
+    background: var(--inka-verde-claro);
+}
+
+.vault-info-alertas {
+    margin: 12px 0 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
+.vault-info-alertas .vault-sustentavel {
+    list-style: none;
+    margin-left: -18px;
+}
+
+.vault-form-field .vault-form-marcar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.vault-form-marcar input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}

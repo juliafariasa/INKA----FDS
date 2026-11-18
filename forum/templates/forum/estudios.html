@@ -30,22 +30,37 @@
         </p>
     </div>
 
-    <a class="estudios-convite-botao"
-       href="{% if user.is_authenticated %}{% url 'forum:estudio_novo' %}{% else %}{% url 'forum:entrar' %}{% endif %}">
-        Cadastrar meu estúdio <span>↗</span>
-    </a>
+    {% if user.is_authenticated %}
+        <a class="estudios-convite-botao" href="{% url 'forum:minha_area' %}">
+            Ir para a Minha Área <span>↗</span>
+        </a>
+    {% else %}
+        <a class="estudios-convite-botao" href="{% url 'forum:estudio_novo' %}">
+            Cadastrar meu estúdio <span>↗</span>
+        </a>
+    {% endif %}
 </div>
 
 
-    {% if cidades|length > 1 %}
+    {% if cidades|length > 1 or estudios|length > 1 or selo or ordem == 'indice' %}
     <form method="get" class="estudios-filtro">
         <label for="cidade">Estúdios perto de você</label>
         <div class="estudios-filtro-campos">
-            <select id="cidade" name="cidade">
+            <select id="cidade" name="cidade" aria-label="Cidade">
                 <option value="">Todas as cidades</option>
                 {% for opcao in cidades %}
                     <option value="{{ opcao }}"{% if opcao == cidade %} selected{% endif %}>{{ opcao }}</option>
                 {% endfor %}
+            </select>
+            <select id="selo" name="selo" aria-label="Selo">
+                <option value="">Todos os selos</option>
+                {% for codigo, rotulo in selos.items %}
+                    <option value="{{ codigo }}"{% if codigo == selo %} selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+            </select>
+            <select id="ordem" name="ordem" aria-label="Ordenar">
+                <option value="nome">Ordem alfabética</option>
+                <option value="indice"{% if ordem == 'indice' %} selected{% endif %}>Maior índice ESG</option>
             </select>
             <button type="submit">Filtrar</button>
         </div>

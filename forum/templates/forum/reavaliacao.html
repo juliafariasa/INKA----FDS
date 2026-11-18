@@ -1,0 +1,33 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Reavaliação de {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<div class="diagnostico-painel">
+
+    <div class="diagnostico-topo">
+        <div class="diagnostico-topo-texto">
+            <span class="diagnostico-topo-etiqueta">INKA / REAVALIAÇÃO ESG</span>
+            <h2>Reavaliação de {{ estudio.nome }}<span>.</span></h2>
+            <p>
+                Responda de novo o questionário, pensando em como o estúdio
+                funciona hoje. O novo resultado passa a valer para o selo e o
+                índice; o diagnóstico anterior fica guardado no histórico.
+            </p>
+            {% if anterior %}
+                <p class="evo-detalhe">
+                    Último diagnóstico em {{ anterior.data|date:"d/m/Y" }}: índice
+                    {{ anterior.indice|floatformat:0 }}/100,
+                    {% if anterior.selo %}selo {{ anterior.selo }}{% else %}sem selo{% endif %}.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="diagnostico-conteudo">
+        {% include "forum/_questionario.html" with texto_botao="Salvar reavaliação" %}
+    </section>
+
+    <a class="evo-voltar" href="{% url 'forum:minha_area' %}">← Voltar para a Minha Área</a>
+</div>
+{% endblock %}

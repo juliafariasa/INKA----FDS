@@ -1,0 +1,58 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Dados do estúdio - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<section class="evo-pagina evo-pagina-estreita">
+
+    <header class="evo-intro">
+        <span class="evo-etiqueta">INKA / MINHA ÁREA</span>
+        <h2>Dados do estúdio</h2>
+        <p>
+            O que estiver preenchido aparece no perfil público, o mesmo que o
+            cliente abre pelo QR Code da recepção.
+        </p>
+    </header>
+
+    <form method="post" class="evo-form">
+        {% csrf_token %}
+
+        <label for="nome">Nome do estúdio</label>
+        <input type="text" id="nome" name="nome" maxlength="120" value="{{ dados.nome|default:'' }}">
+        {% if erros.nome %}<p class="erro">{{ erros.nome }}</p>{% endif %}
+
+        <label for="cidade">Cidade</label>
+        <input type="text" id="cidade" name="cidade" maxlength="80" value="{{ dados.cidade|default:'' }}">
+        {% if erros.cidade %}<p class="erro">{{ erros.cidade }}</p>{% endif %}
+
+        <label for="bairro">Bairro (opcional)</label>
+        <input type="text" id="bairro" name="bairro" maxlength="80" value="{{ dados.bairro|default:'' }}">
+        {% if erros.bairro %}<p class="erro">{{ erros.bairro }}</p>{% endif %}
+
+        <label for="descricao">Sobre o estúdio (opcional)</label>
+        <textarea id="descricao" name="descricao" rows="4" maxlength="300">{{ dados.descricao|default:'' }}</textarea>
+        {% if erros.descricao %}<p class="erro">{{ erros.descricao }}</p>{% endif %}
+        <p class="ajuda">Até 300 caracteres.</p>
+
+        <label for="instagram">Instagram (opcional)</label>
+        <input type="text" id="instagram" name="instagram" maxlength="60" value="{{ dados.instagram|default:'' }}" placeholder="@seuestudio">
+        {% if erros.instagram %}<p class="erro">{{ erros.instagram }}</p>{% endif %}
+
+        <label for="whatsapp">WhatsApp (opcional)</label>
+        <input type="tel" id="whatsapp" name="whatsapp" maxlength="20" value="{{ dados.whatsapp|default:'' }}" placeholder="(81) 99999-0000">
+        {% if erros.whatsapp %}<p class="erro">{{ erros.whatsapp }}</p>{% endif %}
+
+        <label for="site">Site (opcional)</label>
+        <input type="url" id="site" name="site" maxlength="200" value="{{ dados.site|default:'' }}">
+        {% if erros.site %}<p class="erro">{{ erros.site }}</p>{% endif %}
+
+        <label for="acessibilidade">Acessibilidade (opcional)</label>
+        <input type="text" id="acessibilidade" name="acessibilidade" maxlength="200" value="{{ dados.acessibilidade|default:'' }}" placeholder="Rampa na entrada, banheiro adaptado...">
+        {% if erros.acessibilidade %}<p class="erro">{{ erros.acessibilidade }}</p>{% endif %}
+
+        <input type="submit" name="salvar" value="Salvar dados">
+    </form>
+
+    <a class="evo-voltar" href="{% url 'forum:minha_area' %}">← Voltar para a Minha Área</a>
+</section>
+{% endblock %}

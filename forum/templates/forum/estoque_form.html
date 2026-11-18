@@ -88,6 +88,30 @@
                     </div>
                 </div>
 
+                <div class="vault-form-grid">
+                    <div class="vault-form-field">
+                        <label for="quantidade_minima">Quantidade mínima (opcional)</label>
+                        <input type="number" id="quantidade_minima" name="quantidade_minima" min="0"
+                               max="1000000" step="1" value="{{ dados.quantidade_minima|default:'' }}">
+                        {% if erros.quantidade_minima %}<p class="erro">{{ erros.quantidade_minima }}</p>{% endif %}
+                    </div>
+
+                    <div class="vault-form-field">
+                        <label for="validade">Validade (opcional)</label>
+                        <input type="date" id="validade" name="validade"
+                               value="{{ dados.validade|default:'' }}">
+                        {% if erros.validade %}<p class="erro">{{ erros.validade }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="vault-form-field">
+                    <label class="vault-form-marcar" for="origem_sustentavel">
+                        <input type="checkbox" id="origem_sustentavel" name="origem_sustentavel"
+                               {% if dados.origem_sustentavel %}checked{% endif %}>
+                        Origem sustentável (fornecedor certificado, biodegradável ou reutilizável)
+                    </label>
+                </div>
+
                 <div class="vault-form-footer">
                     <span class="vault-form-seal">◆ INKA / ESTOQUE</span>
                     <input type="submit" name="salvar"

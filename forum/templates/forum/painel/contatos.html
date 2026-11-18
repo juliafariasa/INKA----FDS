@@ -1,0 +1,62 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Fale Conosco - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Fale Conosco</h2>
+    <p>{{ pagina.paginator.count }} mensagem(ns) com estes filtros.</p>
+</header>
+
+<form method="get" class="painel-filtros">
+    <div>
+        <label for="situacao">Situação</label>
+        <select id="situacao" name="situacao">
+            {% for codigo, rotulo in situacoes.items %}
+                <option value="{{ codigo }}"{% if codigo == filtros.situacao %} selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="assunto">Assunto</label>
+        <select id="assunto" name="assunto">
+            <option value="">Todos</option>
+            {% for codigo, rotulo in assuntos %}
+                <option value="{{ codigo }}"{% if codigo == filtros.assunto %} selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="painel-filtros-acoes">
+        <button type="submit" class="camp-botao">Filtrar</button>
+    </div>
+</form>
+
+{% for contato in pagina %}
+    <article class="painel-cartao{% if contato.respondido %} painel-cartao-feito{% endif %}">
+        <div class="evo-meta-topo">
+            <span class="evo-meta-situacao">{{ contato.get_assunto_display }}</span>
+            <span class="evo-meta-prazo">{{ contato.data_envio|date:"d/m/Y H:i" }}</span>
+        </div>
+        <h3>{{ contato.nome }}{% if contato.empresa %} · {{ contato.empresa }}{% endif %}</h3>
+        <p class="painel-mensagem">{{ contato.mensagem|linebreaksbr }}</p>
+        <div class="painel-acoes">
+            <a class="evo-acao" href="{{ contato.mailto }}">Responder por e-mail</a>
+            <form method="post" action="{% url 'forum:painel_contato_respondido' contato.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="situacao" value="{{ filtros.situacao }}">
+                <input type="hidden" name="assunto" value="{{ filtros.assunto }}">
+                <input type="hidden" name="pagina" value="{{ pagina.number }}">
+                <button type="submit" class="evo-meta-remover">
+                    {% if contato.respondido %}Marcar como pendente{% else %}Marcar como respondido{% endif %}
+                </button>
+            </form>
+            <span class="evo-detalhe">{{ contato.email }}</span>
+        </div>
+    </article>
+{% empty %}
+    <p class="evo-vazio">Nenhuma mensagem com estes filtros.</p>
+{% endfor %}
+
+{% include "forum/painel/paginacao.html" %}
+{% endblock %}

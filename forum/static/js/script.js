@@ -1145,3 +1145,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+/* =========================================
+   MINHA ÁREA / COPIAR LINK DO PERFIL
+   O link continua visível na página para quem não puder copiar pelo botão
+   (navegador sem permissão para a área de transferência, por exemplo).
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-copiar]").forEach((botao) => {
+        const aviso = botao.parentElement.querySelector(".ma-copiado");
+
+        const avisar = (texto) => {
+            if (aviso) aviso.textContent = texto;
+        };
+
+        botao.addEventListener("click", () => {
+            if (!navigator.clipboard) {
+                avisar("Copie o link logo abaixo.");
+                return;
+            }
+            navigator.clipboard.writeText(botao.dataset.copiar).then(
+                () => avisar("Link copiado!"),
+                () => avisar("Não deu para copiar. Use o link logo abaixo.")
+            );
+        });
+    });
+});

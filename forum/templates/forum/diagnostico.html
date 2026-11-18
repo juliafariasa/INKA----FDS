@@ -257,6 +257,17 @@
                 <a href="{% url 'forum:estudio_evolucao' estudio.id %}">Abrir o painel de evolução</a>
             </p>
 
+            <div class="painel-acoes diagnostico-proximo">
+                <a class="evo-acao" href="{% url 'forum:minha_area' %}">Ir para a Minha Área</a>
+                {% with data=estudio.reavaliacao_disponivel_em %}
+                    {% if estudio.reavaliacao_disponivel %}
+                        <a class="evo-acao" href="{% url 'forum:estudio_reavaliacao' estudio.id %}">Fazer a reavaliação</a>
+                    {% elif data %}
+                        <span class="evo-detalhe">A próxima reavaliação fica disponível em {{ data|date:"d/m/Y" }}.</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+
         </section>
 
 
@@ -273,98 +284,7 @@
                 em cada pilar do ESG.
             </p>
 
-            <form method="post" class="diagnostico-form">
-
-                {% csrf_token %}
-
-                <div class="diagnostico-legenda">
-                    <span>COMO SEU ESTÚDIO FUNCIONA?</span>
-                    <p>Selecione uma opção para cada prática apresentada.</p>
-                </div>
-
-                <div class="diagnostico-questionario">
-
-                    {% for pratica in praticas %}
-
-                        {% ifchanged pratica.pilar_id %}
-
-                            <div class="diagnostico-pilar">
-                                <span>{{ pratica.pilar.sigla }}</span>
-                                <h3>{{ pratica.pilar.nome }}</h3>
-                                <i></i>
-                            </div>
-
-                        {% endifchanged %}
-
-                        <div class="diagnostico-pratica {% if pratica.pendente %}diagnostico-pendente{% endif %}">
-
-                            <div class="diagnostico-pratica-texto">
-
-                                <span class="diagnostico-numero">
-                                    {{ forloop.counter|stringformat:"02d" }}
-                                </span>
-
-                                <div>
-                                    <h4>{{ pratica.titulo }}</h4>
-
-                                    {% if pratica.pendente %}
-                                        <p class="diagnostico-erro">
-                                            Escolha uma opção para continuar.
-                                        </p>
-                                    {% endif %}
-                                </div>
-
-                            </div>
-
-                            <div class="diagnostico-opcoes">
-
-                                {% for valor, rotulo in opcoes %}
-
-                                    <label class="diagnostico-opcao">
-
-                                        <input
-                                            type="radio"
-                                            name="pratica_{{ pratica.id }}"
-                                            value="{{ valor }}"
-                                            aria-label="{{ rotulo }}"
-                                            {% if pratica.valor == valor %}checked{% endif %}
-                                        >
-
-                                        <span class="diagnostico-interruptor">
-                                            <span class="diagnostico-luz"></span>
-                                            <span class="diagnostico-pontos"></span>
-                                        </span>
-
-                                        <span class="diagnostico-rotulo">
-                                            {{ rotulo }}
-                                        </span>
-
-                                    </label>
-
-                                {% endfor %}
-
-                            </div>
-
-                        </div>
-
-                    {% endfor %}
-
-                </div>
-
-                <button
-                    type="submit"
-                    name="enviar"
-                    class="diagnostico-salvar"
-                >
-                    Salvar diagnóstico <span>↗</span>
-                </button>
-
-                <p class="diagnostico-ajuda">
-                    SIM = 2 pontos · PARCIAL = 1 ponto · NÃO = 0 pontos.
-                    Cada pilar recebe uma nota de 0 a 10 e fica ativo a partir de 7.
-                </p>
-
-            </form>
+            {% include "forum/_questionario.html" with texto_botao="Salvar diagnóstico" %}
 
         </section>
 

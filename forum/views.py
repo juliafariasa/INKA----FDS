@@ -15,8 +15,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator, validate_email
+from django.core.validators import validate_email
 from django.db import IntegrityError, models, transaction
+from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -26,7 +27,33 @@ from django.views import View
 import segno
 
 from . import redefinicao_senha
-from .evolucao import diario_do_estudio
+from .consultas import (
+    anexar_ultimo_diagnostico,
+    estudios_com_indicadores,
+    filtro_de_selo,
+)
+from .validacoes import (
+    MINUTOS_MAXIMOS_AULA,
+    campos_de_alerta_do_estoque,
+    campos_do_documento,
+    ler_alertas_do_estoque,
+    ler_dados_do_estudio,
+    ler_documento,
+    validar_alertas_do_estoque,
+    validar_dados_do_estudio,
+    validar_documento,
+    duracao_da_aula,
+    ler_aula,
+    ler_conteudo_descarte,
+    ler_empresa_descarte,
+    link_valido,
+    validar_aula,
+    validar_conteudo_descarte,
+    validar_empresa_descarte,
+)
+from .evolucao import diario_do_estudio, marcar_metas_atingidas
+from .indice import indice_inka
+from .minha_area import dados_da_minha_area
 from .models import (
     Aula,
     CalculoResiduo,
@@ -35,6 +62,7 @@ from .models import (
     Contato,
     ConteudoDescarte,
     Diagnostico,
+    DocumentoEstudio,
     EmpresaDescarte,
     Estudio,
     ItemChecklist,
@@ -78,23 +106,23 @@ class AreaDoEstudioMixin(LoginObrigatorioMixin):
             self.estudio = get_object_or_404(
                 Estudio, id=kwargs['estudio_id'], usuario=request.user
             )
+            if not self.estudio.ativo:
+                return self.estudio_suspenso(request)
         return super().dispatch(request, *args, **kwargs)
+
+    def estudio_suspenso(self, request):
+        return responder_estudio_suspenso(request, self.estudio)
+
+
+def responder_estudio_suspenso(request, estudio):
+    """Página da área exclusiva de um estúdio que a equipe desativou."""
+    return render(request, 'forum/estudio_suspenso.html',
+                  {'estudio': estudio}, status=403)
 
 
 def estudio_da_conta(usuario):
     """Estúdio ligado à conta logada, ou None (ex.: conta só do admin)."""
     return Estudio.objects.filter(usuario=usuario).first()
-
-
-def link_valido(url, limite=500):
-    """Aceita só links http ou https de até `limite` caracteres."""
-    if len(url) > limite:
-        return False
-    try:
-        URLValidator(schemes=['http', 'https'])(url)
-    except ValidationError:
-        return False
-    return True
 
 
 def validar_nova_senha(erros, senha, confirmacao, usuario, campo='senha'):
@@ -161,7 +189,11 @@ class EntrarView(View):
             proxima, allowed_hosts={request.get_host()},
             require_https=request.is_secure(),
         ):
-            proxima = reverse('forum:minha_area')
+            # A equipe do INKA cai no painel; os estúdios, na Minha Área.
+            if usuario.is_staff:
+                proxima = reverse('forum:painel')
+            else:
+                proxima = reverse('forum:minha_area')
         return redirect(proxima)
 
     def buscar_conta(self, email):
@@ -198,11 +230,21 @@ class MinhaAreaView(LoginObrigatorioMixin, View):
     def get(self, request):
         estudio = estudio_da_conta(request.user)
         if estudio is None:
+            if request.user.is_staff:
+                return redirect(reverse('forum:painel'))
             messages.error(
                 request, 'Esta conta ainda não está ligada a nenhum estúdio.'
             )
             return redirect(reverse('forum:index'))
-        return redirect(reverse('forum:estudio_perfil', args=[estudio.id]))
+        if not estudio.ativo:
+            return responder_estudio_suspenso(request, estudio)
+
+        # A Minha Área também marca as metas atingidas, para os cartões
+        # mostrarem a situação certa sem depender do painel de evolução.
+        for meta in marcar_metas_atingidas(estudio):
+            messages.success(request, f'Meta atingida: {meta.descricao()}.')
+        return render(request, 'forum/minha_area.html',
+                      dados_da_minha_area(estudio))
 
 
 class AlterarSenhaView(LoginObrigatorioMixin, View):
@@ -533,8 +575,25 @@ class FaleConoscoView(View):
 
 
 class EstudiosView(View):
+    SELOS = {'ouro': 'Ouro', 'prata': 'Prata', 'bronze': 'Bronze',
+             'sem_selo': 'Sem selo'}
+
     def get(self, request):
-        estudios = list(Estudio.objects.all())
+        selo = request.GET.get('selo', '')
+        if selo not in self.SELOS:
+            selo = ''
+        ordem = 'indice' if request.GET.get('ordem') == 'indice' else 'nome'
+
+        estudios = estudios_com_indicadores(
+            Estudio.objects.filter(ativo=True)
+        )
+        if selo:
+            estudios = estudios.filter(filtro_de_selo(selo))
+        if ordem == 'indice':
+            estudios = estudios.order_by(
+                models.F('indice').desc(nulls_last=True), 'nome'
+            )
+        estudios = anexar_ultimo_diagnostico(estudios)
 
         # A cidade é comparada em Python, ignorando maiúsculas: no SQLite o
         # iexact não iguala letras com acento ("SÃO PAULO" e "São Paulo").
@@ -555,6 +614,9 @@ class EstudiosView(View):
             'estudios': estudios,
             'cidades': sorted(cidades.values(), key=str.casefold),
             'cidade': escolhida,
+            'selos': self.SELOS,
+            'selo': selo,
+            'ordem': ordem,
         }
         return render(request, 'forum/estudios.html', contexto)
 
@@ -659,25 +721,46 @@ class EstudioPerfilView(View):
     MENSAGEM_SELO_INVALIDO = 'Selo não encontrado ou inválido!'
 
     def get(self, request, estudio_id):
-        estudio = Estudio.objects.filter(id=estudio_id).first()
+        # Estúdio desativado pela equipe responde como removido: o selo dele
+        # não pode continuar sendo exibido pelo QR Code da recepção.
+        estudio = Estudio.objects.filter(id=estudio_id, ativo=True).first()
         if estudio is None:
             # Este é o endereço gravado no QR Code. Se o estúdio foi removido,
             # a verificação responde 404, mas com a mensagem da História 1.
             messages.error(request, self.MENSAGEM_SELO_INVALIDO)
             return render(request, 'forum/selo_invalido.html', status=404)
 
+        # Busca uma vez só: o perfil e o Índice INKA usam os mesmos dados.
+        estudio._ultimo_diagnostico = estudio.ultimo_diagnostico()
+        estudio._ultimo_checklist = estudio.ultimo_checklist()
         contexto = {
             'estudio': estudio,
             'diagnostico': estudio.ultimo_diagnostico(),
             'campanhas': estudio.campanhas.all(),
             'checklist': estudio.ultimo_checklist(),
             'aulas_concluidas': estudio.aulas_concluidas(),
+            'documentos_em_dia': documentos_em_dia(estudio),
+            'indice_inka': indice_inka(estudio),
             # O perfil é público (o cliente chega pelo QR Code); os links da
             # área exclusiva só aparecem para a conta dona do estúdio.
             'eh_dono': (request.user.is_authenticated
                         and estudio.usuario_id == request.user.id),
         }
         return render(request, 'forum/estudio_perfil.html', contexto)
+
+
+def documentos_em_dia(estudio):
+    """Frases do perfil público para os documentos válidos.
+
+    O cliente vê só a situação ("Licença sanitária em dia"), nunca o
+    documento nem o link dele.
+    """
+    frases = []
+    for documento in estudio.documentos.all():
+        frase = DocumentoEstudio.SELOS_PUBLICOS.get(documento.tipo)
+        if frase and documento.vale_hoje() and frase not in frases:
+            frases.append(frase)
+    return frases
 
 
 class EstudioQrCodeView(AreaDoEstudioMixin, View):
@@ -729,12 +812,7 @@ class DiagnosticoView(AreaDoEstudioMixin, View):
             contexto = self.contexto(estudio, praticas, pendentes)
             return render(request, 'forum/diagnostico.html', contexto)
 
-        diagnostico = Diagnostico.objects.create(estudio=estudio)
-        for pratica in praticas:
-            Resposta.objects.create(
-                diagnostico=diagnostico, pratica=pratica, valor=pratica.valor
-            )
-        diagnostico.calcular_notas()
+        salvar_diagnostico(estudio, praticas, Diagnostico.INICIAL)
 
         messages.success(request, 'Diagnóstico salvo. Veja o resultado abaixo.')
         return redirect(reverse('forum:estudio_diagnostico', args=[estudio.id]))
@@ -750,20 +828,109 @@ class DiagnosticoView(AreaDoEstudioMixin, View):
         }
 
     def validar(self, dados, praticas):
-        valores_validos = [str(valor) for valor, _ in Resposta.VALOR_CHOICES]
-        pendentes = []
+        return validar_respostas(dados, praticas)
 
-        for pratica in praticas:
-            valor = dados.get(f'pratica_{pratica.id}', '')
-            if valor in valores_validos:
-                pratica.valor = int(valor)
-                pratica.pendente = False
-            else:
-                pratica.valor = None
-                pratica.pendente = True
-                pendentes.append(pratica)
 
-        return pendentes
+def validar_respostas(dados, praticas):
+    """Lê as respostas do questionário e devolve as práticas sem resposta.
+
+    Usada pelo diagnóstico inicial e pela reavaliação, que têm o mesmo
+    questionário.
+    """
+    valores_validos = [str(valor) for valor, _ in Resposta.VALOR_CHOICES]
+    pendentes = []
+
+    for pratica in praticas:
+        valor = dados.get(f'pratica_{pratica.id}', '')
+        if valor in valores_validos:
+            pratica.valor = int(valor)
+            pratica.pendente = False
+        else:
+            pratica.valor = None
+            pratica.pendente = True
+            pendentes.append(pratica)
+
+    return pendentes
+
+
+def salvar_diagnostico(estudio, praticas, tipo):
+    diagnostico = Diagnostico.objects.create(estudio=estudio, tipo=tipo)
+    Resposta.objects.bulk_create(
+        Resposta(diagnostico=diagnostico, pratica=pratica,
+                 valor=pratica.valor)
+        for pratica in praticas
+    )
+    diagnostico.calcular_notas()
+    return diagnostico
+
+
+class ReavaliacaoView(AreaDoEstudioMixin, View):
+    """Reavaliação ESG: o mesmo questionário, depois do diagnóstico inicial.
+
+    O diagnóstico inicial continua único (História 2) e a reavaliação não o
+    substitui: ela é um novo diagnóstico do tipo REAVALIACAO. Como o selo
+    e o índice usam sempre o diagnóstico mais recente, eles passam a
+    acompanhar a evolução do estúdio sem mudar a regra do selo.
+    """
+
+    MENSAGEM_SEM_DIAGNOSTICO = 'Faça primeiro o diagnóstico inicial.'
+
+    def bloqueio(self, request):
+        estudio = self.estudio
+        if estudio.ultimo_diagnostico() is None:
+            messages.error(request, self.MENSAGEM_SEM_DIAGNOSTICO)
+            return redirect(reverse('forum:estudio_diagnostico',
+                                    args=[estudio.id]))
+        if not estudio.reavaliacao_disponivel():
+            data = estudio.reavaliacao_disponivel_em()
+            messages.error(
+                request,
+                f'A próxima reavaliação fica disponível em {data:%d/%m/%Y}.',
+            )
+            return redirect(reverse('forum:minha_area'))
+        return None
+
+    def contexto(self, praticas, pendentes):
+        return {
+            'estudio': self.estudio,
+            'anterior': self.estudio.ultimo_diagnostico(),
+            'praticas': praticas,
+            'opcoes': Resposta.VALOR_CHOICES,
+            'pendentes': pendentes,
+        }
+
+    def get(self, request, estudio_id):
+        bloqueio = self.bloqueio(request)
+        if bloqueio:
+            return bloqueio
+        praticas = PraticaEstudio.objects.select_related('pilar')
+        return render(request, 'forum/reavaliacao.html',
+                      self.contexto(praticas, []))
+
+    def post(self, request, estudio_id):
+        bloqueio = self.bloqueio(request)
+        if bloqueio:
+            return bloqueio
+        praticas = list(PraticaEstudio.objects.select_related('pilar'))
+        pendentes = validar_respostas(request.POST, praticas)
+        if pendentes:
+            messages.error(
+                request,
+                f'Faltou responder {len(pendentes)} prática(s). '
+                'Elas estão destacadas abaixo.',
+            )
+            return render(request, 'forum/reavaliacao.html',
+                          self.contexto(praticas, pendentes))
+
+        estudio = self.estudio
+        salvar_diagnostico(estudio, praticas, Diagnostico.REAVALIACAO)
+        if estudio.reavaliacao_liberada:
+            estudio.reavaliacao_liberada = False
+            estudio.save(update_fields=['reavaliacao_liberada'])
+        messages.success(request,
+                         'Reavaliação salva. Veja o resultado abaixo.')
+        return redirect(reverse('forum:estudio_diagnostico',
+                                args=[estudio.id]))
 
 
 class ResiduosView(AreaDoEstudioMixin, View):
@@ -816,14 +983,49 @@ class ResiduosView(AreaDoEstudioMixin, View):
         return redirect(reverse('forum:estudio_residuos', args=[estudio.id]))
 
     def contexto(self, estudio, dados, erros):
+        calculo = estudio.ultimo_calculo_residuo()
+        recomendacoes = list(
+            PraticaEstudio.objects.filter(pilar__sigla='E')
+        )
+        tipo_principal, empresas = self.foco_do_calculo(estudio, calculo)
+        for pratica in recomendacoes:
+            pratica.destaque = bool(
+                tipo_principal and pratica.ligada_ao_residuo(tipo_principal)
+            )
+        # As ligadas ao resíduo que mais pesou vêm primeiro; o sort mantém
+        # a ordem do cadastro entre as demais.
+        recomendacoes.sort(key=lambda pratica: not pratica.destaque)
         return {
             'estudio': estudio,
-            'calculo': estudio.ultimo_calculo_residuo(),
+            'calculo': calculo,
             'materiais': Material.objects.all(),
-            'recomendacoes': PraticaEstudio.objects.filter(pilar__sigla='E'),
+            'recomendacoes': recomendacoes,
+            'tipo_principal': dict(Material.TIPO_CHOICES).get(tipo_principal),
+            'empresas_recomendadas': empresas,
             'dados': dados,
             'erros': erros,
         }
+
+    @staticmethod
+    def foco_do_calculo(estudio, calculo):
+        """Tipo de resíduo que mais pesou e as empresas da cidade que o recolhem."""
+        if calculo is None or calculo.total() == 0:
+            return None, []
+        gramas = {
+            Material.PERFUROCORTANTE: calculo.gramas_perfurocortante,
+            Material.CONTAMINADO: calculo.gramas_contaminado,
+            Material.COMUM: calculo.gramas_comum,
+        }
+        tipo = max(gramas, key=gramas.get)
+        # Cidade e tipos comparados em Python, ignorando maiúsculas e
+        # acentos de caixa: no SQLite o iexact não faz isso.
+        cidade = estudio.cidade.strip().casefold()
+        empresas = [
+            empresa for empresa in EmpresaDescarte.visiveis_para(estudio)
+            if empresa.cidade.strip().casefold() == cidade
+            and tipo in empresa.tipos_residuo.casefold()
+        ]
+        return tipo, empresas
 
     def validar(self, dados):
         erros = {}
@@ -874,6 +1076,7 @@ class ItemEstoqueFormularioView(AreaDoEstudioMixin, View):
             'tipo': post.get('tipo', '').strip(),
             'quantidade': post.get('quantidade', '').strip(),
             'fornecedor': post.get('fornecedor', '').strip(),
+            **ler_alertas_do_estoque(post),
         }
 
     def contexto(self, estudio, item, dados, erros):
@@ -928,6 +1131,9 @@ class ItemEstoqueFormularioView(AreaDoEstudioMixin, View):
         elif len(dados['fornecedor']) > 120:
             erros['fornecedor'] = 'Use no máximo 120 caracteres.'
 
+        erros.update(validar_alertas_do_estoque(dados,
+                                                self.QUANTIDADE_MAXIMA))
+
         if not erros and ItemEstoque.existe_no_estudio(
             estudio, dados['nome'], dados['fornecedor'], exceto=exceto
         ):
@@ -957,6 +1163,7 @@ class ItemEstoqueNovoView(ItemEstoqueFormularioView):
             tipo=dados['tipo'],
             quantidade=int(dados['quantidade']),
             fornecedor=dados['fornecedor'],
+            **campos_de_alerta_do_estoque(dados),
         )
         messages.success(request, f'{item.nome} entrou no estoque.')
         return redirect(reverse('forum:estudio_estoque', args=[estudio.id]))
@@ -971,6 +1178,10 @@ class ItemEstoqueEditarView(ItemEstoqueFormularioView):
             'tipo': item.tipo,
             'quantidade': str(item.quantidade),
             'fornecedor': item.fornecedor,
+            'quantidade_minima': str(item.quantidade_minima),
+            'validade': (item.validade.isoformat()
+                         if item.validade else ''),
+            'origem_sustentavel': item.origem_sustentavel,
         }
         contexto = self.contexto(estudio, item, dados, {})
         return render(request, 'forum/estoque_form.html', contexto)
@@ -988,6 +1199,8 @@ class ItemEstoqueEditarView(ItemEstoqueFormularioView):
         item.tipo = dados['tipo']
         item.quantidade = int(dados['quantidade'])
         item.fornecedor = dados['fornecedor']
+        for campo, valor in campos_de_alerta_do_estoque(dados).items():
+            setattr(item, campo, valor)
         item.save()
         messages.success(request, f'{item.nome} atualizado no estoque.')
         return redirect(reverse('forum:estudio_estoque', args=[estudio.id]))
@@ -1078,13 +1291,7 @@ class DescarteConteudoNovoView(AreaDoEstudioMixin, View):
         return render(request, 'forum/descarte_conteudo_form.html', contexto)
 
     def post(self, request, estudio_id):
-        dados = {
-            'titulo': request.POST.get('titulo', '').strip(),
-            'formato': request.POST.get('formato', '').strip(),
-            'url': request.POST.get('url', '').strip(),
-            'descricao': request.POST.get('descricao', '').strip(),
-            'disponivel': request.POST.get('disponivel') == 'on',
-        }
+        dados = ler_conteudo_descarte(request.POST)
         erros = self.validar(dados)
 
         if erros:
@@ -1108,25 +1315,8 @@ class DescarteConteudoNovoView(AreaDoEstudioMixin, View):
         }
 
     def validar(self, dados):
-        erros = {}
-
-        if not dados['titulo']:
-            erros['titulo'] = 'Informe o título do conteúdo.'
-        elif len(dados['titulo']) > 150:
-            erros['titulo'] = 'Use no máximo 150 caracteres.'
-
-        formatos = [codigo for codigo, _ in ConteudoDescarte.FORMATO_CHOICES]
-        if dados['formato'] not in formatos:
-            erros['formato'] = 'Escolha o formato: vídeo, podcast ou slides.'
-
-        if not dados['url']:
-            erros['url'] = 'Informe o link do conteúdo.'
-        elif not link_valido(dados['url']):
-            erros['url'] = (
-                'Informe um link válido, começando com http:// ou https://.'
-            )
-
-        return erros
+        # A mesma regra vale para o painel da equipe (validacoes.py).
+        return validar_conteudo_descarte(dados)
 
 
 class DescarteEmpresaNovaView(AreaDoEstudioMixin, View):
@@ -1137,10 +1327,7 @@ class DescarteEmpresaNovaView(AreaDoEstudioMixin, View):
         return render(request, 'forum/descarte_empresa_form.html', contexto)
 
     def post(self, request, estudio_id):
-        campos = ['nome', 'cidade', 'telefone', 'email', 'site',
-                  'tipos_residuo']
-        dados = {campo: request.POST.get(campo, '').strip()
-                 for campo in campos}
+        dados = ler_empresa_descarte(request.POST)
         erros = self.validar(dados)
 
         if erros:
@@ -1158,33 +1345,7 @@ class DescarteEmpresaNovaView(AreaDoEstudioMixin, View):
         return redirect(reverse('forum:descarte'))
 
     def validar(self, dados):
-        erros = {}
-
-        obrigatorios = {
-            'nome': ('Informe o nome da empresa.', 150),
-            'cidade': ('Informe a cidade.', 80),
-            'telefone': ('Informe o telefone de contato.', 30),
-            'tipos_residuo': ('Informe os tipos de resíduo que ela recolhe.',
-                              200),
-        }
-        for campo, (mensagem, limite) in obrigatorios.items():
-            if not dados[campo]:
-                erros[campo] = mensagem
-            elif len(dados[campo]) > limite:
-                erros[campo] = f'Use no máximo {limite} caracteres.'
-
-        if dados['email']:
-            try:
-                validate_email(dados['email'])
-            except ValidationError:
-                erros['email'] = 'Informe um e-mail válido.'
-
-        if dados['site'] and not link_valido(dados['site'], limite=200):
-            erros['site'] = (
-                'Informe um link válido, começando com http:// ou https://.'
-            )
-
-        return erros
+        return validar_empresa_descarte(dados)
 
 
 class DescarteRemoverView(AreaDoEstudioMixin, View):
@@ -1243,9 +1404,15 @@ class AulasView(AreaDoEstudioMixin, View):
         for aula in aulas:
             aula.progresso = progressos.get(aula.id)
 
+        categorias = [
+            {'rotulo': rotulo,
+             'aulas': [aula for aula in aulas if aula.categoria == codigo]}
+            for codigo, rotulo in Aula.CATEGORIA_CHOICES
+        ]
         contexto = {
             'estudio': estudio,
             'aulas': aulas,
+            'categorias': [c for c in categorias if c['aulas']],
             'concluidas': sum(
                 1 for aula in aulas
                 if aula.progresso and aula.progresso.concluida
@@ -1321,6 +1488,11 @@ class AulaProgressoView(AreaDoEstudioMixin, View):
             status=403,
         )
 
+    def estudio_suspenso(self, request):
+        return JsonResponse(
+            {'erro': 'A conta deste estúdio está suspensa.'}, status=403,
+        )
+
     def post(self, request, estudio_id, aula_id):
         estudio = self.estudio
         aula = buscar_aula(estudio, aula_id)
@@ -1343,7 +1515,7 @@ class AulaProgressoView(AreaDoEstudioMixin, View):
 
 
 class AulaNovaView(AreaDoEstudioMixin, View):
-    MINUTOS_MAXIMOS = 600
+    MINUTOS_MAXIMOS = MINUTOS_MAXIMOS_AULA
 
     def get(self, request, estudio_id):
         estudio = self.estudio
@@ -1352,13 +1524,7 @@ class AulaNovaView(AreaDoEstudioMixin, View):
 
     def post(self, request, estudio_id):
         estudio = self.estudio
-        dados = {
-            'titulo': request.POST.get('titulo', '').strip(),
-            'descricao': request.POST.get('descricao', '').strip(),
-            'url_video': request.POST.get('url_video', '').strip(),
-            'minutos': request.POST.get('minutos', '').strip(),
-            'segundos': request.POST.get('segundos', '').strip(),
-        }
+        dados = ler_aula(request.POST)
         erros = self.validar(dados)
 
         if erros:
@@ -1373,43 +1539,13 @@ class AulaNovaView(AreaDoEstudioMixin, View):
             titulo=dados['titulo'],
             descricao=dados['descricao'],
             url_video=dados['url_video'],
-            duracao_segundos=(int(dados['minutos'] or 0) * 60
-                              + int(dados['segundos'] or 0)),
+            duracao_segundos=duracao_da_aula(dados),
         )
         messages.success(request, f'Aula cadastrada: {aula.titulo}.')
         return redirect(reverse('forum:estudio_aulas', args=[estudio.id]))
 
     def validar(self, dados):
-        erros = {}
-
-        if not dados['titulo']:
-            erros['titulo'] = 'Informe o título da aula.'
-        elif len(dados['titulo']) > 150:
-            erros['titulo'] = 'Use no máximo 150 caracteres.'
-
-        if not dados['url_video']:
-            erros['url_video'] = 'Informe o link do vídeo.'
-        elif not link_valido(dados['url_video']) or (
-            Aula(url_video=dados['url_video']).video()[0] == 'link'
-        ):
-            erros['url_video'] = Aula.MENSAGEM_URL_VIDEO
-
-        try:
-            minutos = int(dados['minutos'] or 0)
-            segundos = int(dados['segundos'] or 0)
-        except ValueError:
-            erros['duracao'] = 'Informe a duração com números inteiros.'
-        else:
-            if (not 0 <= minutos <= self.MINUTOS_MAXIMOS
-                    or not 0 <= segundos <= 59):
-                erros['duracao'] = (
-                    f'Use de 0 a {self.MINUTOS_MAXIMOS} minutos e de 0 a 59 '
-                    'segundos.'
-                )
-            elif minutos * 60 + segundos == 0:
-                erros['duracao'] = 'Informe a duração do vídeo.'
-
-        return erros
+        return validar_aula(dados)
 
 
 class AulaRemoverView(AreaDoEstudioMixin, View):
@@ -1437,19 +1573,9 @@ class EvolucaoView(AreaDoEstudioMixin, View):
 
     def get(self, request, estudio_id):
         estudio = self.estudio
-        self.registrar_metas_atingidas(request, estudio)
+        for meta in marcar_metas_atingidas(estudio):
+            messages.success(request, f'Meta atingida: {meta.descricao()}.')
         return render(request, 'forum/evolucao.html', self.contexto(estudio))
-
-    def registrar_metas_atingidas(self, request, estudio):
-        """Marca as metas que os indicadores de hoje já alcançaram."""
-        for meta in estudio.metas.filter(atingida_em__isnull=True):
-            if meta.em_andamento() and MetaEsg.alcanca(
-                meta.indicador, meta.valor_atual(), meta.alvo
-            ):
-                meta.atingida_em = timezone.now()
-                meta.save(update_fields=['atingida_em'])
-                messages.success(request,
-                                 f'Meta atingida: {meta.descricao()}.')
 
     def contexto(self, estudio):
         hoje = timezone.localdate()
@@ -1473,8 +1599,11 @@ class EvolucaoView(AreaDoEstudioMixin, View):
             'estudio': estudio,
             'diagnostico': estudio.ultimo_diagnostico(),
             'calculo': estudio.ultimo_calculo_residuo(),
-            'aulas_concluidas': estudio.aulas_concluidas(),
-            'total_aulas': Aula.visiveis_para(estudio).count(),
+            # O cartão e a meta de aulas são sobre inclusão.
+            'aulas_concluidas': estudio.aulas_de_inclusao_concluidas(),
+            'total_aulas': Aula.visiveis_para(estudio).filter(
+                categoria=Aula.INCLUSAO
+            ).count(),
             'total_campanhas': estudio.campanhas.count(),
             'ultimo_checklist': ultimo,
             'checklist_do_dia': do_dia,
@@ -1642,7 +1771,9 @@ class CampanhasView(View):
         if estudio:
             participa = set(estudio.campanhas.values_list('id', flat=True))
 
-        campanhas = list(Campanha.objects.prefetch_related('estudios'))
+        campanhas = list(Campanha.objects.prefetch_related(
+            Prefetch('estudios', queryset=Estudio.objects.filter(ativo=True))
+        ))
         for campanha in campanhas:
             campanha.participo = campanha.id in participa
         # As abertas vêm primeiro; sorted mantém a ordem do banco no resto.
@@ -1686,3 +1817,139 @@ class CampanhaSairView(AreaDoEstudioMixin, View):
             request, f'{estudio.nome} saiu da campanha {campanha.titulo}.'
         )
         return redirect(reverse('forum:campanhas'))
+
+
+# ---------------------------------------------------------------------------
+# Documentos e licenças (Hub de Biossegurança)
+# ---------------------------------------------------------------------------
+
+class DocumentosView(AreaDoEstudioMixin, View):
+    def get(self, request, estudio_id):
+        documentos = list(self.estudio.documentos.all())
+        # Vencidos e vencendo primeiro, para o estúdio ver o que resolver.
+        ordem = {'vencido': 0, 'vencendo': 1, 'em_dia': 2, 'sem_validade': 3}
+        documentos.sort(key=lambda documento: ordem[documento.situacao()])
+        contexto = {'estudio': self.estudio, 'documentos': documentos}
+        return render(request, 'forum/documentos.html', contexto)
+
+
+class DocumentoFormularioView(AreaDoEstudioMixin, View):
+    """Base do cadastro e da edição de documento, com as mesmas regras."""
+
+    def buscar(self, item_id):
+        if item_id is None:
+            return None
+        return get_object_or_404(DocumentoEstudio, id=item_id,
+                                 estudio=self.estudio)
+
+    def mostrar(self, request, documento, dados, erros):
+        contexto = {
+            'estudio': self.estudio,
+            'documento': documento,
+            'tipos': DocumentoEstudio.TIPO_CHOICES,
+            'dados': dados,
+            'erros': erros,
+        }
+        return render(request, 'forum/documento_form.html', contexto)
+
+    def get(self, request, estudio_id, item_id=None):
+        documento = self.buscar(item_id)
+        dados = {}
+        if documento:
+            dados = {
+                'tipo': documento.tipo,
+                'descricao': documento.descricao,
+                'emitido_em': documento.emitido_em.isoformat(),
+                'validade': (documento.validade.isoformat()
+                             if documento.validade else ''),
+                'link': documento.link,
+            }
+        return self.mostrar(request, documento, dados, {})
+
+    def post(self, request, estudio_id, item_id=None):
+        documento = self.buscar(item_id)
+        dados = ler_documento(request.POST)
+        erros = validar_documento(dados)
+        if erros:
+            if 'validade' in erros and erros['validade'].startswith('A validade'):
+                messages.error(request, erros['validade'])
+            else:
+                messages.error(
+                    request, 'Confira os campos destacados e tente novamente.'
+                )
+            return self.mostrar(request, documento, dados, erros)
+
+        campos = campos_do_documento(dados)
+        if documento is None:
+            documento = DocumentoEstudio.objects.create(estudio=self.estudio,
+                                                        **campos)
+            messages.success(request, f'Documento cadastrado: {documento}.')
+        else:
+            for campo, valor in campos.items():
+                setattr(documento, campo, valor)
+            documento.save()
+            messages.success(request, f'Documento atualizado: {documento}.')
+        return redirect(reverse('forum:estudio_documentos',
+                                args=[self.estudio.id]))
+
+
+class DocumentoRemoverView(AreaDoEstudioMixin, View):
+    def get(self, request, estudio_id, item_id):
+        documento = get_object_or_404(DocumentoEstudio, id=item_id,
+                                      estudio=self.estudio)
+        contexto = {'estudio': self.estudio, 'documento': documento}
+        return render(request, 'forum/documento_remover.html', contexto)
+
+    def post(self, request, estudio_id, item_id):
+        documento = get_object_or_404(DocumentoEstudio, id=item_id,
+                                      estudio=self.estudio)
+        documento.delete()
+        messages.success(request, f'Documento removido: {documento}.')
+        return redirect(reverse('forum:estudio_documentos',
+                                args=[self.estudio.id]))
+
+
+# ---------------------------------------------------------------------------
+# Dados do estúdio
+# ---------------------------------------------------------------------------
+
+class DadosEstudioView(LoginObrigatorioMixin, View):
+    """O estúdio edita o nome, a cidade e os dados do perfil público.
+
+    Antes só dava para mudar o nome e a cidade pelo admin.
+    """
+
+    CAMPOS = ['nome', 'cidade', 'bairro', 'descricao', 'instagram',
+              'whatsapp', 'site', 'acessibilidade']
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            self.estudio = estudio_da_conta(request.user)
+            if self.estudio is None:
+                return redirect(reverse('forum:minha_area'))
+            if not self.estudio.ativo:
+                return responder_estudio_suspenso(request, self.estudio)
+        return super().dispatch(request, *args, **kwargs)
+
+    def mostrar(self, request, dados, erros):
+        contexto = {'estudio': self.estudio, 'dados': dados, 'erros': erros}
+        return render(request, 'forum/estudio_dados.html', contexto)
+
+    def get(self, request):
+        dados = {campo: getattr(self.estudio, campo) for campo in self.CAMPOS}
+        return self.mostrar(request, dados, {})
+
+    def post(self, request):
+        dados = ler_dados_do_estudio(request.POST)
+        erros = validar_dados_do_estudio(dados)
+        if erros:
+            messages.error(
+                request, 'Confira os campos destacados e tente novamente.'
+            )
+            return self.mostrar(request, dados, erros)
+
+        for campo in self.CAMPOS:
+            setattr(self.estudio, campo, dados[campo])
+        self.estudio.save(update_fields=self.CAMPOS)
+        messages.success(request, 'Dados do estúdio atualizados.')
+        return redirect(reverse('forum:minha_area'))

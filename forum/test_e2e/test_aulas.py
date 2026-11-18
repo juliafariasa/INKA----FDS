@@ -47,7 +47,8 @@ class AulasTest(BaseE2E):
         )
 
     def ir_para_as_aulas(self):
-        self.clicar(By.LINK_TEXT, 'Aulas de inclusão')
+        # O módulo na Minha Área se chama só "Aulas": há outras categorias.
+        self.clicar(By.LINK_TEXT, 'Aulas')
         self.esperar_pagina('Aulas de inclusão')
 
     def cartao_da_aula(self, titulo):

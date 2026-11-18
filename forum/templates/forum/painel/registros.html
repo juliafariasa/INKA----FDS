@@ -1,0 +1,32 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Registro de ações - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Registro de ações</h2>
+    <p>Tudo o que a equipe fez pelo painel, do mais recente ao mais antigo.</p>
+</header>
+
+{% if pagina.object_list %}
+    <div class="painel-tabela-rolagem">
+        <table class="painel-tabela">
+            <thead><tr><th>Quando</th><th>Quem</th><th>Ação</th><th>Alvo</th></tr></thead>
+            <tbody>
+                {% for registro in pagina %}
+                    <tr>
+                        <td>{{ registro.criado_em|date:"d/m/Y H:i" }}</td>
+                        <td>{{ registro.nome_usuario }}</td>
+                        <td>{{ registro.acao }}</td>
+                        <td>{{ registro.alvo }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "forum/painel/paginacao.html" %}
+{% else %}
+    <p class="evo-vazio">Nenhuma ação registrada ainda.</p>
+{% endif %}
+{% endblock %}

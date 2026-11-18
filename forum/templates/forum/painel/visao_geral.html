@@ -1,0 +1,130 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Visão geral</h2>
+    <p>Como os estúdios estão usando o INKA, em números.</p>
+</header>
+
+<!-- ESTÚDIOS -->
+<div class="evo-indicadores">
+    <a class="evo-indicador" href="{% url 'forum:painel_estudios' %}">
+        <span class="evo-rotulo">Estúdios cadastrados</span>
+        <strong>{{ panorama.estudios }}</strong>
+        <span class="evo-detalhe">{{ panorama.estudios_ativos }} ativo(s)</span>
+    </a>
+    <a class="evo-indicador" href="{% url 'forum:painel_estudios' %}?ordem=recentes">
+        <span class="evo-rotulo">Novos em 30 dias</span>
+        <strong>{{ panorama.novos_30_dias }}</strong>
+        <span class="evo-detalhe">cadastros recentes</span>
+    </a>
+    <div class="evo-indicador">
+        <span class="evo-rotulo">Fizeram o diagnóstico</span>
+        <strong>{{ panorama.com_diagnostico }}<small>/{{ panorama.estudios }}</small></strong>
+        <span class="evo-detalhe">
+            Índice médio:
+            {% if panorama.selos.indice_medio is not None %}{{ panorama.selos.indice_medio|floatformat:0 }}/100{% else %}—{% endif %}
+        </span>
+    </div>
+    <div class="evo-indicador">
+        <span class="evo-rotulo">Checklists em 7 dias</span>
+        <strong>{{ panorama.checklists_7_dias }}</strong>
+        <span class="evo-detalhe">verificações de rotina</span>
+    </div>
+</div>
+
+<!-- SELOS -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">01 / SELOS</span>
+        <h3>Selo Estúdio Consciente</h3>
+        <p>Pelo último diagnóstico de cada estúdio.</p>
+    </div>
+    <ul class="painel-barras">
+        {% for selo in selos %}
+            <li>
+                <a href="{% url 'forum:painel_estudios' %}?selo={{ selo.filtro }}">{{ selo.rotulo }}</a>
+                <span class="painel-barra"><i style="--valor: {{ selo.percentual }}"></i></span>
+                <b>{{ selo.quantidade }}</b>
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+
+<!-- AMBIENTAL E SOCIAL -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">02 / USO DA PLATAFORMA</span>
+        <h3>Resíduos, aulas e campanhas</h3>
+        <p>
+            {{ panorama.residuos_do_mes.calculos }} cálculo(s) de resíduos neste mês,
+            somando {{ total_gramas }} g.
+        </p>
+    </div>
+    <ul class="painel-barras">
+        {% for tipo in tipos_residuo %}
+            <li>
+                <span>{{ tipo.rotulo }}</span>
+                <span class="painel-barra"><i style="--valor: {{ tipo.percentual }}"></i></span>
+                <b>{{ tipo.gramas }} g</b>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="evo-indicadores">
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Aulas concluídas</span>
+            <strong>{{ panorama.aulas_concluidas }}</strong>
+            <span class="evo-detalhe">por todos os estúdios</span>
+        </div>
+        <div class="evo-indicador">
+            <span class="evo-rotulo">Campanhas abertas</span>
+            <strong>{{ panorama.campanhas_abertas }}</strong>
+            <span class="evo-detalhe">{{ panorama.participacoes }} participação(ões) de estúdios</span>
+        </div>
+    </div>
+</section>
+
+<!-- ATENÇÃO -->
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">03 / PEDE ATENÇÃO</span>
+        <h3>O que a equipe precisa olhar</h3>
+    </div>
+    <div class="evo-indicadores">
+        <a class="evo-indicador" href="{% url 'forum:painel_contatos' %}">
+            <span class="evo-rotulo">Fale Conosco sem resposta</span>
+            <strong>{{ panorama.contatos_sem_resposta }}</strong>
+            <span class="evo-detalhe">mensagens</span>
+        </a>
+        <a class="evo-indicador" href="{% url 'forum:painel_descarte' %}">
+            <span class="evo-rotulo">Conteúdos de descarte fora do ar</span>
+            <strong>{{ panorama.conteudos_indisponiveis }}</strong>
+            <span class="evo-detalhe">marcados como indisponíveis</span>
+        </a>
+    </div>
+
+    <h4 class="painel-subtitulo">Estúdios parados ({{ panorama.total_parados }})</h4>
+    <p class="evo-vazio">
+        Ativos, cadastrados há mais de 30 dias e sem checklist nem cálculo de
+        resíduos nesse período. Vale entrar em contato.
+    </p>
+    {% if panorama.parados %}
+        <ul class="painel-lista">
+            {% for estudio in panorama.parados %}
+                <li>
+                    <a href="{% url 'forum:painel_estudio' estudio.id %}">{{ estudio.nome }}</a>
+                    · {{ estudio.cidade }}
+                </li>
+            {% endfor %}
+        </ul>
+        {% if panorama.total_parados > panorama.parados|length %}
+            <p class="evo-vazio">Mostrando os 10 primeiros em ordem alfabética.</p>
+        {% endif %}
+    {% else %}
+        <p>Nenhum estúdio parado. Todos registraram algo nos últimos 30 dias.</p>
+    {% endif %}
+</section>
+{% endblock %}

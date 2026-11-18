@@ -121,7 +121,7 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
   
   ### Instruções de acesso:
   1. Abra o link acima em qualquer navegador.
-  2. Não é necessário instalar nada nem fazer login — a página inicial já carrega direto.
+  2. Não é necessário instalar nada. As páginas institucionais abrem sem login; a área de cada estúdio exige a conta do estúdio (veja "Como acessar a plataforma", no fim deste README).
   3. Navegue pelo menu entre as páginas: Início, Quem Somos, Sobre o Projeto e Fale Conosco.
 
   ### Link do screencast do uso do sistema:
@@ -345,5 +345,20 @@ CIÊNCIAS DA COMPUTAÇÃO - TURMA A
 
 </details>
 
+## Como acessar a plataforma
 
+- **Visitante (cliente de estúdio):** sem login, vê as páginas institucionais, a lista de estúdios com o filtro por cidade, o perfil público de cada estúdio (o mesmo que abre pelo QR Code da recepção) e as campanhas sociais.
+- **Estúdio:** cria a conta em *Estúdios → Cadastrar meu estúdio*, com nome, cidade, e-mail e senha, e cai direto no diagnóstico ESG. Depois, entra em *Entrar* com o e-mail e a senha e cai na **Minha Área**: a lista do que fazer primeiro, os indicadores do estúdio, o botão para copiar o link do perfil (para a bio do Instagram) e os módulos agrupados pelos pilares do ESG: calculadora de resíduos, descarte, estoque com alertas de mínimo e validade, aulas, campanhas, diagnóstico e reavaliação, painel de evolução, documentos e licenças, QR Code e dados do estúdio. Quem esqueceu a senha usa *Esqueci minha senha* na tela de entrada.
+- **Equipe do INKA:** entra pela mesma tela *Entrar* e cai no **Painel da equipe** (`/painel/`): visão geral da plataforma em números, lista de estúdios com busca e filtros, ficha completa de cada estúdio, desativar ou reativar um estúdio, mensagens do Fale Conosco, campanhas, aulas e conteúdos de descarte da plataforma, itens do checklist, moderação do que os estúdios cadastraram (com a opção de publicar para todos), registro de ações da equipe e relatório CSV dos estúdios. Precisa de uma conta com acesso de equipe (*staff*); desativar estúdios exige administrador principal (*superuser*), criado por `python manage.py createsuperuser`. Os cadastros completos continuam no `/admin/` do Django.
 
+Nenhuma senha real fica neste README nem no código.
+
+## Fase 2 do projeto
+
+As histórias de usuário das funcionalidades novas estão em [histórias de usuário - fase 2.md](histórias%20de%20usuário%20-%20fase%202.md): Minha Área, Painel da equipe, Reavaliação ESG, Documentos e licenças, Alertas de estoque, Dados do estúdio e Índice INKA.
+
+Algumas decisões que valem registrar:
+
+- **A reavaliação não substitui o diagnóstico inicial.** O diagnóstico inicial continua único (História 2). A reavaliação, liberada 90 dias depois do último diagnóstico (ou antes, pela equipe), cria um diagnóstico novo; como o selo usa sempre o mais recente, ele passa a acompanhar a evolução do estúdio.
+- **O Índice INKA é separado do selo.** O selo continua vindo só do diagnóstico. O Índice INKA soma o diagnóstico (50%) com a rotina: checklist (15%), resíduos (10%), materiais de origem sustentável (10%), aulas (10%) e campanhas (5%). Os pesos ficam em `forum/indice.py`.
+- **Não há upload de arquivos.** O disco do Render é apagado a cada deploy; nos documentos e licenças o estúdio guarda, se quiser, um link para o arquivo.
