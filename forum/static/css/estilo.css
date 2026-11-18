@@ -10705,3 +10705,284 @@ body::after {
     text-decoration: none;
     cursor: default;
 }
+
+
+/* ==================================================
+   INKA / FINE LINE TATTOO COLLECTION
+   DRAGÃO · BORBOLETA · ROSA
+================================================== */
+
+/* BASE COMPARTILHADA */
+
+.inka-fundo-grafico .inka-dragao-css,
+.inka-fundo-grafico .inka-borboleta-css,
+.inka-fundo-grafico .inka-rosa-css {
+    position: fixed !important;
+
+    width: var(--ink-size) !important;
+    height: auto !important;
+
+    top: var(--ink-top) !important;
+    right: var(--ink-right) !important;
+    bottom: var(--ink-bottom) !important;
+    left: var(--ink-left) !important;
+
+    color: #B9D188;
+    opacity: var(--ink-opacity) !important;
+
+    fill: none;
+    overflow: visible;
+
+    pointer-events: none;
+    user-select: none;
+
+    z-index: 0;
+    filter: none !important;
+
+    transform-origin: center center;
+
+    animation:
+        inka-fine-line-float
+        var(--ink-duration)
+        ease-in-out
+        infinite;
+}
+
+/* ==================================================
+   01 / DRAGÃO
+   SUPERIOR DIREITO
+================================================== */
+
+.inka-fundo-grafico .inka-dragao-css {
+    --ink-size: 130px;
+
+    --ink-top: 23%;
+    --ink-right: 24px;
+    --ink-bottom: auto;
+    --ink-left: auto;
+
+    --ink-opacity: 0.55;
+    --ink-duration: 14s;
+}
+
+/* ==================================================
+   02 / BORBOLETA
+   SUPERIOR ESQUERDO
+================================================== */
+
+.inka-fundo-grafico .inka-borboleta-css {
+    --ink-size: 155px;
+
+    --ink-top: 17%;
+    --ink-right: auto;
+    --ink-bottom: auto;
+    --ink-left: 3%;
+
+    --ink-opacity: 0.34;
+    --ink-duration: 13s;
+}
+
+/* ==================================================
+   03 / ROSA
+   INFERIOR ESQUERDO
+================================================== */
+
+.inka-fundo-grafico .inka-rosa-css {
+    --ink-size: 100px;
+
+    --ink-top: auto;
+    --ink-right: auto;
+    --ink-bottom: 13%;
+    --ink-left: 5%;
+
+    --ink-opacity: 0.38;
+    --ink-duration: 14s;
+}
+
+/* ==================================================
+   DETALHES DO TRAÇO
+================================================== */
+
+.inka-dragao-css path,
+.inka-dragao-css circle,
+.inka-dragao-css ellipse,
+.inka-dragao-css use,
+.inka-borboleta-css path,
+.inka-borboleta-css circle,
+.inka-borboleta-css ellipse,
+.inka-rosa-css path {
+    vector-effect: non-scaling-stroke;
+}
+
+/* ==================================================
+   ANIMAÇÃO SUAVE
+================================================== */
+
+@keyframes inka-fine-line-float {
+    0%, 100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+
+    50% {
+        transform: translateY(-7px) rotate(1deg);
+    }
+}
+
+/* ==================================================
+   RESPONSIVIDADE
+================================================== */
+
+@media (max-width: 768px) {
+
+    /* DRAGÃO / SUPERIOR DIREITO */
+
+    .inka-fundo-grafico .inka-dragao-css {
+        --ink-size: 100px;
+
+        --ink-top: 26%;
+        --ink-right: 6px;
+        --ink-bottom: auto;
+        --ink-left: auto;
+
+        --ink-opacity: 0.35;
+    }
+
+    /* BORBOLETA / SUPERIOR ESQUERDO */
+
+    .inka-fundo-grafico .inka-borboleta-css {
+        --ink-size: 95px;
+
+        --ink-top: 2%;
+        --ink-right: auto;
+        --ink-bottom: auto;
+        --ink-left: 2%;
+
+        --ink-opacity: 0.23;
+    }
+
+    /* ROSA / INFERIOR ESQUERDO */
+
+    .inka-fundo-grafico .inka-rosa-css {
+        --ink-size: 72px;
+
+        --ink-top: auto;
+        --ink-right: auto;
+        --ink-bottom: 2%;
+        --ink-left: 3%;
+
+        --ink-opacity: 0.25;
+    }
+}
+
+/* ==================================================
+   ACESSIBILIDADE
+================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .inka-fundo-grafico .inka-dragao-css,
+    .inka-fundo-grafico .inka-borboleta-css,
+    .inka-fundo-grafico .inka-rosa-css {
+        animation: none !important;
+    }
+}
+
+/* INKA / LOGO RESPONSIVA E CLICÁVEL */
+
+.topo .topo-logo {
+    margin: 0;
+    line-height: 1;
+    min-width: 0;
+}
+
+.topo .topo-logo-link {
+    display: inline-block;
+    max-width: 100%;
+    font-family: "Highway Gothic", sans-serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 900;
+    color: #F6F6EF;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .25s ease, transform .25s ease;
+}
+
+.topo .topo-logo-link:hover {
+    color: #B9D188;
+    transform: translateY(-2px);
+}
+
+.topo .topo-logo-link:focus-visible {
+    outline: 2px solid #B9D188;
+    outline-offset: 5px;
+}
+
+@media (max-width: 768px) {
+    .topo .topo-logo-link {
+        font-size: clamp(25px, 7vw, 36px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topo .topo-logo-link {
+        transition: none;
+    }
+}
+
+/* INKA / MINHA ÁREA EM DESTAQUE */
+
+.menu .menu-conta .link-conta-destaque {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 52px;
+    padding: 14px 30px;
+
+    font-family: "Highway Gothic", sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+
+    color: #F6F6EF;
+    background: #223427;
+
+    border: 1px solid #5F7B44;
+    border-radius: 12px;
+
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition:
+        background .25s ease,
+        border-color .25s ease,
+        transform .25s ease;
+}
+
+.menu .menu-conta .link-conta-destaque:hover {
+    background: #5F7B44;
+    border-color: #B9D188;
+    transform: translateY(-2px);
+}
+
+.menu .menu-conta .link-conta-destaque:focus-visible {
+    outline: 2px solid #B9D188;
+    outline-offset: 4px;
+}
+
+/* CELULAR */
+
+@media (max-width: 768px) {
+    .menu .menu-conta .link-conta-destaque {
+        width: 100%;
+        max-width: 280px;
+        min-height: 48px;
+        padding: 12px 20px;
+        font-size: 17px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu .menu-conta .link-conta-destaque {
+        transition: none;
+    }
+}

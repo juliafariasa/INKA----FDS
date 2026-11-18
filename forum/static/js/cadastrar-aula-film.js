@@ -1178,3 +1178,57 @@ async function setupDirector(root) {
     loadError(err);
   }
 }
+
+/* ==========================================
+   INKA /  · EFEITOS SONOROS
+========================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const somCamera = document.getElementById("inka-som-camera");
+    const somRolo = document.getElementById("inka-som-rolo");
+
+    if (!somCamera && !somRolo) return;
+
+    
+
+function tocarSom(audio) {
+    if (!audio) return;
+
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = 0.55;
+
+    clearTimeout(audio.inkaTimer);
+
+    audio.play().catch(() => {});
+
+    if (audio.id === "inka-som-camera") {
+        audio.inkaTimer = setTimeout(() => {
+            audio.pause();
+            audio.currentTime = 0;
+        }, 5000);
+    }
+}
+
+
+    document.addEventListener("click", (event) => {
+        const botao = event.target.closest("button, a");
+
+        if (!botao) return;
+
+        const texto = botao.textContent
+            .trim()
+            .replace(/\s+/g, " ")
+            .toLowerCase();
+
+        if (texto.includes("cadastrar vídeo") ||
+            texto.includes("cadastrar video")) {
+            tocarSom(somCamera);
+        }
+
+        if (texto.includes("próximo quadro") ||
+            texto.includes("proximo quadro")) {
+            tocarSom(somRolo);
+        }
+    });
+});

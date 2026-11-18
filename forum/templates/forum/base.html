@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#121314">
     <title>{% block titulo %}INKA{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}?v=20261117-graficos">
     <script src="{% static 'js/script.js' %}" defer></script>
     {% block head_extra %}{% endblock %}
 </head>
@@ -14,6 +14,1039 @@
     <!-- Decorações gráficas fixas do INKA -->
 <div class="inka-fundo-grafico" aria-hidden="true">
 
+<!-- INKA / DRAGÃO ORIENTAL FINE LINE · EDIÇÃO GRAVURA -->
+<svg
+    class="inka-dragao-css"
+    viewBox="0 0 260 520"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    aria-hidden="true"
+>
+    <defs>
+        <!-- Eixo orgânico do corpo -->
+        <path
+            id="inka-dragon-spine"
+            d="
+                M 118 117
+                C 87 132 65 154 83 184
+                C 103 217 174 187 181 230
+                C 191 265 139 280 101 292
+                C 57 306 48 342 80 366
+                C 107 388 154 369 158 345
+                C 162 321 129 320 126 344
+                C 122 377 176 397 165 436
+                C 161 459 142 476 151 491
+            "
+        />
+
+        <!-- Escamas pequenas em padrão de gravura -->
+        <pattern
+            id="inka-dragon-scales"
+            width="12"
+            height="12"
+            patternUnits="userSpaceOnUse"
+        >
+            <path
+                d="
+                    M -6 0 Q 0 7 6 0
+                    M 6 0 Q 12 7 18 0
+                    M 0 6 Q 6 13 12 6
+                    M -12 6 Q -6 13 0 6
+                "
+                stroke="currentColor"
+                stroke-width=".68"
+                opacity=".78"
+                fill="none"
+            />
+            <path
+                d="M 5 3 l 1 2 M 11 9 l 1 2"
+                stroke="currentColor"
+                stroke-width=".45"
+                opacity=".55"
+            />
+        </pattern>
+
+        <!-- Máscara para manter as escamas dentro do corpo -->
+        <mask id="inka-dragon-body-mask">
+            <use
+                href="#inka-dragon-spine"
+                stroke="white"
+                stroke-width="25"
+                stroke-linecap="round"
+            />
+        </mask>
+
+        <!-- Um fio individual de crina -->
+        <path
+            id="inka-dragon-hair"
+            d="M 0 0 Q -7 -8 -5 -17 Q -2 -10 3 -9"
+        />
+
+        <!-- Escama ornamental maior -->
+        <path
+            id="inka-dragon-scale-detail"
+            d="M 0 0 Q 5 5 10 0 Q 5 7 0 0"
+        />
+
+        <!-- Folha pontiaguda da crina -->
+        <path
+            id="inka-dragon-spike"
+            d="M 0 0 Q -6 -8 -4 -17 Q 1 -9 8 -8"
+        />
+    </defs>
+
+    <!-- CORPO: contorno fino e escamas reais -->
+    <g class="inka-dragon-body">
+        <use
+            href="#inka-dragon-spine"
+            stroke="currentColor"
+            stroke-width="27"
+            stroke-linecap="round"
+            opacity=".9"
+        />
+
+        <use
+            href="#inka-dragon-spine"
+            stroke="#223427"
+            stroke-width="25.4"
+            stroke-linecap="round"
+        />
+
+        <rect
+            x="35" y="100"
+            width="180" height="410"
+            fill="url(#inka-dragon-scales)"
+            mask="url(#inka-dragon-body-mask)"
+        />
+
+        <!-- Linha dorsal adicional -->
+        <path
+            d="
+                M 109 122
+                C 78 142 73 159 92 181
+                C 115 205 177 189 189 224
+                C 203 270 146 286 109 302
+                C 69 319 61 344 87 358
+            "
+            stroke="currentColor"
+            stroke-width=".6"
+            opacity=".7"
+        />
+
+        <!-- Linha abdominal -->
+        <path
+            d="
+                M 128 129
+                C 102 142 80 166 99 181
+                C 124 201 180 205 170 238
+                C 162 265 118 275 92 290
+                C 50 313 57 353 85 372
+            "
+            stroke="currentColor"
+            stroke-width=".7"
+            opacity=".8"
+        />
+
+        <!-- Divisões ventrais -->
+        <g stroke="currentColor" stroke-width=".65" opacity=".75">
+            <path d="M104 138 l17 10"/>
+            <path d="M92 150 l17 12"/>
+            <path d="M89 165 l17 11"/>
+            <path d="M97 183 l15 8"/>
+            <path d="M114 197 l12 9"/>
+            <path d="M136 200 l10 10"/>
+            <path d="M156 202 l8 12"/>
+            <path d="M171 214 l10 10"/>
+            <path d="M174 235 l12 6"/>
+            <path d="M167 252 l11 10"/>
+            <path d="M149 267 l10 12"/>
+            <path d="M129 279 l9 13"/>
+            <path d="M107 290 l8 13"/>
+            <path d="M86 301 l12 12"/>
+            <path d="M72 315 l13 10"/>
+            <path d="M68 333 l15 9"/>
+            <path d="M77 349 l14 10"/>
+            <path d="M96 361 l13 10"/>
+            <path d="M116 367 l10 12"/>
+            <path d="M138 358 l13 9"/>
+            <path d="M146 343 l13 4"/>
+            <path d="M135 332 l10 10"/>
+            <path d="M132 354 l12 11"/>
+            <path d="M144 378 l13 9"/>
+            <path d="M156 399 l14 7"/>
+            <path d="M161 418 l13 6"/>
+            <path d="M155 441 l12 7"/>
+            <path d="M147 459 l13 5"/>
+        </g>
+    </g>
+
+    <!-- CRINA AO LONGO DAS COSTAS -->
+    <g
+        stroke="currentColor"
+        stroke-width=".85"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <use href="#inka-dragon-spike" transform="translate(86 137) rotate(-30)"/>
+        <use href="#inka-dragon-spike" transform="translate(77 148) rotate(-43)"/>
+        <use href="#inka-dragon-spike" transform="translate(70 161) rotate(-57)"/>
+        <use href="#inka-dragon-spike" transform="translate(72 177) rotate(-70)"/>
+        <use href="#inka-dragon-spike" transform="translate(81 191) rotate(-93)"/>
+        <use href="#inka-dragon-spike" transform="translate(98 202) rotate(-119)"/>
+        <use href="#inka-dragon-spike" transform="translate(117 205) rotate(-144)"/>
+        <use href="#inka-dragon-spike" transform="translate(139 204) rotate(-164)"/>
+        <use href="#inka-dragon-spike" transform="translate(160 208) rotate(-178)"/>
+        <use href="#inka-dragon-spike" transform="translate(176 222) rotate(145)"/>
+        <use href="#inka-dragon-spike" transform="translate(182 241) rotate(128)"/>
+        <use href="#inka-dragon-spike" transform="translate(170 263) rotate(92)"/>
+        <use href="#inka-dragon-spike" transform="translate(150 279) rotate(72)"/>
+        <use href="#inka-dragon-spike" transform="translate(129 287) rotate(59)"/>
+        <use href="#inka-dragon-spike" transform="translate(105 298) rotate(48)"/>
+        <use href="#inka-dragon-spike" transform="translate(82 313) rotate(21)"/>
+        <use href="#inka-dragon-spike" transform="translate(67 333) rotate(-5)"/>
+        <use href="#inka-dragon-spike" transform="translate(80 355) rotate(-60)"/>
+        <use href="#inka-dragon-spike" transform="translate(103 368) rotate(-102)"/>
+        <use href="#inka-dragon-spike" transform="translate(130 372) rotate(-146)"/>
+        <use href="#inka-dragon-spike" transform="translate(153 355) rotate(175)"/>
+        <use href="#inka-dragon-spike" transform="translate(144 328) rotate(42)"/>
+        <use href="#inka-dragon-spike" transform="translate(136 349) rotate(-50)"/>
+        <use href="#inka-dragon-spike" transform="translate(150 380) rotate(-112)"/>
+        <use href="#inka-dragon-spike" transform="translate(166 406) rotate(151)"/>
+        <use href="#inka-dragon-spike" transform="translate(169 428) rotate(124)"/>
+        <use href="#inka-dragon-spike" transform="translate(154 453) rotate(81)"/>
+    </g>
+
+    <!-- DETALHES SOLTOS NAS ESCAMAS -->
+    <g
+        stroke="currentColor"
+        stroke-width=".65"
+        opacity=".85"
+    >
+        <use href="#inka-dragon-scale-detail" transform="translate(85 163) rotate(25)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(99 186) rotate(-12)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(125 194) rotate(-20)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(154 202) rotate(15)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(177 236) rotate(80)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(162 263) rotate(130)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(128 276) rotate(155)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(89 300) rotate(140)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(68 331) rotate(95)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(93 358) rotate(15)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(127 366) rotate(-10)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(146 342) rotate(80)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(142 371) rotate(40)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(161 408) rotate(95)"/>
+        <use href="#inka-dragon-scale-detail" transform="translate(151 450) rotate(120)"/>
+    </g>
+
+    <!-- CABEÇA DETALHADA -->
+    <g
+        class="inka-dragon-head"
+        stroke="currentColor"
+        stroke-width=".9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <!-- Crânio e focinho alongado -->
+        <path d="
+            M 112 111
+            C 109 99 114 86 125 82
+            C 134 78 143 80 151 86
+            C 159 90 163 99 174 102
+            C 187 105 197 110 208 118
+            L 213 126
+            Q 208 135 199 135
+            Q 190 132 183 136
+            L 172 144
+            Q 163 146 157 139
+            Q 150 133 143 132
+            Q 135 140 124 135
+            Q 117 128 112 111
+            Z
+        "/>
+
+        <!-- Parte superior da face -->
+        <path d="M 137 90 Q 152 88 161 101"/>
+        <path d="M 159 101 Q 169 110 187 113"/>
+        <path d="M 187 113 Q 198 116 208 124"/>
+        <path d="M 145 131 Q 152 122 161 123"/>
+        <path d="M 161 123 Q 172 130 181 126"/>
+
+        <!-- Boca e mandíbula -->
+        <path d="M 164 137 Q 179 145 196 135"/>
+        <path d="M 181 135 Q 194 144 205 133"/>
+        <path d="M 168 141 L 170 145 L 174 140"/>
+        <path d="M 190 136 L 191 141 L 194 135"/>
+
+        <!-- Olhos expressivos -->
+        <path d="M 159 111 Q 170 106 179 112 Q 171 118 160 115 Z"/>
+        <path d="M 160 110 L 156 105"/>
+        <path d="M 167 108 L 164 104"/>
+        <path d="M 177 111 L 180 107"/>
+        <path d="M 160 115 Q 170 121 179 114"/>
+
+        <ellipse
+            cx="171"
+            cy="112.5"
+            rx="2.1"
+            ry="3"
+            fill="currentColor"
+            stroke="none"
+        />
+
+        <circle cx="171.7" cy="111.4" r=".5"
+                fill="#223427" stroke="none"/>
+
+        <!-- Narina e ranhuras do focinho -->
+        <ellipse cx="201" cy="122" rx="1.7" ry="1.1"
+                 fill="currentColor" stroke="none"/>
+        <path d="M 192 119 Q 195 116 199 119"/>
+        <path d="M 185 125 l 5 2"/>
+        <path d="M 189 130 l 5 1"/>
+        <path d="M 176 120 l 5 2"/>
+
+        <!-- Pequenas escamas faciais -->
+        <path d="M 135 105 q 4 -4 8 0"/>
+        <path d="M 139 112 q 4 -4 8 0"/>
+        <path d="M 145 118 q 4 -4 8 0"/>
+        <path d="M 127 113 q 4 -4 8 0"/>
+        <path d="M 128 120 q 4 -4 8 0"/>
+        <path d="M 150 97 q 4 -3 7 1"/>
+        <path d="M 151 104 q 4 -3 7 1"/>
+        <path d="M 137 126 q 4 -3 7 1"/>
+
+        <!-- Orelhas pontiagudas -->
+        <path d="
+            M 128 87
+            Q 111 73 106 54
+            Q 119 68 136 79
+        "/>
+        <path d="M 124 83 Q 115 70 112 63"/>
+
+        <path d="
+            M 149 86
+            Q 147 68 159 51
+            Q 153 71 157 92
+        "/>
+        <path d="M 152 83 Q 154 69 157 62"/>
+
+        <!-- Chifres ramificados -->
+        <path d="
+            M 122 83
+            C 115 66 117 44 108 25
+            C 125 38 131 51 134 79
+        "/>
+        <path d="M 118 54 Q 103 48 98 35"/>
+        <path d="M 127 65 Q 137 51 135 36"/>
+
+        <path d="
+            M 139 82
+            C 140 59 150 45 145 18
+            C 160 39 157 62 150 85
+        "/>
+        <path d="M 151 52 Q 165 41 165 28"/>
+        <path d="M 146 63 Q 138 53 139 41"/>
+
+        <!-- Crina da cabeça -->
+        <path d="M 118 99 C 95 92 88 79 86 59"/>
+        <path d="M 116 104 C 92 103 79 89 73 74"/>
+        <path d="M 114 110 C 91 117 77 107 65 98"/>
+        <path d="M 116 118 C 101 133 83 132 70 124"/>
+        <path d="M 122 130 C 115 151 97 157 84 150"/>
+        <path d="M 130 137 C 129 157 116 168 106 171"/>
+        <path d="M 138 137 C 148 153 145 167 136 179"/>
+
+        <!-- Fios adicionais, efeito fine line -->
+        <path d="M 116 93 Q 99 87 96 70"/>
+        <path d="M 113 100 Q 94 101 85 87"/>
+        <path d="M 113 113 Q 98 122 83 118"/>
+        <path d="M 120 124 Q 109 138 96 139"/>
+        <path d="M 127 132 Q 123 148 110 154"/>
+        <path d="M 133 139 Q 133 151 124 161"/>
+        <path d="M 112 103 Q 89 111 75 99"/>
+        <path d="M 118 115 Q 98 130 79 128"/>
+
+        <!-- Bigodes longos e delicados -->
+        <path d="
+            M 199 128
+            C 230 115 242 89 232 65
+            C 223 44 233 27 243 19
+        "/>
+
+        <path d="
+            M 192 135
+            C 217 148 237 164 247 145
+            C 254 133 251 119 244 112
+        "/>
+
+        <path d="
+            M 185 139
+            C 205 162 207 181 200 197
+        "/>
+
+        <!-- Pequenos pelos no queixo -->
+        <path d="M 174 143 Q 170 155 165 159"/>
+        <path d="M 180 142 Q 178 156 174 163"/>
+        <path d="M 187 140 Q 188 153 184 159"/>
+        <path d="M 160 141 Q 157 151 151 154"/>
+    </g>
+
+    <!-- PATAS DIANTEIRAS -->
+    <g
+        stroke="currentColor"
+        stroke-width="1"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <!-- Pata esquerda -->
+        <path d="
+            M 94 184
+            C 74 182 65 194 61 210
+            C 58 219 60 227 54 233
+        "/>
+        <path d="M 101 191 Q 79 192 72 211"/>
+        <path d="M 72 211 Q 69 223 65 229"/>
+
+        <!-- Dedos e garras -->
+        <path d="M 54 233 Q 44 229 40 236 L 38 246"/>
+        <path d="M 54 233 Q 49 241 50 249 L 47 255"/>
+        <path d="M 54 233 Q 61 242 62 248 L 59 254"/>
+        <path d="M 60 222 Q 53 221 48 224"/>
+
+        <!-- Pata direita -->
+        <path d="
+            M 169 233
+            C 191 231 202 242 209 259
+            C 212 267 209 277 218 282
+        "/>
+        <path d="M 178 241 Q 192 242 200 260"/>
+        <path d="M 200 260 Q 198 269 207 276"/>
+
+        <path d="M 218 282 Q 229 280 232 289 L 230 299"/>
+        <path d="M 218 282 Q 220 292 217 300 L 215 304"/>
+        <path d="M 218 282 Q 211 291 210 297 L 204 300"/>
+    </g>
+
+    <!-- PATAS TRASEIRAS -->
+    <g
+        stroke="currentColor"
+        stroke-width=".95"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="
+            M 76 317
+            C 55 300 41 309 35 330
+            C 32 339 36 346 28 354
+        "/>
+        <path d="M 85 324 Q 65 311 52 327"/>
+        <path d="M 52 327 Q 49 336 43 343"/>
+
+        <path d="M 28 354 Q 17 351 14 359 L 13 368"/>
+        <path d="M 28 354 Q 25 364 24 371 L 20 376"/>
+        <path d="M 28 354 Q 36 362 36 370 L 33 375"/>
+
+        <path d="
+            M 148 372
+            C 172 369 189 385 193 406
+            C 195 415 190 424 199 430
+        "/>
+        <path d="M 156 383 Q 172 384 181 405"/>
+        <path d="M 181 405 Q 180 416 188 423"/>
+
+        <path d="M 199 430 Q 209 426 213 434 L 211 444"/>
+        <path d="M 199 430 Q 201 438 198 449 L 194 453"/>
+        <path d="M 199 430 Q 190 438 188 446 L 182 450"/>
+    </g>
+
+    <!-- PELOS E ARTICULAÇÕES DAS PATAS -->
+    <g
+        stroke="currentColor"
+        stroke-width=".65"
+        stroke-linecap="round"
+    >
+        <path d="M 80 194 l -11 -4"/>
+        <path d="M 77 200 l -12 -1"/>
+        <path d="M 74 208 l -13 3"/>
+        <path d="M 65 217 l -10 6"/>
+
+        <path d="M 190 243 l 10 -6"/>
+        <path d="M 195 250 l 12 -3"/>
+        <path d="M 201 259 l 12 1"/>
+        <path d="M 206 269 l 12 5"/>
+
+        <path d="M 54 315 l -12 -7"/>
+        <path d="M 48 324 l -13 -3"/>
+        <path d="M 43 336 l -12 3"/>
+
+        <path d="M 174 386 l 11 -7"/>
+        <path d="M 182 396 l 12 -3"/>
+        <path d="M 188 410 l 12 2"/>
+        <path d="M 193 421 l 11 6"/>
+    </g>
+
+    <!-- CAUDA ORNAMENTAL COM FIOS INDIVIDUAIS -->
+    <g
+        class="inka-dragon-tail"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width=".85"
+    >
+        <path d="
+            M 151 479
+            C 139 480 131 494 142 511
+            C 150 499 165 491 151 479
+        "/>
+        <path d="M 152 482 Q 163 496 156 515"/>
+        <path d="M 149 484 Q 147 502 132 516"/>
+        <path d="M 153 481 Q 175 495 169 509"/>
+        <path d="M 150 485 Q 137 493 137 505"/>
+        <path d="M 157 480 Q 174 484 182 498"/>
+        <path d="M 146 482 Q 128 484 123 500"/>
+        <path d="M 149 490 Q 153 506 148 519"/>
+        <path d="M 144 488 Q 129 499 129 514"/>
+        <path d="M 158 487 Q 178 500 175 516"/>
+        <path d="M 152 493 Q 166 508 162 519"/>
+    </g>
+
+    <!-- DETALHES ORNAMENTAIS DISCRETOS -->
+    <g
+        stroke="currentColor"
+        stroke-width=".65"
+        stroke-linecap="round"
+        opacity=".72"
+    >
+        <path d="M 42 118 Q 53 112 61 117"/>
+        <path d="M 31 128 Q 44 121 55 125"/>
+        <path d="M 207 193 Q 218 186 229 192"/>
+        <path d="M 212 203 Q 223 197 235 204"/>
+        <path d="M 30 282 Q 42 273 51 278"/>
+        <path d="M 25 291 Q 37 284 45 289"/>
+        <path d="M 199 348 Q 211 341 224 347"/>
+        <path d="M 204 360 Q 218 354 232 362"/>
+
+        <path d="M 50 82 l 0 -9 M 46 78 l 8 0"/>
+        <path d="M 224 313 l 0 -9 M 220 309 l 8 0"/>
+        <path d="M 67 422 l 0 -7 M 63 419 l 8 0"/>
+
+        <circle cx="46" cy="83" r="1"/>
+        <circle cx="220" cy="299" r="1"/>
+        <circle cx="73" cy="436" r="1"/>
+    </g>
+</svg>
+
+
+<!-- INKA / BORBOLETA FINE LINE -->
+<svg
+    class="inka-borboleta-css"
+    viewBox="0 0 300 235"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    aria-hidden="true"
+>
+    <defs>
+        <!-- Asa esquerda, espelhada para criar simetria -->
+        <g id="inka-butterfly-wing">
+
+            <!-- Asa superior -->
+            <path
+                d="
+                    M 147 102
+                    C 122 66 89 28 35 20
+                    C 16 17 5 24 9 42
+                    C 14 73 44 111 84 126
+                    C 108 135 133 124 147 102
+                    Z
+                "
+                stroke="currentColor"
+                stroke-width="5.5"
+                stroke-linejoin="round"
+            />
+
+            <!-- Borda ornamental da asa superior -->
+            <path
+                d="
+                    M 145 100
+                    C 118 64 86 34 36 28
+                    C 23 27 17 31 21 44
+                    C 28 76 58 105 90 117
+                    C 112 124 131 115 145 100
+                "
+                stroke="currentColor"
+                stroke-width="1"
+                opacity=".85"
+            />
+
+            <!-- Divisões principais da asa -->
+            <g stroke="currentColor"
+               stroke-width="1.15"
+               stroke-linecap="round">
+
+                <path d="M145 101 Q104 55 35 22"/>
+                <path d="M145 101 Q99 70 18 39"/>
+                <path d="M145 101 Q105 91 28 73"/>
+                <path d="M145 101 Q104 114 57 105"/>
+                <path d="M145 101 Q118 129 88 123"/>
+
+                <!-- Nervuras secundárias -->
+                <path d="M112 72 Q91 50 67 40"/>
+                <path d="M109 85 Q81 69 46 60"/>
+                <path d="M105 99 Q74 93 48 86"/>
+                <path d="M116 110 Q93 112 76 107"/>
+            </g>
+
+            <!-- Manchas vazadas da borda superior -->
+            <g stroke="currentColor" stroke-width="1.35">
+                <ellipse cx="29" cy="35" rx="6" ry="9"
+                         transform="rotate(-26 29 35)"/>
+                <ellipse cx="49" cy="29" rx="13" ry="5"
+                         transform="rotate(13 49 29)"/>
+                <ellipse cx="75" cy="37" rx="13" ry="6"
+                         transform="rotate(29 75 37)"/>
+                <ellipse cx="97" cy="49" rx="12" ry="5"
+                         transform="rotate(38 97 49)"/>
+                <ellipse cx="117" cy="68" rx="11" ry="5"
+                         transform="rotate(44 117 68)"/>
+
+                <ellipse cx="29" cy="61" rx="8" ry="11"
+                         transform="rotate(-34 29 61)"/>
+                <ellipse cx="45" cy="81" rx="10" ry="13"
+                         transform="rotate(-46 45 81)"/>
+            </g>
+
+            <!-- Grandes células internas -->
+            <g stroke="currentColor"
+               stroke-width=".8"
+               opacity=".85">
+
+                <path d="M135 94
+                         Q102 47 62 44
+                         Q70 69 135 94Z"/>
+
+                <path d="M135 100
+                         Q86 65 51 67
+                         Q73 92 135 100Z"/>
+
+                <path d="M134 106
+                         Q87 94 58 99
+                         Q91 120 134 106Z"/>
+            </g>
+
+            <!-- Asa inferior -->
+            <path
+                d="
+                    M 146 108
+                    C 122 111 100 127 76 128
+                    C 51 128 41 141 44 159
+                    C 47 184 74 204 101 207
+                    C 124 209 141 188 149 147
+                    C 151 132 150 118 146 108
+                    Z
+                "
+                stroke="currentColor"
+                stroke-width="5"
+                stroke-linejoin="round"
+            />
+
+            <!-- Filete interno da asa inferior -->
+            <path
+                d="
+                    M 143 117
+                    C 119 122 96 138 72 136
+                    C 52 137 50 151 56 165
+                    C 65 191 91 198 107 196
+                    C 126 193 139 165 143 117
+                "
+                stroke="currentColor"
+                stroke-width="1"
+            />
+
+            <!-- Nervuras das asas inferiores -->
+            <g stroke="currentColor"
+               stroke-width="1.05"
+               stroke-linecap="round">
+                <path d="M146 111 Q92 136 59 148"/>
+                <path d="M146 111 Q102 151 59 173"/>
+                <path d="M146 111 Q117 164 83 194"/>
+                <path d="M146 111 Q138 176 112 199"/>
+
+                <path d="M112 143 Q89 146 72 154"/>
+                <path d="M123 157 Q104 169 88 180"/>
+                <path d="M135 165 Q128 183 116 192"/>
+            </g>
+
+            <!-- Células e desenhos internos -->
+            <g stroke="currentColor"
+               stroke-width=".85">
+
+                <path d="
+                    M140 120
+                    Q113 123 84 143
+                    Q110 153 140 120
+                    Z
+                "/>
+
+                <path d="
+                    M139 130
+                    Q118 163 84 177
+                    Q112 181 139 130
+                    Z
+                "/>
+
+                <path d="
+                    M140 147
+                    Q132 184 108 194
+                    Q125 189 140 147
+                    Z
+                "/>
+            </g>
+
+            <!-- Pequenas marcações circulares -->
+            <g stroke="currentColor"
+               stroke-width="1">
+                <ellipse cx="57" cy="148" rx="4.5" ry="6"
+                         transform="rotate(-32 57 148)"/>
+                <ellipse cx="54" cy="163" rx="3" ry="4.5"
+                         transform="rotate(-25 54 163)"/>
+                <ellipse cx="67" cy="183" rx="4" ry="5"/>
+                <ellipse cx="84" cy="195" rx="5" ry="4"/>
+                <ellipse cx="103" cy="201" rx="4" ry="3"/>
+            </g>
+
+            <!-- Microtexturas de gravura -->
+            <g stroke="currentColor"
+               stroke-width=".45"
+               opacity=".65">
+                <path d="M75 52 l22 14"/>
+                <path d="M72 56 l23 15"/>
+                <path d="M69 60 l21 15"/>
+
+                <path d="M70 87 l23 8"/>
+                <path d="M69 91 l20 7"/>
+
+                <path d="M72 153 l21 -7"/>
+                <path d="M74 157 l23 -8"/>
+                <path d="M82 177 l17 -12"/>
+                <path d="M85 181 l17 -12"/>
+                <path d="M110 180 l10 -16"/>
+                <path d="M113 184 l10 -18"/>
+            </g>
+
+        </g>
+    </defs>
+
+    <!-- Asas esquerda e direita -->
+    <use
+        href="#inka-butterfly-wing"
+        class="inka-borboleta-asa-esquerda"
+    />
+
+    <use
+        href="#inka-butterfly-wing"
+        class="inka-borboleta-asa-direita"
+        transform="translate(300 0) scale(-1 1)"
+    />
+
+    <!-- Corpo central -->
+    <g class="inka-borboleta-corpo"
+       stroke="currentColor"
+       stroke-linecap="round"
+       stroke-linejoin="round">
+
+        <!-- Cabeça -->
+        <circle cx="150" cy="92" r="5"
+                stroke-width="1.8"/>
+
+        <circle cx="149" cy="90.8" r="1"
+                fill="currentColor" stroke="none"/>
+
+        <!-- Tórax -->
+        <path d="
+            M 149 98
+            C 142 106 144 121 148 134
+            C 150 138 153 135 155 125
+            C 159 108 156 100 151 98
+            Z
+        " stroke-width="1.8"/>
+
+        <!-- Abdômen -->
+        <path d="
+            M 148 134
+            C 144 153 146 177 150 191
+            C 154 177 156 154 152 134
+        " stroke-width="1.5"/>
+
+        <!-- Segmentos do abdômen -->
+        <g stroke-width=".8">
+            <path d="M146 145 Q150 148 154 145"/>
+            <path d="M146 154 Q150 157 154 154"/>
+            <path d="M147 163 Q150 166 153 163"/>
+            <path d="M147 172 Q150 175 153 172"/>
+            <path d="M148 181 Q150 183 152 181"/>
+        </g>
+
+        <!-- Antenas -->
+        <path d="
+            M 148 89
+            C 143 64 125 39 112 32
+            C 107 29 104 32 106 36
+        " stroke-width="1.2"/>
+
+        <path d="
+            M 152 89
+            C 157 64 175 39 188 32
+            C 193 29 196 32 194 36
+        " stroke-width="1.2"/>
+
+        <!-- Pontinhas das antenas -->
+        <circle cx="106" cy="36" r="1.7"
+                fill="currentColor" stroke="none"/>
+        <circle cx="194" cy="36" r="1.7"
+                fill="currentColor" stroke="none"/>
+
+        <!-- Pernas delicadas -->
+        <g stroke-width=".65">
+            <path d="M147 113 Q139 123 132 128"/>
+            <path d="M153 113 Q161 123 168 128"/>
+            <path d="M147 122 Q140 132 137 140"/>
+            <path d="M153 122 Q160 132 163 140"/>
+        </g>
+    </g>
+</svg>
+
+
+<!-- INKA / ROSA FINE LINE · TATTOO FLASH -->
+<svg
+    class="inka-rosa-css"
+    viewBox="0 0 200 400"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    aria-hidden="true"
+>
+    <g
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <!-- Estrutura externa da flor -->
+        <g stroke-width="1.25">
+            <path d="
+                M 97 113
+                C 83 110 69 102 64 88
+                C 58 74 64 63 77 63
+                C 70 51 82 40 94 44
+                C 97 30 114 28 122 40
+                C 136 37 145 46 141 57
+                C 156 55 163 66 157 80
+                C 153 96 136 108 119 115
+            "/>
+
+            <!-- Pétala esquerda aberta -->
+            <path d="
+                M 96 112
+                C 79 100 54 102 48 88
+                C 45 78 52 70 63 72
+                C 73 74 83 86 101 92
+            "/>
+
+            <!-- Pétala direita aberta -->
+            <path d="
+                M 106 106
+                C 122 88 144 79 157 81
+                C 165 83 169 93 161 102
+                C 149 114 128 122 111 117
+            "/>
+
+            <!-- Pétala inferior esquerda -->
+            <path d="
+                M 64 90
+                C 69 108 78 122 99 126
+                C 105 127 111 123 116 119
+            "/>
+
+            <!-- Pétala inferior direita -->
+            <path d="
+                M 115 118
+                C 133 106 148 107 158 99
+            "/>
+        </g>
+
+        <!-- Miolo com pétalas concêntricas -->
+        <g stroke-width="1.05">
+            <path d="
+                M 77 64
+                C 83 52 99 48 112 54
+                C 127 59 131 72 122 83
+                C 116 92 104 96 96 91
+            "/>
+
+            <path d="
+                M 85 65
+                C 91 56 105 55 114 62
+                C 124 71 119 81 110 84
+                C 102 87 94 82 96 75
+            "/>
+
+            <path d="
+                M 91 67
+                C 98 61 108 62 111 70
+                C 113 76 105 80 101 76
+                C 98 72 102 69 106 71
+            "/>
+
+            <!-- Pétalas que envolvem o miolo -->
+            <path d="M 76 65 Q 91 70 96 90"/>
+            <path d="M 74 75 Q 86 85 101 94"/>
+            <path d="M 125 60 Q 113 53 100 55"/>
+            <path d="M 132 67 Q 128 82 114 92"/>
+            <path d="M 140 60 Q 137 75 123 87"/>
+            <path d="M 65 79 Q 75 89 91 94"/>
+            <path d="M 146 75 Q 133 87 114 101"/>
+            <path d="M 91 105 Q 102 113 115 109"/>
+        </g>
+
+        <!-- Dobras delicadas das pétalas -->
+        <g stroke-width=".65" opacity=".8">
+            <path d="M 69 68 Q 75 61 84 62"/>
+            <path d="M 86 47 Q 96 45 104 48"/>
+            <path d="M 112 43 Q 123 44 128 51"/>
+            <path d="M 145 64 Q 151 68 151 76"/>
+            <path d="M 57 82 Q 60 90 69 93"/>
+            <path d="M 76 108 Q 85 116 95 119"/>
+            <path d="M 126 112 Q 138 109 146 104"/>
+            <path d="M 111 89 Q 122 90 128 83"/>
+        </g>
+
+        <!-- Sépalas abaixo da flor -->
+        <g stroke-width="1">
+            <path d="
+                M 97 124
+                Q 85 124 77 135
+                Q 91 133 101 130
+            "/>
+
+            <path d="
+                M 107 127
+                Q 116 125 128 134
+                Q 116 133 108 131
+            "/>
+
+            <path d="
+                M 103 130
+                Q 99 139 104 149
+                Q 109 137 107 130
+            "/>
+        </g>
+
+        <!-- Caule principal longo e orgânico -->
+        <g stroke-width="1.1">
+            <path d="
+                M 104 133
+                C 108 164 105 192 107 221
+                C 110 250 101 275 102 301
+                C 102 329 99 350 104 386
+            "/>
+
+            <path d="
+                M 107 145
+                C 109 175 109 205 110 230
+            " stroke-width=".45" opacity=".65"/>
+        </g>
+
+        <!-- Primeiro ramo, folha esquerda -->
+        <g stroke-width="1">
+            <path d="M 107 194 Q 96 185 83 173"/>
+
+            <path d="
+                M 83 173
+                C 69 155 54 155 48 161
+                C 52 178 65 187 83 173
+                Z
+            "/>
+
+            <path d="M 83 173 Q 65 166 49 161"/>
+
+            <path d="M 72 170 l -6 -8"/>
+            <path d="M 65 167 l -8 -2"/>
+            <path d="M 72 172 l -7 7"/>
+        </g>
+
+        <!-- Folha direita superior -->
+        <g stroke-width="1">
+            <path d="M 108 224 Q 118 214 128 199"/>
+
+            <path d="
+                M 128 199
+                C 134 179 148 175 154 179
+                C 154 193 146 207 128 199
+                Z
+            "/>
+
+            <path d="M 128 199 Q 143 187 154 179"/>
+
+            <path d="M 136 194 l 3 -9"/>
+            <path d="M 142 189 l 7 -1"/>
+            <path d="M 136 197 l 8 5"/>
+        </g>
+
+        <!-- Folha esquerda intermediária -->
+        <g stroke-width="1">
+            <path d="M 106 263 Q 91 256 78 244"/>
+
+            <path d="
+                M 78 244
+                C 64 230 51 232 45 238
+                C 51 254 65 260 78 244
+                Z
+            "/>
+
+            <path d="M 78 244 Q 62 238 45 238"/>
+
+            <path d="M 69 242 l -7 -8"/>
+            <path d="M 62 241 l -8 3"/>
+            <path d="M 69 246 l -5 8"/>
+        </g>
+
+        <!-- Folha direita inferior -->
+        <g stroke-width="1">
+            <path d="M 104 294 Q 116 284 127 271"/>
+
+            <path d="
+                M 127 271
+                C 135 255 150 251 158 257
+                C 158 274 146 286 127 271
+                Z
+            "/>
+
+            <path d="M 127 271 Q 143 260 158 257"/>
+
+            <path d="M 137 267 l 4 -10"/>
+            <path d="M 144 263 l 9 1"/>
+            <path d="M 137 272 l 8 8"/>
+        </g>
+
+        <!-- Pequenos espinhos no caule -->
+        <g stroke-width=".8">
+            <path d="M 106 237 l -5 -5 l 3 8"/>
+            <path d="M 103 318 l 5 -5 l -3 9"/>
+            <path d="M 101 354 l -4 -4 l 3 8"/>
+        </g>
+
+        <!-- Traços finíssimos de textura -->
+        <g stroke-width=".45" opacity=".65">
+            <path d="M 102 165 Q 104 178 103 189"/>
+            <path d="M 107 246 Q 108 256 105 266"/>
+            <path d="M 102 333 Q 101 342 102 349"/>
+            <path d="M 83 173 Q 72 178 65 180"/>
+            <path d="M 128 199 Q 137 200 145 197"/>
+            <path d="M 78 244 Q 69 250 60 251"/>
+            <path d="M 127 271 Q 138 275 149 270"/>
+        </g>
+    </g>
+</svg>
+
+      
     <span class="inka-deco inka-estrela estrela-1">✳</span>
     <span class="inka-deco inka-estrela estrela-2">✳</span>
     <span class="inka-deco inka-cruz cruz-1">+</span>
@@ -29,44 +1062,14 @@
     <svg class="inka-ilustra inka-flor" viewBox="0 0 220 260">
         <g fill="none" stroke="currentColor" stroke-width="1.8"
            stroke-linecap="round" stroke-linejoin="round">
-
-            <!-- Caule -->
-            <path d="M108 245 C105 205 125 170 112 130 C104 105 93 90 91 70"/>
-            <path d="M111 190 C80 175 61 180 48 202 C75 207 96 201 111 190"/>
-            <path d="M111 190 C88 184 70 190 59 199"/>
-
-            <!-- Folha superior -->
-            <path d="M112 151 C135 119 160 119 176 130 C158 151 135 157 112 151"/>
-            <path d="M119 148 C140 137 157 132 176 130"/>
-
-            <!-- Flor -->
-            <path d="M91 70 C60 53 61 25 85 30 C99 32 105 49 108 62"/>
-            <path d="M91 70 C55 78 39 59 54 43 C67 30 84 48 91 70"/>
-            <path d="M91 70 C74 100 47 96 49 75 C50 58 72 59 91 70"/>
-            <path d="M91 70 C94 105 119 111 127 92 C134 75 111 66 91 70"/>
-            <path d="M91 70 C116 44 139 54 132 73 C126 88 105 82 91 70"/>
-
-            <!-- Miolo -->
-            <circle cx="91" cy="70" r="8"/>
-            <circle cx="91" cy="70" r="2"/>
-
-            <!-- Detalhes -->
-            <path d="M35 117 L45 111 M29 128 L40 125"/>
-            <path d="M148 42 L153 31 M157 49 L169 43"/>
-            <circle cx="157" cy="87" r="2"/>
-            <circle cx="25" cy="83" r="2"/>
-        </g>
-    </svg>
+           </g>
+       </svg>
 
     <svg class="inka-ilustra inka-olho" viewBox="0 0 240 160">
         <g fill="none" stroke="currentColor" stroke-width="1.8"
            stroke-linecap="round" stroke-linejoin="round">
 
-            <!-- Olho -->
-            <path d="M22 80 Q120 -5 218 80 Q120 165 22 80Z"/>
-            <circle cx="120" cy="80" r="34"/>
-            <circle cx="120" cy="80" r="14"/>
-            <circle cx="120" cy="80" r="4" fill="currentColor"/>
+            
 
             <!-- Raios -->
             <path d="M120 10 V0 M75 23 L66 11 M165 23 L174 11"/>
@@ -87,49 +1090,115 @@
     
 
 </div>
-    <header class="topo">
-        {% block cabecalho %}
-        <h1>INKA</h1>
-        <p class="subtitulo">Práticas de ESG para pequenas e médias empresas</p>
-        {% endblock %}
-        {% block topo_extra %}{% endblock %}
-        <button type="button" class="menu-botao" aria-controls="menu"
-                aria-expanded="false" aria-label="Abrir menu"><span></span></button>
-    </header>
+    
+<header class="topo">
 
-    {% with pagina=request.resolver_match.url_name %}
-    <nav class="menu" id="menu" aria-label="Navegação principal">
-        <div class="menu-links">
-            <a class="{% if pagina == 'index' %}ativo{% endif %}"
-               href="{% url 'forum:index' %}">Início</a>
-            <a class="{% if pagina == 'quem_somos' %}ativo{% endif %}"
-               href="{% url 'forum:quem_somos' %}">Quem Somos</a>
-            <a class="{% if pagina == 'sobre_projeto' %}ativo{% endif %}"
-               href="{% url 'forum:sobre_projeto' %}">Sobre o Projeto</a>
-            <a class="{% if pagina == 'fale_conosco' %}ativo{% endif %}"
-               href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
-            <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
-               href="{% url 'forum:estudios' %}">Estúdios</a>
-            {% if user.is_authenticated %}
-                <a class="{% if 'descarte' in pagina %}ativo{% endif %}"
-                   href="{% url 'forum:descarte' %}">Descarte</a>
-            {% endif %}
-        </div>
-        <div class="menu-conta">
-            {% if user.is_authenticated %}
-                <a class="link-conta{% if pagina == 'alterar_senha' %} ativo{% endif %}"
-                   href="{% url 'forum:minha_area' %}">Minha área</a>
-                <form class="form-sair" method="post" action="{% url 'forum:sair' %}">
-                    {% csrf_token %}
-                    <button type="submit">Sair</button>
-                </form>
-            {% else %}
-                <a class="link-conta{% if pagina == 'entrar' %} ativo{% endif %}"
-                   href="{% url 'forum:entrar' %}">Entrar</a>
-            {% endif %}
-        </div>
-    </nav>
-    {% endwith %}
+    {% block cabecalho %}
+        <h1 class="topo-logo">
+            <a
+                href="{% url 'forum:index' %}"
+                class="topo-logo-link"
+                aria-label="Voltar para a página inicial do INKA"
+            >
+                INKA
+            </a>
+        </h1>
+
+        <p class="subtitulo">
+            Práticas de ESG para pequenas e médias empresas
+        </p>
+    {% endblock %}
+
+    {% block topo_extra %}{% endblock %}
+
+    <button
+        type="button"
+        class="menu-botao"
+        aria-controls="menu"
+        aria-expanded="false"
+        aria-label="Abrir menu"
+    >
+        <span></span>
+    </button>
+
+</header>
+
+
+{% with pagina=request.resolver_match.url_name %}
+
+<nav class="menu" id="menu" aria-label="Navegação principal">
+
+    <div class="menu-links">
+
+        <a class="{% if pagina == 'index' %}ativo{% endif %}"
+           href="{% url 'forum:index' %}">
+            Início
+        </a>
+
+        <a class="{% if pagina == 'quem_somos' %}ativo{% endif %}"
+           href="{% url 'forum:quem_somos' %}">
+            Quem Somos
+        </a>
+
+        <a class="{% if pagina == 'sobre_projeto' %}ativo{% endif %}"
+           href="{% url 'forum:sobre_projeto' %}">
+            Sobre o Projeto
+        </a>
+
+        <a class="{% if pagina == 'fale_conosco' %}ativo{% endif %}"
+           href="{% url 'forum:fale_conosco' %}">
+            Fale Conosco
+        </a>
+
+        <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
+           href="{% url 'forum:estudios' %}">
+            Estúdios
+        </a>
+
+        {% if user.is_authenticated %}
+
+            <a class="{% if pagina == 'minha_area' %}ativo{% endif %}"
+               href="{% url 'forum:minha_area' %}">
+                Minha Área
+            </a>
+
+            <a class="{% if 'descarte' in pagina %}ativo{% endif %}"
+               href="{% url 'forum:descarte' %}">
+                Descarte
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    <div class="menu-conta">
+
+        {% if user.is_authenticated %}
+
+            <form class="form-sair"
+                  method="post"
+                  action="{% url 'forum:sair' %}">
+
+                {% csrf_token %}
+
+                <button type="submit">Sair</button>
+
+            </form>
+
+        {% else %}
+
+            <a class="link-conta{% if pagina == 'entrar' %} ativo{% endif %}"
+               href="{% url 'forum:entrar' %}">
+                Entrar
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</nav>
+
+{% endwith %}
 
     <div class="{% block classe_container %}container{% endblock %}">
         {% for message in messages %}

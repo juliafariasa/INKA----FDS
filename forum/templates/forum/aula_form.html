@@ -24,6 +24,17 @@
   data-obj="{% static 'models/cine-camera.obj' %}"
   data-mtl="{% static 'models/cine-camera.mtl' %}"
   data-errors="{% if erros.titulo or erros.url_video or erros.duracao %}1{% else %}0{% endif %}">
+  <audio
+    id="inka-som-camera"
+    src="{% static 'audio/camera.mp3' %}"
+    preload="auto">
+</audio>
+
+<audio
+    id="inka-som-rolo"
+    src="{% static 'audio/rolo-filme.mp3' %}"
+    preload="auto">
+</audio>
 
   <div class="dc-grain" aria-hidden="true"></div>
 
