@@ -1,0 +1,19 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Remover documento - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<h2>Remover documento</h2>
+
+<div class="caixa">
+    <p>Tem certeza de que quer remover <b>{{ documento }}</b>?</p>
+    <p>Se for a licença ou o laudo em dia, o aviso some do perfil público do estúdio.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="remover" value="Remover documento">
+</form>
+
+<p><a href="{% url 'forum:estudio_documentos' estudio.id %}">Cancelar</a></p>
+{% endblock %}

@@ -93,6 +93,9 @@ Para rodar também os testes E2E, instale as bibliotecas de desenvolvimento (ent
 ### Etapa 5: Monte o banco de dados
 
   python manage.py migrate
+  python manage.py createcachetable
+
+  O segundo comando cria a tabela do cache, onde ficam os contadores de tentativas do login e da redefinição de senha. Sem ela, a tela de entrada dá erro.
 
   Além de criar as tabelas, as migrações já carregam o conteúdo inicial da plataforma, como as práticas ESG, os materiais e as informações de descarte.
 

@@ -1150,7 +1150,7 @@
             Fale Conosco
         </a>
 
-        <a class="{% if 'estudio' in pagina %}ativo{% endif %}"
+        <a class="{% if pagina == 'estudios' or pagina == 'estudio_novo' or pagina == 'estudio_perfil' %}ativo{% endif %}"
            href="{% url 'forum:estudios' %}">
             Estúdios
         </a>
@@ -1162,7 +1162,9 @@
 
         {% if user.is_authenticated %}
 
-            <a class="{% if pagina == 'minha_area' %}ativo{% endif %}"
+            {# Minha Área fica acesa em toda a área exclusiva do estúdio, #}
+            {# cujas rotas começam com "estudio_" (menos cadastro e perfil). #}
+            <a class="{% if pagina == 'minha_area' or pagina == 'minha_area_dados' or pagina == 'alterar_senha' or pagina|slice:':8' == 'estudio_' and pagina != 'estudio_novo' and pagina != 'estudio_perfil' %}ativo{% endif %}"
                href="{% url 'forum:minha_area' %}">
                 Minha Área
             </a>
@@ -1171,6 +1173,13 @@
                href="{% url 'forum:descarte' %}">
                 Descarte
             </a>
+
+            {% if user.is_staff %}
+                <a class="{% if 'painel' in pagina %}ativo{% endif %}"
+                   href="{% url 'forum:painel' %}">
+                    Painel da equipe
+                </a>
+            {% endif %}
 
         {% endif %}
 

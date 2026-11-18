@@ -58,10 +58,20 @@ LOGIN_URL = 'forum:entrar'
 # No Render o site roda em HTTPS atrás de um proxy. O cabeçalho abaixo faz o
 # Django reconhecer o HTTPS, e os cookies de sessão e de CSRF só trafegam
 # criptografados. Localmente (runserver em http) fica como está.
+#
+# Além disso, quem chega por http é redirecionado para https, e o HSTS manda
+# o navegador usar só https neste endereço por 30 dias. O prazo é curto de
+# propósito: se um dia o site sair do https, os navegadores esquecem a regra
+# logo. O preload não é usado porque a lista de preload só aceita domínios
+# próprios, e o site está num subdomínio do onrender.com.
 if 'RENDER' in os.environ:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 30 * 24 * 60 * 60
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SILENCED_SYSTEM_CHECKS = ['security.W021']
 
 
 # Application definition
@@ -174,6 +184,22 @@ if 'test' in sys.argv:
     STORAGES = {'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'}}
 
 
+# Cache
+# O limite de tentativas do login e da redefinição de senha é contado no
+# cache. O padrão do Django guarda o cache na memória de cada processo, e o
+# gunicorn roda vários: cada um teria o próprio contador, e o limite real
+# seria o configurado vezes o número de processos. No banco, todos os
+# processos dividem a mesma contagem. A tabela é criada pelo comando
+# createcachetable (no build.sh e no CI); nos testes o Django cria sozinho.
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'forum_cache',
+    },
+}
+
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
@@ -203,6 +229,10 @@ elif 'RENDER' in os.environ:
     MAILERS = {
         'default': {'BACKEND': 'django.core.mail.backends.dummy.EmailBackend'},
     }
+    # O check --deploy recusa esse backend por ser "de desenvolvimento".
+    # Aqui ele é uma escolha: enquanto o SMTP não é configurado, é melhor
+    # descartar o e-mail do que imprimir o código de redefinição no log.
+    SILENCED_SYSTEM_CHECKS.append('mail.E001')
 else:
     MAILERS = {
         'default': {

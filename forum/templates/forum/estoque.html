@@ -74,6 +74,9 @@
                                         {% if item.quantidade == 0 %}
                                             <i class="is-warning"></i>
                                             EM FALTA
+                                        {% elif item.alertas %}
+                                            <i class="is-alert"></i>
+                                            ATENÇÃO
                                         {% else %}
                                             <i></i>
                                             DISPONÍVEL
@@ -119,6 +122,13 @@
                                                 <strong>{{ item.fornecedor }}</strong>
                                             </div>
                                         </div>
+
+                                        {% if item.alertas or item.origem_sustentavel %}
+                                            <ul class="vault-info-alertas">
+                                                {% for aviso in item.alertas %}<li>{{ aviso }}</li>{% endfor %}
+                                                {% if item.origem_sustentavel %}<li class="vault-sustentavel">Origem sustentável</li>{% endif %}
+                                            </ul>
+                                        {% endif %}
 
                                         <div class="vault-info-actions">
                                             <a href="{% url 'forum:estudio_estoque_editar' estudio.id item.id %}">
@@ -232,8 +242,8 @@
     </div>
 
     <a class="vault-back-link"
-       href="{% url 'forum:estudio_perfil' estudio.id %}">
-        <span>←</span> Voltar ao perfil do estúdio
+       href="{% url 'forum:minha_area' %}">
+        <span>←</span> Voltar para a Minha Área
     </a>
 
 </div>

@@ -1,4 +1,6 @@
 import re
+from datetime import timedelta
+from functools import cached_property
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
@@ -171,6 +173,13 @@ class PraticaEstudio(models.Model):
     titulo = models.CharField('Título', max_length=120)
     descricao = models.TextField('Por que importa')
     ordem = models.PositiveIntegerField('Ordem', default=0)
+    # A calculadora destaca primeiro as práticas ligadas ao tipo de resíduo
+    # que mais pesou no cálculo do estúdio.
+    tipos_residuo = models.CharField(
+        'Tipos de resíduo ligados', max_length=60, blank=True,
+        help_text='Separados por vírgula: perfurocortante, contaminado, '
+                  'comum. Vazio para práticas sem ligação com resíduos.',
+    )
 
     class Meta:
         verbose_name = 'Prática do estúdio'
@@ -179,6 +188,10 @@ class PraticaEstudio(models.Model):
 
     def __str__(self):
         return f'{self.pilar.sigla} - {self.titulo}'
+
+    def ligada_ao_residuo(self, tipo):
+        tipos = [parte.strip() for parte in self.tipos_residuo.split(',')]
+        return tipo in tipos
 
 
 class Contato(models.Model):
@@ -229,6 +242,31 @@ class Estudio(models.Model):
         verbose_name='Conta de acesso',
         help_text='Conta que entra na área exclusiva deste estúdio.',
     )
+    # Desativar substitui apagar: o estúdio some da lista e o selo deixa de
+    # valer, mas o histórico continua guardado e a equipe pode reativar.
+    ativo = models.BooleanField(
+        'Ativo', default=True,
+        help_text='Desmarque para suspender o estúdio: ele some da lista '
+                  'pública e o selo deixa de ser exibido.',
+    )
+    reavaliacao_liberada = models.BooleanField(
+        'Reavaliação liberada antes do prazo', default=False,
+        help_text='A equipe libera uma reavaliação antes dos 90 dias. '
+                  'Volta a ser desmarcado quando o estúdio a faz.',
+    )
+    # Dados do perfil público, todos opcionais ("Perfil ESG").
+    descricao = models.CharField('Sobre o estúdio', max_length=300,
+                                 blank=True)
+    bairro = models.CharField('Bairro', max_length=80, blank=True)
+    instagram = models.CharField('Instagram', max_length=30, blank=True,
+                                 help_text='Sem o @.')
+    whatsapp = models.CharField('WhatsApp', max_length=13, blank=True,
+                                help_text='Só os dígitos, com o DDD.')
+    site = models.URLField('Site', max_length=200, blank=True)
+    acessibilidade = models.CharField(
+        'Acessibilidade', max_length=200, blank=True,
+        help_text='Ex.: rampa na entrada, banheiro adaptado.',
+    )
 
     class Meta:
         verbose_name = 'Estúdio'
@@ -239,16 +277,59 @@ class Estudio(models.Model):
         return self.nome
 
     def ultimo_diagnostico(self):
+        # A lista de estúdios traz o último diagnóstico de todos de uma vez
+        # (forum/consultas.py). Sem isso, busca só o deste estúdio.
+        if hasattr(self, '_ultimo_diagnostico'):
+            return self._ultimo_diagnostico
         return self.diagnosticos.order_by('-data', '-id').first()
 
     def ultimo_calculo_residuo(self):
         return self.calculos_residuo.order_by('-id').first()
 
     def ultimo_checklist(self):
+        # Como em ultimo_diagnostico(): quem já buscou o checklist pode
+        # guardá-lo aqui para as próximas chamadas não irem ao banco.
+        if hasattr(self, '_ultimo_checklist'):
+            return self._ultimo_checklist
         return self.checklists.first()
 
     def aulas_concluidas(self):
         return self.progressos_aula.filter(concluida=True).count()
+
+    # Intervalo mínimo entre um diagnóstico e a reavaliação seguinte. É
+    # o tempo para as mudanças do plano de ação aparecerem na rotina.
+    DIAS_ENTRE_REAVALIACOES = 90
+
+    def reavaliacao_disponivel_em(self):
+        """Data a partir da qual o estúdio pode se reavaliar.
+
+        None quando ainda não fez o diagnóstico inicial (precisa fazê-lo
+        primeiro). Hoje, se a equipe liberou a reavaliação antes do prazo.
+        """
+        ultimo = self.ultimo_diagnostico()
+        if ultimo is None:
+            return None
+        if self.reavaliacao_liberada:
+            return timezone.localdate()
+        return (timezone.localtime(ultimo.data).date()
+                + timedelta(days=self.DIAS_ENTRE_REAVALIACOES))
+
+    def reavaliacao_disponivel(self):
+        data = self.reavaliacao_disponivel_em()
+        return data is not None and data <= timezone.localdate()
+
+    def aulas_de_inclusao_concluidas(self):
+        # A meta "Aulas de inclusão concluídas" conta só essa categoria.
+        return self.progressos_aula.filter(
+            concluida=True, aula__categoria=Aula.INCLUSAO
+        ).count()
+
+    def instagram_url(self):
+        return f'https://www.instagram.com/{self.instagram}/'
+
+    def whatsapp_url(self):
+        # wa.me espera o número com o código do país (55, Brasil).
+        return f'https://wa.me/55{self.whatsapp}'
 
 
 class Diagnostico(models.Model):
@@ -265,6 +346,15 @@ class Diagnostico(models.Model):
     nota_e = models.FloatField('Nota Ambiental', default=0)
     nota_s = models.FloatField('Nota Social', default=0)
     nota_g = models.FloatField('Nota Governança', default=0)
+    # O diagnóstico inicial é único (História 2). As reavaliações vêm
+    # depois e, como o selo usa sempre o diagnóstico mais recente, fazem o
+    # selo acompanhar a evolução do estúdio.
+    INICIAL = 'inicial'
+    REAVALIACAO = 'reavaliacao'
+    TIPO_CHOICES = [(INICIAL, 'Diagnóstico inicial'),
+                    (REAVALIACAO, 'Reavaliação')]
+    tipo = models.CharField('Tipo', max_length=12, choices=TIPO_CHOICES,
+                            default=INICIAL)
 
     class Meta:
         verbose_name = 'Diagnóstico'
@@ -301,9 +391,16 @@ class Diagnostico(models.Model):
     def pilar_ativo(self, sigla):
         return self.nota_do_pilar(sigla) >= self.NOTA_MINIMA_ATIVO
 
+    @cached_property
+    def pilares(self):
+        # selo(), pilares_ativos() e notas_por_pilar() chamam uns aos outros
+        # e o template usa os três: sem guardar, cada chamada repetia a
+        # mesma consulta dos pilares.
+        return list(Pilar.objects.all())
+
     def notas_por_pilar(self):
         resultado = []
-        for pilar in Pilar.objects.all():
+        for pilar in self.pilares:
             resultado.append({
                 'pilar': pilar,
                 'nota': self.nota_do_pilar(pilar.sigla),
@@ -495,6 +592,18 @@ class ItemEstoque(models.Model):
     tipo = models.CharField('Tipo', max_length=20, choices=TIPO_CHOICES)
     quantidade = models.PositiveIntegerField('Quantidade', default=0)
     fornecedor = models.CharField('Fornecedor', max_length=120)
+    quantidade_minima = models.PositiveIntegerField(
+        'Quantidade mínima', default=0,
+        help_text='Abaixo disso o item aparece como pendência.',
+    )
+    validade = models.DateField('Validade', null=True, blank=True)
+    origem_sustentavel = models.BooleanField(
+        'Origem sustentável', default=False,
+        help_text='Fornecedor com certificação, material biodegradável ou '
+                  'reutilizável.',
+    )
+
+    DIAS_AVISO_VALIDADE = 30
 
     class Meta:
         verbose_name = 'Item de estoque'
@@ -503,6 +612,32 @@ class ItemEstoque(models.Model):
 
     def __str__(self):
         return f'{self.nome} ({self.fornecedor})'
+
+    def abaixo_do_minimo(self):
+        return self.quantidade < self.quantidade_minima
+
+    def situacao_validade(self):
+        """'vencido', 'vencendo' (até 30 dias) ou '' (em dia ou sem data)."""
+        if self.validade is None:
+            return ''
+        hoje = timezone.localdate()
+        if self.validade < hoje:
+            return 'vencido'
+        if (self.validade - hoje).days <= self.DIAS_AVISO_VALIDADE:
+            return 'vencendo'
+        return ''
+
+    def alertas(self):
+        """Avisos do item para a página de estoque e a Minha Área."""
+        avisos = []
+        if self.abaixo_do_minimo():
+            avisos.append(f'Abaixo do mínimo ({self.quantidade_minima})')
+        situacao = self.situacao_validade()
+        if situacao == 'vencido':
+            avisos.append(f'Vencido em {self.validade:%d/%m/%Y}')
+        elif situacao == 'vencendo':
+            avisos.append(f'Vence em {self.validade:%d/%m/%Y}')
+        return avisos
 
     def chave(self):
         return (self.nome.strip().casefold(),
@@ -637,6 +772,17 @@ class Aula(models.Model):
         help_text='Ex.: 900 para uma aula de 15 minutos.',
     )
     ordem = models.PositiveIntegerField('Ordem', default=0)
+    INCLUSAO = 'inclusao'
+    BIOSSEGURANCA = 'biosseguranca'
+    GOVERNANCA = 'governanca'
+    CATEGORIA_CHOICES = [
+        (INCLUSAO, 'Inclusão e acessibilidade'),
+        (BIOSSEGURANCA, 'Biossegurança'),
+        (GOVERNANCA, 'Governança e gestão'),
+    ]
+    categoria = models.CharField('Categoria', max_length=20,
+                                 choices=CATEGORIA_CHOICES,
+                                 default=INCLUSAO)
     estudio = models.ForeignKey(
         Estudio,
         on_delete=models.CASCADE,
@@ -914,7 +1060,7 @@ class MetaEsg(models.Model):
         if indicador == MetaEsg.RESIDUOS:
             calculo = estudio.ultimo_calculo_residuo()
             return calculo.total() if calculo else None
-        return estudio.aulas_concluidas()
+        return estudio.aulas_de_inclusao_concluidas()
 
     @staticmethod
     def alcanca(indicador, valor, alvo):
@@ -1036,3 +1182,115 @@ class ParticipacaoCampanha(models.Model):
 
     def __str__(self):
         return f'{self.estudio} em {self.campanha}'
+
+
+class RegistroEquipe(models.Model):
+    """Ação feita por alguém da equipe no painel, para consulta posterior."""
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='registros_equipe',
+        verbose_name='Quem fez',
+    )
+    # O nome fica gravado à parte para o registro continuar legível mesmo se
+    # a conta for apagada depois.
+    nome_usuario = models.CharField('Nome da conta', max_length=150)
+    acao = models.CharField('Ação', max_length=120)
+    alvo = models.CharField('Alvo', max_length=200)
+    criado_em = models.DateTimeField('Quando', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Registro de ação da equipe'
+        verbose_name_plural = 'Registros de ações da equipe'
+        ordering = ['-criado_em', '-id']
+
+    def __str__(self):
+        return f'{self.nome_usuario}: {self.acao} ({self.alvo})'
+
+    @classmethod
+    def registrar(cls, usuario, acao, alvo):
+        return cls.objects.create(
+            usuario=usuario, nome_usuario=usuario.get_username(),
+            acao=acao, alvo=str(alvo)[:200],
+        )
+
+
+class DocumentoEstudio(models.Model):
+    """Licença, alvará, contrato ou laudo do estúdio (Hub de Biossegurança).
+
+    Não há upload de arquivo: o disco do Render é apagado a cada deploy. O
+    estúdio guarda, se quiser, um link para o documento (Google Drive etc.).
+    O perfil público mostra só a situação ("em dia"), nunca o documento.
+    """
+
+    LICENCA_SANITARIA = 'licenca_sanitaria'
+    ALVARA = 'alvara'
+    CONTRATO_COLETA = 'contrato_coleta'
+    AUTOCLAVE = 'autoclave'
+    CURSO_BIOSSEGURANCA = 'curso_biosseguranca'
+    OUTRO = 'outro'
+
+    TIPO_CHOICES = [
+        (LICENCA_SANITARIA, 'Licença sanitária'),
+        (ALVARA, 'Alvará de funcionamento'),
+        (CONTRATO_COLETA, 'Contrato com empresa de coleta de resíduos'),
+        (AUTOCLAVE, 'Laudo de manutenção ou validação da autoclave'),
+        (CURSO_BIOSSEGURANCA, 'Certificado de curso de biossegurança'),
+        (OUTRO, 'Outro documento'),
+    ]
+    # Como cada tipo aparece no perfil público quando está em dia.
+    SELOS_PUBLICOS = {
+        LICENCA_SANITARIA: 'Licença sanitária em dia',
+        ALVARA: 'Alvará de funcionamento em dia',
+        CONTRATO_COLETA: 'Coleta de resíduos contratada',
+        AUTOCLAVE: 'Autoclave com manutenção em dia',
+        CURSO_BIOSSEGURANCA: 'Equipe com curso de biossegurança',
+    }
+    DIAS_AVISO = 30
+
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='documentos',
+        verbose_name='Estúdio',
+    )
+    tipo = models.CharField('Tipo', max_length=30, choices=TIPO_CHOICES)
+    descricao = models.CharField('Descrição', max_length=150, blank=True)
+    emitido_em = models.DateField('Emitido em')
+    validade = models.DateField('Válido até', null=True, blank=True)
+    link = models.URLField('Link do documento', max_length=500, blank=True,
+                           help_text='Opcional: Google Drive, Dropbox etc.')
+    criado_em = models.DateTimeField('Cadastrado em', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Documento do estúdio'
+        verbose_name_plural = 'Documentos do estúdio'
+        ordering = ['validade', 'tipo']
+
+    def __str__(self):
+        return self.descricao or self.get_tipo_display()
+
+    def situacao(self):
+        """'vencido', 'vencendo', 'em_dia' ou 'sem_validade'."""
+        if self.validade is None:
+            return 'sem_validade'
+        hoje = timezone.localdate()
+        if self.validade < hoje:
+            return 'vencido'
+        if (self.validade - hoje).days <= self.DIAS_AVISO:
+            return 'vencendo'
+        return 'em_dia'
+
+    def situacao_display(self):
+        return {
+            'vencido': 'Vencido',
+            'vencendo': 'Vence em breve',
+            'em_dia': 'Em dia',
+            'sem_validade': 'Sem validade',
+        }[self.situacao()]
+
+    def vale_hoje(self):
+        return self.situacao() != 'vencido'

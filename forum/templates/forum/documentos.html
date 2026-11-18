@@ -1,0 +1,58 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Documentos e licenças - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<section class="evo-pagina">
+
+    <header class="evo-intro">
+        <span class="evo-etiqueta">INKA / BIOSSEGURANÇA</span>
+        <h2>Documentos e licenças</h2>
+        <p>
+            Licença sanitária, alvará, contrato de coleta, laudo da autoclave e
+            certificados da equipe, com a validade de cada um. O INKA avisa na
+            Minha Área quando um documento está para vencer. No perfil público
+            aparece só a situação ("Licença sanitária em dia"), nunca o documento.
+        </p>
+    </header>
+
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{% url 'forum:estudio_documento_novo' estudio.id %}"><span>+</span> Cadastrar documento</a>
+    </div>
+
+    {% if documentos %}
+        <div class="painel-tabela-rolagem">
+            <table class="painel-tabela">
+                <thead>
+                    <tr><th>Documento</th><th>Emissão</th><th>Validade</th><th>Situação</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos %}
+                        <tr>
+                            <td>
+                                {{ documento.get_tipo_display }}
+                                {% if documento.descricao %}<small>{{ documento.descricao }}</small>{% endif %}
+                                {% if documento.link %}<small><a href="{{ documento.link }}" target="_blank" rel="noopener">Abrir documento ↗</a></small>{% endif %}
+                            </td>
+                            <td>{{ documento.emitido_em|date:"d/m/Y" }}</td>
+                            <td>{{ documento.validade|date:"d/m/Y"|default:"—" }}</td>
+                            <td><span class="doc-situacao doc-{{ documento.situacao }}">{{ documento.situacao_display }}</span></td>
+                            <td class="painel-links">
+                                <a href="{% url 'forum:estudio_documento_editar' estudio.id documento.id %}">Editar</a>
+                                <a href="{% url 'forum:estudio_documento_remover' estudio.id documento.id %}">Remover</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="evo-vazio">
+            Nenhum documento cadastrado. Comece pela licença sanitária: ela
+            aparece em dia no perfil público do estúdio.
+        </p>
+    {% endif %}
+
+    <a class="evo-voltar" href="{% url 'forum:minha_area' %}">← Voltar para a Minha Área</a>
+</section>
+{% endblock %}

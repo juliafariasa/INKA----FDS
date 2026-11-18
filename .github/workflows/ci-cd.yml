@@ -36,6 +36,7 @@ jobs:
           python manage.py check
           python manage.py collectstatic --no-input
           python manage.py migrate
+          python manage.py createcachetable
 
       - name: Testes de unidade
         run: python manage.py test forum.tests -v 2

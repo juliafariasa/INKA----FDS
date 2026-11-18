@@ -35,6 +35,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/></svg>
             Aulas de inclusão
         </a>
+        <a href="{% url 'forum:estudio_documentos' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6zM9 9h6M9 13h6M9 17h4"/></svg>
+            Documentos e licenças
+        </a>
         <a href="{% url 'forum:campanhas' %}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.500-7 10-7 10z"/></svg>
             Campanhas sociais
@@ -42,15 +46,34 @@
     </nav>
     <p class="ajuda">
         Só a conta do estúdio vê estes links.
+        <a href="{% url 'forum:minha_area' %}">Minha Área</a> ·
+        <a href="{% url 'forum:minha_area_dados' %}">Dados do estúdio</a> ·
         <a href="{% url 'forum:alterar_senha' %}">Alterar senha</a>
     </p>
 </aside>
 {% endif %}
 
 <div class="perfil-conteudo">
+    {% if eh_dono %}
+        <p class="evo-lembrete perfil-aviso-dono">
+            Você está vendo seu perfil como os clientes veem.
+            <a href="{% url 'forum:minha_area' %}">Voltar para a Minha Área</a>
+        </p>
+    {% endif %}
+
     <h2>{{ estudio.nome }}</h2>
 
-    <p class="perfil-cidade">Estúdio de tatuagem em {{ estudio.cidade }}.</p>
+    <p class="perfil-cidade">Estúdio de tatuagem em {% if estudio.bairro %}{{ estudio.bairro }}, {% endif %}{{ estudio.cidade }}.</p>
+
+    {% if estudio.descricao %}<p class="perfil-descricao">{{ estudio.descricao }}</p>{% endif %}
+
+    {% if estudio.instagram or estudio.whatsapp or estudio.site %}
+        <div class="painel-acoes perfil-contato">
+            {% if estudio.whatsapp %}<a class="evo-acao" href="{{ estudio.whatsapp_url }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+            {% if estudio.instagram %}<a class="evo-acao" href="{{ estudio.instagram_url }}" target="_blank" rel="noopener">@{{ estudio.instagram }}</a>{% endif %}
+            {% if estudio.site %}<a class="evo-acao" href="{{ estudio.site }}" target="_blank" rel="noopener">Site ↗</a>{% endif %}
+        </div>
+    {% endif %}
 
     {% if diagnostico %}
         {% with selo=diagnostico.selo pilares=diagnostico.pilares_ativos %}
@@ -127,6 +150,33 @@
         </p>
     </div>
 
+    <div class="perfil-sobre perfil-indice-inka">
+        <h3>Índice INKA: {{ indice_inka.total }}/100</h3>
+        <p>
+            Além do diagnóstico, o Índice INKA considera a rotina do estúdio
+            na plataforma. O selo continua sendo dado só pelo diagnóstico.
+        </p>
+        <ul class="painel-barras">
+            {% for parte in indice_inka.componentes %}
+                <li>
+                    <span>{{ parte.rotulo }} <small>({{ parte.peso }}%)</small></span>
+                    <span class="painel-barra" title="{{ parte.detalhe }}"><i style="--valor: {{ parte.nota }}"></i></span>
+                    <b>{{ parte.pontos }}</b>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% if documentos_em_dia or estudio.acessibilidade %}
+    <div class="perfil-sobre">
+        <h3>Biossegurança e acessibilidade</h3>
+        <ul>
+            {% for frase in documentos_em_dia %}<li>{{ frase }}</li>{% endfor %}
+            {% if estudio.acessibilidade %}<li>Acessibilidade: {{ estudio.acessibilidade }}</li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
     {% if checklist or aulas_concluidas %}
     <div class="perfil-sobre">
         <h3>Rotina e formação</h3>
@@ -140,7 +190,7 @@
             {% endif %}
             {% if aulas_concluidas %}
                 <li>
-                    Aulas de inclusão e acessibilidade concluídas pela equipe:
+                    Aulas concluídas pela equipe:
                     <b>{{ aulas_concluidas }}</b>.
                 </li>
             {% endif %}

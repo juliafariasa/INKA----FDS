@@ -1,0 +1,46 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Campanhas - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Campanhas sociais</h2>
+    <p>As campanhas aparecem para todos na página <a href="{% url 'forum:campanhas' %}">Campanhas</a>.</p>
+</header>
+
+<div class="painel-acoes">
+    <a class="evo-acao" href="{% url 'forum:painel_campanha_nova' %}"><span>+</span> Nova campanha</a>
+</div>
+
+{% for campanha in campanhas %}
+    <article class="painel-cartao{% if not campanha.aberta %} painel-cartao-feito{% endif %}">
+        <div class="evo-meta-topo">
+            <span class="evo-meta-situacao">{{ campanha.ong }}</span>
+            <span class="evo-meta-prazo">
+                {% if not campanha.aberta %}Encerrada{% elif campanha.encerra_em %}Até {{ campanha.encerra_em|date:"d/m/Y" }}{% else %}Aberta{% endif %}
+            </span>
+        </div>
+        <h3>{{ campanha.titulo }}</h3>
+        <p class="evo-detalhe">
+            Estúdios participantes ({{ campanha.estudios.all|length }}):
+            {% for estudio in campanha.estudios.all %}
+                <a href="{% url 'forum:painel_estudio' estudio.id %}">{{ estudio.nome }}</a>{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                nenhum ainda.
+            {% endfor %}
+        </p>
+        <div class="painel-acoes">
+            <a class="evo-acao" href="{% url 'forum:painel_campanha_editar' campanha.id %}">Editar</a>
+            <form method="post" action="{% url 'forum:painel_campanha_situacao' campanha.id %}">
+                {% csrf_token %}
+                <button type="submit" class="evo-meta-remover">
+                    {% if campanha.ativa %}Encerrar campanha{% else %}Reabrir campanha{% endif %}
+                </button>
+            </form>
+        </div>
+    </article>
+{% empty %}
+    <p class="evo-vazio">Nenhuma campanha cadastrada.</p>
+{% endfor %}
+{% endblock %}

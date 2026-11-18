@@ -1,0 +1,56 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Diagnóstico e calculadora - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Diagnóstico e calculadora</h2>
+</header>
+
+<p class="evo-lembrete">
+    Atenção: mudar as práticas do diagnóstico altera as notas e os selos dos
+    próximos diagnósticos, e mudar os materiais altera os próximos cálculos de
+    resíduos. Por isso a edição fica no admin, e não aqui.
+</p>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">01 / DIAGNÓSTICO</span>
+        <h3>Práticas avaliadas</h3>
+    </div>
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{% url 'admin:forum_praticaestudio_changelist' %}">Editar no admin ↗</a>
+    </div>
+    <div class="painel-tabela-rolagem">
+        <table class="painel-tabela">
+            <thead><tr><th>Pilar</th><th>Prática</th></tr></thead>
+            <tbody>
+                {% for pratica in praticas %}
+                    <tr><td>{{ pratica.pilar.nome }}</td><td>{{ pratica.titulo }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="evo-bloco">
+    <div class="evo-bloco-topo">
+        <span class="evo-etiqueta">02 / CALCULADORA</span>
+        <h3>Materiais e resíduo gerado</h3>
+    </div>
+    <div class="painel-acoes">
+        <a class="evo-acao" href="{% url 'admin:forum_material_changelist' %}">Editar no admin ↗</a>
+    </div>
+    <div class="painel-tabela-rolagem">
+        <table class="painel-tabela">
+            <thead><tr><th>Material</th><th>Tipo de resíduo</th><th>Gramas por atendimento</th></tr></thead>
+            <tbody>
+                {% for material in materiais %}
+                    <tr><td>{{ material.nome }}</td><td>{{ material.get_tipo_display }}</td><td>{{ material.gramas_por_atendimento }} g</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

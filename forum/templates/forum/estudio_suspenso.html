@@ -1,0 +1,20 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Conta suspensa - INKA{% endblock %}
+
+{% block classe_body %}pagina-acesso{% endblock %}
+
+{% block content %}
+<h2>Conta suspensa</h2>
+
+<p>
+    A conta do estúdio <b>{{ estudio.nome }}</b> está suspensa pela equipe do
+    INKA. Enquanto isso, o estúdio não aparece na lista pública e o selo não é
+    exibido para os clientes.
+</p>
+
+<p>
+    Para entender o motivo ou pedir a reativação, fale com a equipe pela
+    página <a href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>.
+</p>
+{% endblock %}

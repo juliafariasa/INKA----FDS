@@ -1,0 +1,52 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}{% if item %}Editar campanha{% else %}Nova campanha{% endif %} - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE / CAMPANHAS</span>
+    <h2>{% if item %}Editar {{ item.titulo }}{% else %}Nova campanha{% endif %}</h2>
+</header>
+
+<form method="post" class="evo-form painel-formulario">
+    {% csrf_token %}
+
+    <label for="titulo">Título</label>
+    <input type="text" id="titulo" name="titulo" maxlength="150" value="{{ dados.titulo|default:'' }}">
+    {% if erros.titulo %}<p class="erro">{{ erros.titulo }}</p>{% endif %}
+
+    <label for="ong">ONG ou projeto parceiro</label>
+    <input type="text" id="ong" name="ong" maxlength="150" value="{{ dados.ong|default:'' }}">
+    {% if erros.ong %}<p class="erro">{{ erros.ong }}</p>{% endif %}
+
+    <label for="descricao">Descrição</label>
+    <textarea id="descricao" name="descricao" rows="5">{{ dados.descricao|default:'' }}</textarea>
+    {% if erros.descricao %}<p class="erro">{{ erros.descricao }}</p>{% endif %}
+
+    <label for="cidade">Cidade (opcional)</label>
+    <input type="text" id="cidade" name="cidade" maxlength="80" value="{{ dados.cidade|default:'' }}">
+    {% if erros.cidade %}<p class="erro">{{ erros.cidade }}</p>{% endif %}
+
+    <label for="email">E-mail de contato (opcional)</label>
+    <input type="email" id="email" name="email" value="{{ dados.email|default:'' }}">
+    {% if erros.email %}<p class="erro">{{ erros.email }}</p>{% endif %}
+
+    <label for="site">Site (opcional)</label>
+    <input type="url" id="site" name="site" maxlength="200" value="{{ dados.site|default:'' }}">
+    {% if erros.site %}<p class="erro">{{ erros.site }}</p>{% endif %}
+
+    <label for="encerra_em">Encerra em (opcional)</label>
+    <input type="date" id="encerra_em" name="encerra_em" value="{{ dados.encerra_em|default:'' }}">
+    {% if erros.encerra_em %}<p class="erro">{{ erros.encerra_em }}</p>{% endif %}
+    <p class="ajuda">Deixe vazio para uma campanha sem data para acabar.</p>
+
+    <label class="painel-marcar" for="ativa">
+        <input type="checkbox" id="ativa" name="ativa"{% if dados.ativa %} checked{% endif %}>
+        Campanha ativa (aceita novos estúdios)
+    </label>
+
+    <input type="submit" name="salvar" value="{% if item %}Salvar alterações{% else %}Cadastrar campanha{% endif %}">
+</form>
+
+<a class="evo-voltar" href="{{ url_lista }}">← Voltar para as campanhas</a>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}{% if documento %}Editar documento{% else %}Cadastrar documento{% endif %} - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<section class="evo-pagina evo-pagina-estreita">
+
+    <header class="evo-intro">
+        <span class="evo-etiqueta">INKA / DOCUMENTOS E LICENÇAS</span>
+        <h2>{% if documento %}Editar {{ documento }}{% else %}Cadastrar documento{% endif %}</h2>
+    </header>
+
+    <form method="post" class="evo-form">
+        {% csrf_token %}
+
+        <label for="tipo">Tipo de documento</label>
+        <select id="tipo" name="tipo">
+            <option value="">Escolha o tipo</option>
+            {% for codigo, rotulo in tipos %}
+                <option value="{{ codigo }}"{% if dados.tipo == codigo %} selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+        {% if erros.tipo %}<p class="erro">{{ erros.tipo }}</p>{% endif %}
+
+        <label for="descricao">Descrição (obrigatória em "Outro documento")</label>
+        <input type="text" id="descricao" name="descricao" maxlength="150" value="{{ dados.descricao|default:'' }}">
+        {% if erros.descricao %}<p class="erro">{{ erros.descricao }}</p>{% endif %}
+
+        <label for="emitido_em">Emitido em</label>
+        <input type="date" id="emitido_em" name="emitido_em" value="{{ dados.emitido_em|default:'' }}">
+        {% if erros.emitido_em %}<p class="erro">{{ erros.emitido_em }}</p>{% endif %}
+
+        <label for="validade">Válido até (opcional)</label>
+        <input type="date" id="validade" name="validade" value="{{ dados.validade|default:'' }}">
+        {% if erros.validade %}<p class="erro">{{ erros.validade }}</p>{% endif %}
+        <p class="ajuda">Deixe vazio se o documento não vence.</p>
+
+        <label for="link">Link do documento (opcional)</label>
+        <input type="url" id="link" name="link" maxlength="500" value="{{ dados.link|default:'' }}">
+        {% if erros.link %}<p class="erro">{{ erros.link }}</p>{% endif %}
+        <p class="ajuda">
+            O INKA não guarda arquivos. Se quiser, cole o link do documento no
+            Google Drive ou em outro serviço; só a conta do estúdio vê esse link.
+        </p>
+
+        <input type="submit" name="salvar" value="{% if documento %}Salvar alterações{% else %}Cadastrar documento{% endif %}">
+    </form>
+
+    <a class="evo-voltar" href="{% url 'forum:estudio_documentos' estudio.id %}">← Voltar para os documentos</a>
+</section>
+{% endblock %}

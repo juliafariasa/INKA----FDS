@@ -1,0 +1,44 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Checklist - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Itens do checklist</h2>
+    <p>
+        As práticas que os estúdios conferem no painel de evolução. Item inativo
+        some do checklist, mas os checklists já feitos não mudam. Para criar ou
+        reescrever um item, use o <a href="{% url 'admin:forum_itemchecklist_changelist' %}">admin</a>.
+    </p>
+</header>
+
+<div class="painel-tabela-rolagem">
+    <table class="painel-tabela">
+        <thead><tr><th>Prática</th><th>Categoria</th><th>Ordem e situação</th></tr></thead>
+        <tbody>
+            {% for item in itens %}
+                <tr>
+                    <td>{% if item.ativo %}{{ item.texto }}{% else %}<span class="painel-desativado">{{ item.texto }}</span>{% endif %}</td>
+                    <td>{{ item.get_categoria_display }}</td>
+                    <td>
+                        <form method="post" class="painel-linha-form"
+                              action="{% url 'forum:painel_checklist_item' item.id %}">
+                            {% csrf_token %}
+                            <input type="number" name="ordem" min="0" max="999" value="{{ item.ordem }}"
+                                   aria-label="Ordem de {{ item.texto }}">
+                            <label class="painel-marcar">
+                                <input type="checkbox" name="ativo"{% if item.ativo %} checked{% endif %}>
+                                Ativo
+                            </label>
+                            <button type="submit" class="evo-meta-remover">Salvar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="3">Nenhum item cadastrado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

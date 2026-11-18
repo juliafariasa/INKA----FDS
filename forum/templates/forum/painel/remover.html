@@ -1,0 +1,22 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Remover {{ rotulo }} - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Remover {{ rotulo }}</h2>
+</header>
+
+<div class="caixa">
+    <p>Tem certeza de que quer remover <b>{{ item }}</b>?</p>
+    {% if aviso %}<p>{{ aviso }}</p>{% endif %}
+    <p>Não dá para desfazer.</p>
+</div>
+
+<form method="post" class="painel-acoes">
+    {% csrf_token %}
+    <button type="submit" class="camp-botao">Remover</button>
+    <a class="evo-voltar" href="{{ url_lista }}">Cancelar</a>
+</form>
+{% endblock %}

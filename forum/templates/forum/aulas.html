@@ -147,9 +147,11 @@
 
         {% if aulas %}
 
+            {% for categoria in categorias %}
+            <h4 class="aulas-categoria">{{ categoria.rotulo }}</h4>
             <div class="aulas-grade">
 
-                {% for aula in aulas %}
+                {% for aula in categoria.aulas %}
 
                     <a class="aula-card"
                        href="{% url 'forum:estudio_aula' estudio.id aula.id %}">
@@ -164,7 +166,7 @@
 
                         <div class="aula-card-conteudo">
                             <span class="aula-card-categoria">
-                                INCLUSÃO E ACESSIBILIDADE
+                                {{ aula.get_categoria_display|upper }}
                             </span>
 
                             <h4>{{ aula.titulo }}</h4>
@@ -199,6 +201,7 @@
                 {% endfor %}
 
             </div>
+            {% endfor %}
 
             <p class="aulas-progresso-geral">
                 <span>{{ concluidas }}</span> de {{ aulas|length }}
@@ -225,8 +228,8 @@
     </div>
 
     <a class="aulas-voltar"
-       href="{% url 'forum:estudio_perfil' estudio.id %}">
-        ← Voltar ao perfil do estúdio
+       href="{% url 'forum:minha_area' %}">
+        ← Voltar para a Minha Área
     </a>
 
 </section>

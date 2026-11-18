@@ -1,0 +1,38 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Aulas - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Aulas da plataforma</h2>
+    <p>Aulas que aparecem para todos os estúdios. As que um estúdio cadastrou para si ficam em <a href="{% url 'forum:painel_moderacao' %}">Moderação</a>.</p>
+</header>
+
+<div class="painel-acoes">
+    <a class="evo-acao" href="{% url 'forum:painel_aula_nova' %}"><span>+</span> Nova aula</a>
+</div>
+
+{% if aulas %}
+    <div class="painel-tabela-rolagem">
+        <table class="painel-tabela">
+            <thead><tr><th>Aula</th><th>Duração</th><th>Concluída por</th><th></th></tr></thead>
+            <tbody>
+                {% for aula in aulas %}
+                    <tr>
+                        <td>{{ aula.titulo }}<small>{{ aula.url_video }}</small></td>
+                        <td>{{ aula.duracao_formatada }}</td>
+                        <td>{{ aula.concluidas }} estúdio(s)</td>
+                        <td class="painel-links">
+                            <a href="{% url 'forum:painel_aula_editar' aula.id %}">Editar</a>
+                            <a href="{% url 'forum:painel_aula_remover' aula.id %}">Remover</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="evo-vazio">Nenhuma aula da plataforma.</p>
+{% endif %}
+{% endblock %}

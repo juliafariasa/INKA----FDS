@@ -1,0 +1,48 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}{% if item %}Editar aula{% else %}Nova aula{% endif %} - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE / AULAS</span>
+    <h2>{% if item %}Editar {{ item.titulo }}{% else %}Nova aula{% endif %}</h2>
+    <p>A aula aparece para todos os estúdios.</p>
+</header>
+
+<form method="post" class="evo-form painel-formulario">
+    {% csrf_token %}
+
+    <label for="titulo">Título</label>
+    <input type="text" id="titulo" name="titulo" maxlength="150" value="{{ dados.titulo|default:'' }}">
+    {% if erros.titulo %}<p class="erro">{{ erros.titulo }}</p>{% endif %}
+
+    <label for="url_video">Link do vídeo</label>
+    <input type="url" id="url_video" name="url_video" maxlength="500" value="{{ dados.url_video|default:'' }}">
+    {% if erros.url_video %}<p class="erro">{{ erros.url_video }}</p>{% endif %}
+    <p class="ajuda">YouTube ou arquivo de vídeo (.mp4, .webm ou .ogg): só esses deixam a plataforma medir quanto foi assistido.</p>
+
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+        {% for codigo, rotulo in categorias %}
+            <option value="{{ codigo }}"{% if dados.categoria == codigo %} selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+    </select>
+    {% if erros.categoria %}<p class="erro">{{ erros.categoria }}</p>{% endif %}
+
+    <label for="minutos">Duração</label>
+    <div class="painel-duracao">
+        <input type="number" id="minutos" name="minutos" min="0" max="600" value="{{ dados.minutos|default:'' }}" aria-label="Minutos">
+        <span>min</span>
+        <input type="number" id="segundos" name="segundos" min="0" max="59" value="{{ dados.segundos|default:'' }}" aria-label="Segundos">
+        <span>s</span>
+    </div>
+    {% if erros.duracao %}<p class="erro">{{ erros.duracao }}</p>{% endif %}
+
+    <label for="descricao">Descrição (opcional)</label>
+    <textarea id="descricao" name="descricao" rows="4">{{ dados.descricao|default:'' }}</textarea>
+
+    <input type="submit" name="salvar" value="{% if item %}Salvar alterações{% else %}Cadastrar aula{% endif %}">
+</form>
+
+<a class="evo-voltar" href="{{ url_lista }}">← Voltar para as aulas</a>
+{% endblock %}

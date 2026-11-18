@@ -1,0 +1,103 @@
+{% extends "forum/painel/base_painel.html" %}
+
+{% block titulo %}Estúdios - Painel da equipe - INKA{% endblock %}
+
+{% block painel %}
+<header class="evo-intro">
+    <span class="evo-etiqueta">PAINEL DA EQUIPE</span>
+    <h2>Estúdios</h2>
+    <p>{{ pagina.paginator.count }} estúdio(s) encontrado(s).</p>
+</header>
+
+<form method="get" class="painel-filtros">
+    <div>
+        <label for="busca">Buscar</label>
+        <input type="search" id="busca" name="busca" value="{{ filtros.busca }}"
+               placeholder="Nome, cidade ou e-mail da conta">
+    </div>
+    <div>
+        <label for="cidade">Cidade</label>
+        <select id="cidade" name="cidade">
+            <option value="">Todas</option>
+            {% for cidade in cidades %}
+                <option value="{{ cidade }}"{% if cidade == filtros.cidade %} selected{% endif %}>{{ cidade }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="selo">Selo</label>
+        <select id="selo" name="selo">
+            <option value="">Todos</option>
+            {% for codigo, rotulo in selos.items %}
+                <option value="{{ codigo }}"{% if codigo == filtros.selo %} selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="situacao">Situação</label>
+        <select id="situacao" name="situacao">
+            <option value="">Todos</option>
+            <option value="ativos"{% if filtros.situacao == 'ativos' %} selected{% endif %}>Ativos</option>
+            <option value="desativados"{% if filtros.situacao == 'desativados' %} selected{% endif %}>Desativados</option>
+        </select>
+    </div>
+    <div>
+        <label for="ordem">Ordenar por</label>
+        <select id="ordem" name="ordem">
+            {% for codigo, rotulo in ordens.items %}
+                <option value="{{ codigo }}"{% if codigo == filtros.ordem %} selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="painel-filtros-acoes">
+        <button type="submit" class="camp-botao">Filtrar</button>
+        <a href="{% url 'forum:painel_estudios' %}">Limpar</a>
+    </div>
+</form>
+
+{% if pagina.object_list %}
+    <div class="painel-tabela-rolagem">
+        <table class="painel-tabela">
+            <thead>
+                <tr>
+                    <th>Estúdio</th>
+                    <th>Conta</th>
+                    <th>Cadastro</th>
+                    <th>Selo</th>
+                    <th>Índice</th>
+                    <th>Situação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for estudio in pagina %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'forum:painel_estudio' estudio.id %}">{{ estudio.nome }}</a>
+                            <small>{{ estudio.cidade }}</small>
+                        </td>
+                        <td>{{ estudio.usuario.email|default:"—" }}</td>
+                        <td>{{ estudio.criado_em|date:"d/m/Y" }}</td>
+                        <td>{{ estudio.selo_rotulo }}</td>
+                        <td>{% if estudio.indice is not None %}{{ estudio.indice|floatformat:0 }}{% else %}—{% endif %}</td>
+                        <td>{% if estudio.ativo %}Ativo{% else %}<span class="painel-desativado">Desativado</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pagina.paginator.num_pages > 1 %}
+        <nav class="painel-paginacao" aria-label="Páginas">
+            {% if pagina.has_previous %}
+                <a href="?{{ filtros_url }}{% if filtros_url %}&amp;{% endif %}pagina={{ pagina.previous_page_number }}">← Anterior</a>
+            {% endif %}
+            <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+            {% if pagina.has_next %}
+                <a href="?{{ filtros_url }}{% if filtros_url %}&amp;{% endif %}pagina={{ pagina.next_page_number }}">Próxima →</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <p class="evo-vazio">Nenhum estúdio com esses filtros.</p>
+{% endif %}
+{% endblock %}
