@@ -9,22 +9,27 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
     Aula,
     CalculoResiduo,
+    Campanha,
+    Checklist,
     Contato,
     ConteudoDescarte,
     Diagnostico,
     EmpresaDescarte,
     Estudio,
+    ItemChecklist,
     ItemEstoque,
     ItemLista,
     Material,
     MembroEquipe,
+    MetaEsg,
+    ParticipacaoCampanha,
     PasswordResetCode,
     PasswordResetToken,
     Pilar,
@@ -2679,3 +2684,563 @@ class RedefinirSenhaTest(TestCase):
                          1)
         # O token ainda válido continua funcionando.
         self.assertEqual(self.confirmar(token).status_code, 200)
+
+
+class EvolucaoTest(TestCase):
+    """Painel de evolução: checklist de rotina, metas e diário."""
+
+    MENSAGEM_META_DUPLICADA = (
+        'Seu estúdio já tem uma meta em andamento para este indicador. '
+        'Conclua ou remova a meta atual!'
+    )
+    MENSAGEM_META_JA_ALCANCADA = (
+        'Seu estúdio já alcançou esse valor. '
+        'Escolha uma meta mais desafiadora!'
+    )
+
+    def setUp(self):
+        self.estudio = Estudio.objects.create(
+            nome='Tinta Verde', cidade='Recife'
+        )
+        self.outro = Estudio.objects.create(nome='Agulha Viva', cidade='Olinda')
+        self.client.force_login(criar_dono(self.estudio))
+        id_ = self.estudio.id
+        self.url_painel = reverse('forum:estudio_evolucao', args=[id_])
+        self.url_checklist = reverse('forum:estudio_checklist', args=[id_])
+        self.url_meta_nova = reverse('forum:estudio_meta_nova', args=[id_])
+        self.itens = list(ItemChecklist.objects.all())
+        self.hoje = timezone.localdate()
+
+    def marcar(self, quantidade):
+        ids = [item.id for item in self.itens[:quantidade]]
+        return self.client.post(self.url_checklist, {'itens': ids})
+
+    def dados_meta(self, **campos):
+        dados = {
+            'indicador': MetaEsg.CHECKLIST,
+            'alvo': '80',
+            'prazo': (self.hoje + timedelta(days=30)).isoformat(),
+        }
+        dados.update(campos)
+        return dados
+
+    def calcular_residuos(self, atendimentos):
+        material = Material.objects.create(
+            nome=f'Luva {atendimentos}', tipo=Material.CONTAMINADO,
+            gramas_por_atendimento=10,
+        )
+        calculo = CalculoResiduo(estudio=self.estudio,
+                                 atendimentos=atendimentos)
+        calculo.calcular([material])
+        calculo.save()
+        return calculo
+
+    # Acesso
+
+    def test_painel_e_exclusivo_da_conta_do_estudio(self):
+        url_do_outro = reverse('forum:estudio_evolucao', args=[self.outro.id])
+        self.assertEqual(self.client.get(url_do_outro).status_code, 404)
+
+        self.client.logout()
+        resposta = self.client.get(self.url_painel)
+        self.assertRedirects(
+            resposta, f'{reverse("forum:entrar")}?next={self.url_painel}'
+        )
+
+    def test_perfil_e_diagnostico_levam_ao_painel(self):
+        url_perfil = reverse('forum:estudio_perfil', args=[self.estudio.id])
+        self.assertContains(self.client.get(url_perfil),
+                            f'href="{self.url_painel}"')
+
+        Diagnostico.objects.create(estudio=self.estudio, nota_e=8, nota_s=5,
+                                   nota_g=7)
+        url_diagnostico = reverse('forum:estudio_diagnostico',
+                                  args=[self.estudio.id])
+        self.assertContains(self.client.get(url_diagnostico),
+                            f'href="{self.url_painel}"')
+
+    # Checklist
+
+    def test_checklist_inicial_tem_as_tres_categorias(self):
+        self.assertEqual(len(self.itens), 9)
+        resposta = self.client.get(self.url_painel)
+        for rotulo in ('Higiene', 'Segurança', 'Gestão de resíduos'):
+            self.assertContains(resposta, f'<legend>{rotulo}</legend>',
+                                html=True)
+        self.assertContains(resposta, 'type="checkbox"', count=9)
+        self.assertContains(resposta, 'ainda não fez nenhuma verificação')
+
+    def test_salvar_checklist_registra_as_praticas_cumpridas(self):
+        resposta = self.marcar(6)
+        self.assertRedirects(resposta, self.url_painel)
+
+        checklist = Checklist.objects.get(estudio=self.estudio)
+        self.assertEqual(checklist.data, self.hoje)
+        self.assertEqual(checklist.cumpridos, 6)
+        self.assertEqual(checklist.total_itens, 9)
+        self.assertEqual(checklist.percentual(), 67)
+        self.assertEqual(checklist.itens_cumpridos.count(), 6)
+
+        resposta = self.client.get(self.url_painel)
+        self.assertContains(resposta, 'checked', count=6)
+        self.assertContains(resposta, 'Conferido hoje')
+        self.assertNotContains(resposta, 'evo-lembrete')
+
+    def test_refazer_no_mesmo_dia_atualiza_em_vez_de_duplicar(self):
+        self.marcar(2)
+        self.marcar(9)
+        checklist = Checklist.objects.get(estudio=self.estudio)
+        self.assertEqual(checklist.cumpridos, 9)
+        self.assertEqual(checklist.percentual(), 100)
+
+    def test_checklist_ignora_item_inexistente_ou_desativado(self):
+        desativado = self.itens[0]
+        desativado.ativo = False
+        desativado.save()
+        self.client.post(self.url_checklist, {
+            'itens': [desativado.id, self.itens[1].id, '99999', 'abc'],
+        })
+        checklist = Checklist.objects.get(estudio=self.estudio)
+        self.assertEqual(checklist.cumpridos, 1)
+        self.assertEqual(checklist.total_itens, 8)
+
+    def test_painel_lembra_quando_o_checklist_esta_atrasado(self):
+        Checklist.objects.create(
+            estudio=self.estudio, data=self.hoje - timedelta(days=7),
+            cumpridos=9, total_itens=9,
+        )
+        resposta = self.client.get(self.url_painel)
+        self.assertContains(resposta, 'A última verificação foi há 7 dias')
+
+        Checklist.objects.update(data=self.hoje - timedelta(days=6))
+        resposta = self.client.get(self.url_painel)
+        self.assertNotContains(resposta, 'evo-lembrete')
+
+    def test_checklist_de_outro_estudio_responde_404(self):
+        url = reverse('forum:estudio_checklist', args=[self.outro.id])
+        self.assertEqual(self.client.post(url, {}).status_code, 404)
+        self.assertEqual(Checklist.objects.count(), 0)
+
+    # Metas
+
+    def test_definir_meta_guarda_o_valor_inicial(self):
+        self.marcar(3)   # 33%
+        resposta = self.client.post(self.url_meta_nova, self.dados_meta())
+        self.assertRedirects(resposta, self.url_painel)
+
+        meta = MetaEsg.objects.get(estudio=self.estudio)
+        self.assertEqual(meta.alvo, 80)
+        self.assertEqual(meta.valor_inicial, 33)
+        self.assertEqual(meta.situacao(), 'Em andamento')
+        self.assertEqual(meta.progresso(), 41)   # 33 de 80
+
+        resposta = self.client.get(self.url_painel)
+        self.assertContains(resposta, 'Cumprir 80% do checklist')
+
+    def test_meta_repetida_para_o_mesmo_indicador_nao_e_criada(self):
+        self.client.post(self.url_meta_nova, self.dados_meta())
+        resposta = self.client.post(self.url_meta_nova,
+                                    self.dados_meta(alvo='90'))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, self.MENSAGEM_META_DUPLICADA)
+        self.assertEqual(MetaEsg.objects.count(), 1)
+
+        # Outro indicador pode.
+        self.client.post(self.url_meta_nova,
+                         self.dados_meta(indicador=MetaEsg.AULAS, alvo='2'))
+        self.assertEqual(MetaEsg.objects.count(), 2)
+
+    def test_meta_que_o_estudio_ja_alcancou_nao_e_criada(self):
+        self.marcar(9)   # 100%
+        resposta = self.client.post(self.url_meta_nova, self.dados_meta())
+        self.assertContains(resposta, self.MENSAGEM_META_JA_ALCANCADA)
+        self.assertEqual(MetaEsg.objects.count(), 0)
+
+    def test_meta_com_dados_invalidos_nao_e_criada(self):
+        ontem = (self.hoje - timedelta(days=1)).isoformat()
+        casos = [
+            self.dados_meta(indicador='outro'),
+            self.dados_meta(alvo=''),
+            self.dados_meta(alvo='0'),
+            self.dados_meta(alvo='-5'),
+            self.dados_meta(alvo='abc'),
+            self.dados_meta(alvo='101'),
+            self.dados_meta(prazo=''),
+            self.dados_meta(prazo=ontem),
+            self.dados_meta(prazo=self.hoje.isoformat()),
+            self.dados_meta(prazo='31/12/2099'),
+        ]
+        for dados in casos:
+            resposta = self.client.post(self.url_meta_nova, dados)
+            self.assertEqual(resposta.status_code, 200, dados)
+            self.assertContains(resposta, 'class="erro"')
+        self.assertEqual(MetaEsg.objects.count(), 0)
+
+    def test_meta_e_marcada_como_atingida_ao_abrir_o_painel(self):
+        self.client.post(self.url_meta_nova, self.dados_meta())
+        self.marcar(8)   # 89%
+        resposta = self.client.get(self.url_painel)
+
+        meta = MetaEsg.objects.get()
+        self.assertIsNotNone(meta.atingida_em)
+        self.assertEqual(meta.situacao(), 'Atingida')
+        self.assertEqual(meta.progresso(), 100)
+        self.assertContains(resposta,
+                            'Meta atingida: Cumprir 80% do checklist.')
+
+        # Com a meta concluída, o indicador aceita uma nova meta.
+        self.client.post(self.url_meta_nova, self.dados_meta(alvo='100'))
+        self.assertEqual(MetaEsg.objects.count(), 2)
+
+    def test_meta_de_residuos_e_atingida_quando_o_total_diminui(self):
+        self.calcular_residuos(50)   # 500 g
+        self.client.post(self.url_meta_nova, self.dados_meta(
+            indicador=MetaEsg.RESIDUOS, alvo='300'))
+        meta = MetaEsg.objects.get()
+        self.assertEqual(meta.valor_inicial, 500)
+        self.assertEqual(meta.progresso(), 0)
+
+        self.calcular_residuos(40)   # 400 g: metade do caminho
+        self.assertEqual(meta.progresso(), 50)
+        self.client.get(self.url_painel)
+        self.assertIsNone(MetaEsg.objects.get().atingida_em)
+
+        self.calcular_residuos(30)   # 300 g
+        self.client.get(self.url_painel)
+        self.assertIsNotNone(MetaEsg.objects.get().atingida_em)
+
+    def test_meta_com_prazo_vencido_nao_e_marcada_como_atingida(self):
+        meta = MetaEsg.objects.create(
+            estudio=self.estudio, indicador=MetaEsg.CHECKLIST, alvo=50,
+            prazo=self.hoje - timedelta(days=1),
+        )
+        self.marcar(9)
+        resposta = self.client.get(self.url_painel)
+        meta.refresh_from_db()
+        self.assertIsNone(meta.atingida_em)
+        self.assertEqual(meta.situacao(), 'Prazo vencido')
+        self.assertContains(resposta, 'Prazo vencido')
+
+    def test_remover_meta(self):
+        meta = MetaEsg.objects.create(
+            estudio=self.estudio, indicador=MetaEsg.AULAS, alvo=3,
+            prazo=self.hoje + timedelta(days=10),
+        )
+        url = reverse('forum:estudio_meta_remover',
+                      args=[self.estudio.id, meta.id])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertTrue(MetaEsg.objects.exists())
+
+        self.assertRedirects(self.client.post(url), self.url_painel)
+        self.assertFalse(MetaEsg.objects.exists())
+
+    def test_nao_remove_meta_de_outro_estudio(self):
+        meta = MetaEsg.objects.create(
+            estudio=self.outro, indicador=MetaEsg.AULAS, alvo=3,
+            prazo=self.hoje + timedelta(days=10),
+        )
+        url = reverse('forum:estudio_meta_remover',
+                      args=[self.estudio.id, meta.id])
+        self.assertEqual(self.client.post(url).status_code, 404)
+        self.assertTrue(MetaEsg.objects.exists())
+
+    # Diário
+
+    def test_diario_junta_o_que_o_estudio_registrou(self):
+        Diagnostico.objects.create(estudio=self.estudio, nota_e=8, nota_s=5,
+                                   nota_g=7)
+        self.calcular_residuos(50)
+        self.calcular_residuos(30)
+        self.marcar(6)
+        self.client.post(self.url_meta_nova, self.dados_meta())
+
+        resposta = self.client.get(self.url_painel)
+        textos = [evento['texto'] for evento in resposta.context['diario']]
+        self.assertEqual(textos[-1], 'Estúdio cadastrado no INKA.')
+        self.assertIn('Diagnóstico de maturidade ESG: índice 67 de 100, '
+                      'selo Prata.', textos)
+        self.assertIn('Cálculo de resíduos: 500 g em 50 atendimento(s).',
+                      textos)
+        self.assertIn('Cálculo de resíduos: 300 g em 30 atendimento(s), '
+                      '200 g a menos que no cálculo anterior.', textos)
+        self.assertIn('Checklist de boas práticas: 6 de 9 cumpridas (67%).',
+                      textos)
+        self.assertTrue(any(
+            texto.startswith('Meta definida: Cumprir 80% do checklist')
+            for texto in textos
+        ))
+        datas = [evento['quando'] for evento in resposta.context['diario']]
+        self.assertEqual(datas, sorted(datas, reverse=True))
+        self.assertContains(resposta, 'Estúdio cadastrado no INKA.')
+
+    def test_diario_nao_mostra_registros_de_outro_estudio(self):
+        Diagnostico.objects.create(estudio=self.outro, nota_e=9, nota_s=9,
+                                   nota_g=9)
+        resposta = self.client.get(self.url_painel)
+        self.assertEqual(len(resposta.context['diario']), 1)
+
+    def test_concluir_aula_guarda_a_data_e_entra_no_diario(self):
+        aula = Aula.objects.create(
+            titulo='Libras básica', url_video='https://youtu.be/abcdefghijk',
+            duracao_segundos=60,
+        )
+        ProgressoAula.objects.create(estudio=self.estudio, aula=aula,
+                                     segundos_assistidos=60)
+        self.client.post(
+            reverse('forum:estudio_aula', args=[self.estudio.id, aula.id])
+        )
+        progresso = ProgressoAula.objects.get()
+        self.assertTrue(progresso.concluida)
+        self.assertIsNotNone(progresso.concluida_em)
+
+        resposta = self.client.get(self.url_painel)
+        self.assertContains(resposta, 'Aula concluída: Libras básica.')
+        self.assertEqual(resposta.context['aulas_concluidas'], 1)
+
+
+class CampanhaTest(TestCase):
+    """Vitrine de campanhas sociais com ONGs e projetos parceiros."""
+
+    MENSAGEM_ENCERRADA = (
+        'Esta campanha já foi encerrada. Veja as campanhas abertas!'
+    )
+
+    def setUp(self):
+        self.estudio = Estudio.objects.create(
+            nome='Tinta Verde', cidade='Recife'
+        )
+        self.outro = Estudio.objects.create(nome='Agulha Viva', cidade='Olinda')
+        self.usuario = criar_dono(self.estudio)
+        self.campanha = Campanha.objects.create(
+            titulo='Cobertura gratuita de cicatrizes', ong='Instituto Renascer',
+            descricao='Tatuagens para cobrir cicatrizes de mastectomia.',
+            cidade='Recife', email='contato@renascer.example',
+        )
+        self.url_lista = reverse('forum:campanhas')
+        self.url_participar = self.url('participar', self.campanha)
+        self.url_sair = self.url('sair', self.campanha)
+
+    def url(self, acao, campanha, estudio=None):
+        return reverse(f'forum:estudio_campanha_{acao}',
+                       args=[(estudio or self.estudio).id, campanha.id])
+
+    def test_vitrine_e_publica_e_mostra_os_estudios_participantes(self):
+        ParticipacaoCampanha.objects.create(campanha=self.campanha,
+                                            estudio=self.outro)
+        resposta = self.client.get(self.url_lista)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Cobertura gratuita de cicatrizes')
+        self.assertContains(resposta, 'Instituto Renascer')
+        self.assertContains(resposta, 'mailto:contato@renascer.example')
+        url_perfil = reverse('forum:estudio_perfil', args=[self.outro.id])
+        self.assertContains(resposta, f'href="{url_perfil}"')
+        # Sem login não há botão de participar, só o convite para entrar.
+        self.assertNotContains(resposta, 'camp-botao')
+        self.assertContains(resposta, 'Entre com a conta do estúdio')
+
+    def test_sem_campanhas_mostra_estado_vazio(self):
+        Campanha.objects.all().delete()
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'Nenhuma campanha por aqui ainda.')
+
+    def test_menu_tem_link_para_as_campanhas(self):
+        resposta = self.client.get(reverse('forum:estudios'))
+        self.assertContains(resposta, f'href="{self.url_lista}"')
+
+    def test_estudio_participa_e_a_campanha_aparece_no_perfil_publico(self):
+        self.client.force_login(self.usuario)
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, f'action="{self.url_participar}"')
+
+        resposta = self.client.post(self.url_participar)
+        self.assertRedirects(resposta, self.url_lista)
+        self.assertEqual(list(self.campanha.estudios.all()), [self.estudio])
+
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, f'action="{self.url_sair}"')
+        self.assertNotContains(resposta, f'action="{self.url_participar}"')
+
+        # O perfil é público: o cliente vê as ações sociais sem login.
+        self.client.logout()
+        url_perfil = reverse('forum:estudio_perfil', args=[self.estudio.id])
+        resposta = self.client.get(url_perfil)
+        self.assertContains(resposta, 'Ações sociais')
+        self.assertContains(resposta, 'Cobertura gratuita de cicatrizes')
+
+    def test_perfil_sem_campanhas_nao_mostra_acoes_sociais(self):
+        url_perfil = reverse('forum:estudio_perfil', args=[self.estudio.id])
+        self.assertNotContains(self.client.get(url_perfil), 'Ações sociais')
+
+    def test_participar_duas_vezes_nao_duplica(self):
+        self.client.force_login(self.usuario)
+        self.client.post(self.url_participar)
+        self.client.post(self.url_participar)
+        self.assertEqual(ParticipacaoCampanha.objects.count(), 1)
+
+    def test_campanha_encerrada_nao_aceita_participacao(self):
+        self.client.force_login(self.usuario)
+        ontem = timezone.localdate() - timedelta(days=1)
+        vencida = Campanha.objects.create(
+            titulo='Flash day', ong='Projeto Luz', descricao='Encerrada.',
+            encerra_em=ontem,
+        )
+        desativada = Campanha.objects.create(
+            titulo='Mutirão', ong='Projeto Luz', descricao='Desativada.',
+            ativa=False,
+        )
+        for campanha in (vencida, desativada):
+            resposta = self.client.post(
+                self.url('participar', campanha), follow=True
+            )
+            self.assertContains(resposta, self.MENSAGEM_ENCERRADA)
+        self.assertEqual(ParticipacaoCampanha.objects.count(), 0)
+
+        resposta = self.client.get(self.url_lista)
+        self.assertContains(resposta, 'camp-encerrada', count=2)
+        self.assertNotContains(resposta,
+                               f'action="{self.url("participar", vencida)}"')
+
+    def test_campanha_que_encerra_hoje_ainda_esta_aberta(self):
+        self.campanha.encerra_em = timezone.localdate()
+        self.campanha.save()
+        self.assertTrue(self.campanha.aberta())
+
+    def test_sair_da_campanha(self):
+        self.client.force_login(self.usuario)
+        self.client.post(self.url_participar)
+        self.assertRedirects(self.client.post(self.url_sair), self.url_lista)
+        self.assertEqual(ParticipacaoCampanha.objects.count(), 0)
+
+    def test_participar_exige_a_conta_dona_do_estudio(self):
+        resposta = self.client.post(self.url_participar)
+        self.assertRedirects(
+            resposta, f'{reverse("forum:entrar")}?next={self.url_participar}'
+        )
+
+        self.client.force_login(self.usuario)
+        url_do_outro = self.url('participar', self.campanha, self.outro)
+        self.assertEqual(self.client.post(url_do_outro).status_code, 404)
+        self.assertEqual(self.client.get(self.url_participar).status_code,
+                         405)
+        self.assertEqual(ParticipacaoCampanha.objects.count(), 0)
+
+    def test_participacao_entra_no_diario_e_no_painel(self):
+        self.client.force_login(self.usuario)
+        self.client.post(self.url_participar)
+        resposta = self.client.get(
+            reverse('forum:estudio_evolucao', args=[self.estudio.id])
+        )
+        self.assertContains(
+            resposta,
+            'Entrou na campanha Cobertura gratuita de cicatrizes, '
+            'com Instituto Renascer.',
+        )
+        self.assertEqual(resposta.context['total_campanhas'], 1)
+
+
+class MelhoriasTest(TestCase):
+    """Aviso do Fale Conosco, filtro de estúdios e perfil público."""
+
+    def setUp(self):
+        # No site o e-mail sai numa thread; no teste ele é enviado na hora.
+        envio_na_hora = mock.patch(
+            'forum.redefinicao_senha.em_segundo_plano',
+            lambda funcao: funcao(),
+        )
+        envio_na_hora.start()
+        self.addCleanup(envio_na_hora.stop)
+
+    def enviar_contato(self):
+        return self.client.post(reverse('forum:fale_conosco'), {
+            'nome': 'Marina Souza', 'email': 'marina@example.com',
+            'empresa': 'Estúdio Aurora', 'assunto': Contato.ASSUNTO_PARCERIA,
+            'mensagem': 'Quero levar o INKA para o meu estúdio em Olinda.',
+        })
+
+    # Fale Conosco
+
+    @override_settings(EMAIL_CONTATO='equipe@example.com')
+    def test_fale_conosco_avisa_a_equipe_por_email(self):
+        self.enviar_contato()
+        self.assertEqual(Contato.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+        aviso = mail.outbox[0]
+        self.assertEqual(aviso.to, ['equipe@example.com'])
+        # Responder ao aviso escreve para quem mandou a mensagem.
+        self.assertEqual(aviso.reply_to, ['marina@example.com'])
+        self.assertEqual(aviso.subject, 'Fale Conosco: Proposta de parceria')
+        self.assertIn('Marina Souza <marina@example.com>', aviso.body)
+        self.assertIn('Estúdio Aurora', aviso.body)
+        self.assertIn('Quero levar o INKA para o meu estúdio em Olinda.',
+                      aviso.body)
+
+    @override_settings(EMAIL_CONTATO='')
+    def test_sem_email_da_equipe_a_mensagem_so_e_guardada(self):
+        self.enviar_contato()
+        self.assertEqual(Contato.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(EMAIL_CONTATO='equipe@example.com')
+    def test_mensagem_invalida_nao_avisa_a_equipe(self):
+        self.client.post(reverse('forum:fale_conosco'), {'nome': 'Ma'})
+        self.assertEqual(len(mail.outbox), 0)
+
+    # Lista de estúdios
+
+    def test_lista_de_estudios_filtra_por_cidade(self):
+        Estudio.objects.create(nome='Tinta Verde', cidade='Recife')
+        Estudio.objects.create(nome='Agulha Viva', cidade='São Paulo')
+        Estudio.objects.create(nome='Traço Fino', cidade='SÃO PAULO')
+        url = reverse('forum:estudios')
+
+        resposta = self.client.get(url)
+        self.assertEqual(len(resposta.context['estudios']), 3)
+        # Cidades escritas com maiúsculas diferentes viram uma opção só.
+        self.assertEqual(resposta.context['cidades'], ['Recife', 'São Paulo'])
+
+        resposta = self.client.get(url, {'cidade': 'são paulo'})
+        nomes = [estudio.nome for estudio in resposta.context['estudios']]
+        self.assertEqual(nomes, ['Agulha Viva', 'Traço Fino'])
+        self.assertEqual(resposta.context['cidade'], 'São Paulo')
+        self.assertContains(resposta, '2 estúdio(s) em São Paulo.')
+        self.assertNotContains(resposta, 'Tinta Verde')
+
+    def test_cidade_desconhecida_mostra_todos_os_estudios(self):
+        Estudio.objects.create(nome='Tinta Verde', cidade='Recife')
+        Estudio.objects.create(nome='Agulha Viva', cidade='Olinda')
+        resposta = self.client.get(reverse('forum:estudios'),
+                                   {'cidade': 'Manaus'})
+        self.assertEqual(len(resposta.context['estudios']), 2)
+        self.assertEqual(resposta.context['cidade'], '')
+
+    def test_filtro_so_aparece_com_mais_de_uma_cidade(self):
+        Estudio.objects.create(nome='Tinta Verde', cidade='Recife')
+        url = reverse('forum:estudios')
+        self.assertNotContains(self.client.get(url), 'estudios-filtro')
+
+        Estudio.objects.create(nome='Agulha Viva', cidade='Olinda')
+        self.assertContains(self.client.get(url), 'class="estudios-filtro"')
+
+    # Perfil público
+
+    def test_perfil_publico_mostra_rotina_e_formacao(self):
+        estudio = Estudio.objects.create(nome='Tinta Verde', cidade='Recife')
+        url = reverse('forum:estudio_perfil', args=[estudio.id])
+        self.assertNotContains(self.client.get(url), 'Rotina e formação')
+
+        Checklist.objects.create(
+            estudio=estudio, data=timezone.localdate(), cumpridos=8,
+            total_itens=9,
+        )
+        aula = Aula.objects.create(
+            titulo='Libras básica', url_video='https://youtu.be/abcdefghijk',
+            duracao_segundos=60,
+        )
+        ProgressoAula.objects.create(estudio=estudio, aula=aula,
+                                     concluida=True)
+
+        resposta = self.client.get(url)
+        self.assertContains(resposta, 'Rotina e formação')
+        self.assertContains(resposta, '89% das práticas cumpridas')
+        self.assertContains(resposta, '<b>1</b>', html=True)

@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Value
 from django.db.models.functions import Greatest
+from django.utils import timezone
 
 EXTENSOES_VIDEO = ('.mp4', '.webm', '.ogg', '.ogv')
 EXTENSOES_AUDIO = ('.mp3', '.m4a', '.oga', '.ogg', '.wav')
@@ -242,6 +243,12 @@ class Estudio(models.Model):
 
     def ultimo_calculo_residuo(self):
         return self.calculos_residuo.order_by('-id').first()
+
+    def ultimo_checklist(self):
+        return self.checklists.first()
+
+    def aulas_concluidas(self):
+        return self.progressos_aula.filter(concluida=True).count()
 
 
 class Diagnostico(models.Model):
@@ -690,6 +697,8 @@ class ProgressoAula(models.Model):
         'Segundos assistidos', default=0
     )
     concluida = models.BooleanField('Concluída', default=False)
+    concluida_em = models.DateTimeField('Concluída em', null=True,
+                                        blank=True)
 
     class Meta:
         verbose_name = 'Progresso em aula'
@@ -779,3 +788,251 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f'Token de {self.user} ({self.created_at:%d/%m/%Y %H:%M})'
+
+
+class ItemChecklist(models.Model):
+    """Prática de rotina que o estúdio confere no checklist."""
+
+    HIGIENE = 'higiene'
+    SEGURANCA = 'seguranca'
+    RESIDUOS = 'residuos'
+
+    CATEGORIA_CHOICES = [
+        (HIGIENE, 'Higiene'),
+        (SEGURANCA, 'Segurança'),
+        (RESIDUOS, 'Gestão de resíduos'),
+    ]
+
+    categoria = models.CharField('Categoria', max_length=20,
+                                 choices=CATEGORIA_CHOICES)
+    texto = models.CharField('Prática', max_length=200)
+    ordem = models.PositiveIntegerField('Ordem', default=0)
+    ativo = models.BooleanField(
+        'Ativo', default=True,
+        help_text='Desmarque para o item deixar de aparecer no checklist.',
+    )
+
+    class Meta:
+        verbose_name = 'Item do checklist'
+        verbose_name_plural = 'Itens do checklist'
+        ordering = ['ordem', 'id']
+
+    def __str__(self):
+        return f'{self.get_categoria_display()}: {self.texto}'
+
+
+class Checklist(models.Model):
+    """Uma verificação das práticas de rotina, feita pelo estúdio num dia.
+
+    Os totais ficam gravados: o histórico não muda se o admin apagar ou criar
+    itens depois.
+    """
+
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='checklists',
+        verbose_name='Estúdio',
+    )
+    data = models.DateField('Data')
+    salvo_em = models.DateTimeField('Salvo em', auto_now=True)
+    itens_cumpridos = models.ManyToManyField(
+        ItemChecklist,
+        related_name='+',
+        verbose_name='Práticas cumpridas',
+        blank=True,
+    )
+    cumpridos = models.PositiveSmallIntegerField('Práticas cumpridas',
+                                                 default=0)
+    total_itens = models.PositiveSmallIntegerField('Práticas conferidas',
+                                                   default=0)
+
+    class Meta:
+        verbose_name = 'Checklist'
+        verbose_name_plural = 'Checklists'
+        ordering = ['-data', '-id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['estudio', 'data'],
+                name='checklist_unico_por_estudio_e_dia',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.estudio} - {self.data:%d/%m/%Y}'
+
+    def percentual(self):
+        if self.total_itens == 0:
+            return 0
+        return round(self.cumpridos / self.total_itens * 100)
+
+
+class MetaEsg(models.Model):
+    """Objetivo que o estúdio escolhe e acompanha por um indicador."""
+
+    CHECKLIST = 'checklist'
+    RESIDUOS = 'residuos'
+    AULAS = 'aulas'
+
+    INDICADOR_CHOICES = [
+        (CHECKLIST, 'Práticas cumpridas no checklist'),
+        (RESIDUOS, 'Resíduos gerados por mês'),
+        (AULAS, 'Aulas de inclusão concluídas'),
+    ]
+    UNIDADES = {CHECKLIST: '%', RESIDUOS: 'g', AULAS: 'aula(s)'}
+
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='metas',
+        verbose_name='Estúdio',
+    )
+    indicador = models.CharField('Indicador', max_length=20,
+                                 choices=INDICADOR_CHOICES)
+    alvo = models.PositiveIntegerField('Valor a alcançar')
+    prazo = models.DateField('Prazo')
+    valor_inicial = models.PositiveIntegerField(
+        'Valor quando a meta foi criada', null=True, blank=True
+    )
+    criada_em = models.DateTimeField('Criada em', auto_now_add=True)
+    atingida_em = models.DateTimeField('Atingida em', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Meta ESG'
+        verbose_name_plural = 'Metas ESG'
+        ordering = ['-criada_em', '-id']
+
+    def __str__(self):
+        return f'{self.estudio} - {self.descricao()}'
+
+    @staticmethod
+    def valor_do_indicador(estudio, indicador):
+        """Valor de hoje do indicador, ou None se ainda não há medição."""
+        if indicador == MetaEsg.CHECKLIST:
+            checklist = estudio.ultimo_checklist()
+            return checklist.percentual() if checklist else None
+        if indicador == MetaEsg.RESIDUOS:
+            calculo = estudio.ultimo_calculo_residuo()
+            return calculo.total() if calculo else None
+        return estudio.aulas_concluidas()
+
+    @staticmethod
+    def alcanca(indicador, valor, alvo):
+        """Nos resíduos a meta é diminuir; nos outros, aumentar."""
+        if valor is None:
+            return False
+        if indicador == MetaEsg.RESIDUOS:
+            return valor <= alvo
+        return valor >= alvo
+
+    def unidade(self):
+        return self.UNIDADES[self.indicador]
+
+    def descricao(self):
+        if self.indicador == self.CHECKLIST:
+            return f'Cumprir {self.alvo}% do checklist'
+        if self.indicador == self.RESIDUOS:
+            return f'Gerar no máximo {self.alvo} g de resíduos por mês'
+        return f'Concluir {self.alvo} aula(s) de inclusão'
+
+    def valor_atual(self):
+        return self.valor_do_indicador(self.estudio, self.indicador)
+
+    def vencida(self):
+        return (self.atingida_em is None
+                and self.prazo < timezone.localdate())
+
+    def em_andamento(self):
+        return self.atingida_em is None and not self.vencida()
+
+    def situacao(self):
+        if self.atingida_em:
+            return 'Atingida'
+        if self.vencida():
+            return 'Prazo vencido'
+        return 'Em andamento'
+
+    def progresso(self):
+        """De 0 a 100: quanto do caminho até o alvo já foi percorrido."""
+        if self.atingida_em:
+            return 100
+        atual = self.valor_atual()
+        if atual is None:
+            return 0
+        if self.indicador == self.RESIDUOS:
+            inicial = self.valor_inicial
+            if inicial is None or inicial <= self.alvo:
+                return 100 if atual <= self.alvo else 0
+            percorrido = (inicial - atual) / (inicial - self.alvo) * 100
+        else:
+            percorrido = atual / self.alvo * 100
+        return max(0, min(100, round(percorrido)))
+
+
+class Campanha(models.Model):
+    """Ação social de uma ONG parceira da qual os estúdios podem participar."""
+
+    titulo = models.CharField('Título', max_length=150)
+    ong = models.CharField('ONG ou projeto parceiro', max_length=150)
+    descricao = models.TextField('Descrição')
+    cidade = models.CharField('Cidade', max_length=80, blank=True)
+    email = models.EmailField('E-mail de contato', blank=True)
+    site = models.URLField('Site', blank=True)
+    encerra_em = models.DateField(
+        'Encerra em', null=True, blank=True,
+        help_text='Deixe vazio para uma campanha sem data para acabar.',
+    )
+    ativa = models.BooleanField(
+        'Ativa', default=True,
+        help_text='Desmarque para encerrar a campanha antes da data.',
+    )
+    criada_em = models.DateTimeField('Criada em', auto_now_add=True)
+    estudios = models.ManyToManyField(
+        Estudio,
+        through='ParticipacaoCampanha',
+        related_name='campanhas',
+        verbose_name='Estúdios participantes',
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = 'Campanha social'
+        verbose_name_plural = 'Campanhas sociais'
+        ordering = ['-ativa', 'encerra_em', 'titulo']
+
+    def __str__(self):
+        return f'{self.titulo} ({self.ong})'
+
+    def aberta(self):
+        return self.ativa and (self.encerra_em is None
+                               or self.encerra_em >= timezone.localdate())
+
+
+class ParticipacaoCampanha(models.Model):
+    campanha = models.ForeignKey(
+        Campanha,
+        on_delete=models.CASCADE,
+        related_name='participacoes',
+        verbose_name='Campanha',
+    )
+    estudio = models.ForeignKey(
+        Estudio,
+        on_delete=models.CASCADE,
+        related_name='participacoes_campanha',
+        verbose_name='Estúdio',
+    )
+    desde = models.DateTimeField('Participa desde', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Participação em campanha'
+        verbose_name_plural = 'Participações em campanhas'
+        ordering = ['-desde']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['campanha', 'estudio'],
+                name='participacao_unica_por_campanha_e_estudio',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.estudio} em {self.campanha}'

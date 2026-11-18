@@ -19,6 +19,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></svg>
             {% if diagnostico %}Ver{% else %}Fazer{% endif %} diagnóstico
         </a>
+        <a href="{% url 'forum:estudio_evolucao' estudio.id %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16M8 16l4-5 3 3 5-7"/></svg>
+            Painel de evolução
+        </a>
         <a href="{% url 'forum:estudio_residuos' estudio.id %}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14M5 19c3-5 6-8 10-10"/></svg>
             Calculadora de resíduos
@@ -30,6 +34,10 @@
         <a href="{% url 'forum:estudio_aulas' estudio.id %}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/></svg>
             Aulas de inclusão
+        </a>
+        <a href="{% url 'forum:campanhas' %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.500-7 10-7 10z"/></svg>
+            Campanhas sociais
         </a>
     </nav>
     <p class="ajuda">
@@ -118,6 +126,40 @@
             Prata e 1 dá Bronze.
         </p>
     </div>
+
+    {% if checklist or aulas_concluidas %}
+    <div class="perfil-sobre">
+        <h3>Rotina e formação</h3>
+        <ul>
+            {% if checklist %}
+                <li>
+                    Checklist de higiene, segurança e gestão de resíduos:
+                    <b>{{ checklist.percentual }}% das práticas cumpridas</b>,
+                    conferido em {{ checklist.data|date:"d/m/Y" }}.
+                </li>
+            {% endif %}
+            {% if aulas_concluidas %}
+                <li>
+                    Aulas de inclusão e acessibilidade concluídas pela equipe:
+                    <b>{{ aulas_concluidas }}</b>.
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if campanhas %}
+    <div class="perfil-sobre">
+        <h3>Ações sociais</h3>
+        <p>Este estúdio participa de campanhas com ONGs e projetos parceiros:</p>
+        <ul>
+            {% for campanha in campanhas %}
+                <li><b>{{ campanha.titulo }}</b>, com {{ campanha.ong }}</li>
+            {% endfor %}
+        </ul>
+        <p><a href="{% url 'forum:campanhas' %}">Ver todas as campanhas</a></p>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

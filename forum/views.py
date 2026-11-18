@@ -1,6 +1,8 @@
 import hashlib
 import json
+from datetime import date, timedelta
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (
     authenticate,
@@ -24,18 +26,24 @@ from django.views import View
 import segno
 
 from . import redefinicao_senha
+from .evolucao import diario_do_estudio
 from .models import (
     Aula,
     CalculoResiduo,
+    Campanha,
+    Checklist,
     Contato,
     ConteudoDescarte,
     Diagnostico,
     EmpresaDescarte,
     Estudio,
+    ItemChecklist,
     ItemEstoque,
     ItemLista,
     Material,
     MembroEquipe,
+    MetaEsg,
+    ParticipacaoCampanha,
     Pilar,
     PraticaEstudio,
     ProgressoAula,
@@ -468,6 +476,7 @@ class FaleConoscoView(View):
             data_envio=timezone.now(),
         )
         contato.save()
+        self.avisar_equipe(contato)
 
         messages.success(
             request,
@@ -475,6 +484,21 @@ class FaleConoscoView(View):
             'equipe do INKA responde em até 3 dias úteis.',
         )
         return redirect(reverse('forum:fale_conosco'))
+
+    def avisar_equipe(self, contato):
+        """Manda a mensagem para o e-mail da equipe, se houver um.
+
+        Responder ao aviso já escreve para quem enviou a mensagem.
+        """
+        if not settings.EMAIL_CONTATO:
+            return
+        redefinicao_senha.enviar_email(
+            f'Fale Conosco: {contato.get_assunto_display()}',
+            'contato_recebido',
+            {'contato': contato},
+            settings.EMAIL_CONTATO,
+            responder_para=contato.email,
+        )
 
     def validar(self, dados):
     
@@ -510,7 +534,28 @@ class FaleConoscoView(View):
 
 class EstudiosView(View):
     def get(self, request):
-        contexto = {'estudios': Estudio.objects.all()}
+        estudios = list(Estudio.objects.all())
+
+        # A cidade é comparada em Python, ignorando maiúsculas: no SQLite o
+        # iexact não iguala letras com acento ("SÃO PAULO" e "São Paulo").
+        cidades = {}
+        for estudio in estudios:
+            cidades.setdefault(estudio.cidade.strip().casefold(),
+                               estudio.cidade.strip())
+        escolhida = request.GET.get('cidade', '').strip()
+        chave = escolhida.casefold()
+        if chave in cidades:
+            escolhida = cidades[chave]
+            estudios = [estudio for estudio in estudios
+                        if estudio.cidade.strip().casefold() == chave]
+        else:
+            escolhida = ''
+
+        contexto = {
+            'estudios': estudios,
+            'cidades': sorted(cidades.values(), key=str.casefold),
+            'cidade': escolhida,
+        }
         return render(request, 'forum/estudios.html', contexto)
 
 
@@ -624,6 +669,9 @@ class EstudioPerfilView(View):
         contexto = {
             'estudio': estudio,
             'diagnostico': estudio.ultimo_diagnostico(),
+            'campanhas': estudio.campanhas.all(),
+            'checklist': estudio.ultimo_checklist(),
+            'aulas_concluidas': estudio.aulas_concluidas(),
             # O perfil é público (o cliente chega pelo QR Code); os links da
             # área exclusiva só aparecem para a conta dona do estúdio.
             'eh_dono': (request.user.is_authenticated
@@ -1236,7 +1284,8 @@ class AulaView(AreaDoEstudioMixin, View):
             return render(request, 'forum/aula.html', contexto)
 
         progresso.concluida = True
-        progresso.save(update_fields=['concluida'])
+        progresso.concluida_em = timezone.now()
+        progresso.save(update_fields=['concluida', 'concluida_em'])
         messages.success(request, f'Aula concluída: {aula.titulo}.')
         return redirect(reverse('forum:estudio_aulas', args=[estudio.id]))
 
@@ -1378,3 +1427,262 @@ class AulaRemoverView(AreaDoEstudioMixin, View):
         aula.delete()
         messages.success(request, f'Aula removida: {aula.titulo}.')
         return redirect(reverse('forum:estudio_aulas', args=[estudio.id]))
+
+
+class EvolucaoView(AreaDoEstudioMixin, View):
+    """Painel de evolução: indicadores, checklist, metas e diário."""
+
+    # Passado este prazo sem checklist, o painel lembra o estúdio de fazer.
+    DIAS_ENTRE_CHECKLISTS = 7
+
+    def get(self, request, estudio_id):
+        estudio = self.estudio
+        self.registrar_metas_atingidas(request, estudio)
+        return render(request, 'forum/evolucao.html', self.contexto(estudio))
+
+    def registrar_metas_atingidas(self, request, estudio):
+        """Marca as metas que os indicadores de hoje já alcançaram."""
+        for meta in estudio.metas.filter(atingida_em__isnull=True):
+            if meta.em_andamento() and MetaEsg.alcanca(
+                meta.indicador, meta.valor_atual(), meta.alvo
+            ):
+                meta.atingida_em = timezone.now()
+                meta.save(update_fields=['atingida_em'])
+                messages.success(request,
+                                 f'Meta atingida: {meta.descricao()}.')
+
+    def contexto(self, estudio):
+        hoje = timezone.localdate()
+        ultimo = estudio.ultimo_checklist()
+        do_dia = ultimo if ultimo and ultimo.data == hoje else None
+        dias_sem_checklist = (hoje - ultimo.data).days if ultimo else None
+        marcados = set()
+        if do_dia:
+            marcados = set(do_dia.itens_cumpridos.values_list('id', flat=True))
+
+        itens = list(ItemChecklist.objects.filter(ativo=True))
+        for item in itens:
+            item.marcado = item.id in marcados
+        grupos = [
+            {'rotulo': rotulo,
+             'itens': [item for item in itens if item.categoria == codigo]}
+            for codigo, rotulo in ItemChecklist.CATEGORIA_CHOICES
+        ]
+
+        return {
+            'estudio': estudio,
+            'diagnostico': estudio.ultimo_diagnostico(),
+            'calculo': estudio.ultimo_calculo_residuo(),
+            'aulas_concluidas': estudio.aulas_concluidas(),
+            'total_aulas': Aula.visiveis_para(estudio).count(),
+            'total_campanhas': estudio.campanhas.count(),
+            'ultimo_checklist': ultimo,
+            'checklist_do_dia': do_dia,
+            'dias_sem_checklist': dias_sem_checklist,
+            'checklist_atrasado': (
+                ultimo is None
+                or dias_sem_checklist >= self.DIAS_ENTRE_CHECKLISTS
+            ),
+            'grupos': [grupo for grupo in grupos if grupo['itens']],
+            'metas': estudio.metas.all(),
+            'diario': diario_do_estudio(estudio),
+        }
+
+
+class ChecklistView(AreaDoEstudioMixin, View):
+    """Salva o checklist do dia. Refazer no mesmo dia atualiza o registro."""
+
+    def post(self, request, estudio_id):
+        estudio = self.estudio
+        painel = redirect(reverse('forum:estudio_evolucao', args=[estudio.id]))
+
+        ativos = list(ItemChecklist.objects.filter(ativo=True))
+        if not ativos:
+            messages.error(request, 'Ainda não há práticas no checklist.')
+            return painel
+
+        enviados = set(request.POST.getlist('itens'))
+        cumpridos = [item for item in ativos if str(item.id) in enviados]
+
+        checklist, _ = Checklist.objects.get_or_create(
+            estudio=estudio, data=timezone.localdate()
+        )
+        checklist.cumpridos = len(cumpridos)
+        checklist.total_itens = len(ativos)
+        checklist.save()
+        checklist.itens_cumpridos.set(cumpridos)
+
+        messages.success(
+            request,
+            f'Checklist de hoje salvo: {len(cumpridos)} de {len(ativos)} '
+            'práticas cumpridas.',
+        )
+        return painel
+
+
+class MetaNovaView(AreaDoEstudioMixin, View):
+    ALVO_MAXIMO = 1000000
+    MENSAGEM_DUPLICADA = (
+        'Seu estúdio já tem uma meta em andamento para este indicador. '
+        'Conclua ou remova a meta atual!'
+    )
+    MENSAGEM_JA_ALCANCADA = (
+        'Seu estúdio já alcançou esse valor. '
+        'Escolha uma meta mais desafiadora!'
+    )
+
+    def get(self, request, estudio_id):
+        contexto = self.contexto(self.estudio, {}, {})
+        return render(request, 'forum/meta_form.html', contexto)
+
+    def post(self, request, estudio_id):
+        estudio = self.estudio
+        dados = {
+            'indicador': request.POST.get('indicador', ''),
+            'alvo': request.POST.get('alvo', '').strip(),
+            'prazo': request.POST.get('prazo', '').strip(),
+        }
+        erros = self.validar(estudio, dados)
+
+        if erros:
+            messages.error(
+                request, 'Confira os campos destacados e tente novamente.'
+            )
+            contexto = self.contexto(estudio, dados, erros)
+            return render(request, 'forum/meta_form.html', contexto)
+
+        meta = MetaEsg.objects.create(
+            estudio=estudio,
+            indicador=dados['indicador'],
+            alvo=int(dados['alvo']),
+            prazo=date.fromisoformat(dados['prazo']),
+            valor_inicial=MetaEsg.valor_do_indicador(estudio,
+                                                    dados['indicador']),
+        )
+        messages.success(request, f'Meta definida: {meta.descricao()}.')
+        return redirect(reverse('forum:estudio_evolucao', args=[estudio.id]))
+
+    def contexto(self, estudio, dados, erros):
+        indicadores = [
+            {'codigo': codigo, 'rotulo': rotulo,
+             'unidade': MetaEsg.UNIDADES[codigo],
+             'atual': MetaEsg.valor_do_indicador(estudio, codigo)}
+            for codigo, rotulo in MetaEsg.INDICADOR_CHOICES
+        ]
+        return {
+            'estudio': estudio,
+            'indicadores': indicadores,
+            'dados': dados,
+            'erros': erros,
+            'amanha': (timezone.localdate()
+                       + timedelta(days=1)).isoformat(),
+        }
+
+    def validar(self, estudio, dados):
+        erros = {}
+        indicador = dados['indicador']
+
+        if indicador not in dict(MetaEsg.INDICADOR_CHOICES):
+            erros['indicador'] = 'Escolha o indicador da meta.'
+
+        alvo = None
+        if not dados['alvo']:
+            erros['alvo'] = 'Informe o valor a alcançar.'
+        elif not dados['alvo'].isdecimal() or int(dados['alvo']) == 0:
+            erros['alvo'] = 'Informe um número inteiro maior que zero.'
+        else:
+            alvo = int(dados['alvo'])
+            if indicador == MetaEsg.CHECKLIST and alvo > 100:
+                erros['alvo'] = 'No checklist a meta vai de 1 a 100%.'
+            elif alvo > self.ALVO_MAXIMO:
+                erros['alvo'] = f'Informe no máximo {self.ALVO_MAXIMO}.'
+
+        try:
+            prazo = date.fromisoformat(dados['prazo'])
+        except ValueError:
+            erros['prazo'] = 'Informe o prazo da meta.'
+        else:
+            if prazo <= timezone.localdate():
+                erros['prazo'] = 'O prazo deve ser uma data a partir de amanhã.'
+
+        if erros:
+            return erros
+
+        if any(meta.indicador == indicador and meta.em_andamento()
+               for meta in estudio.metas.all()):
+            erros['indicador'] = self.MENSAGEM_DUPLICADA
+        elif MetaEsg.alcanca(
+            indicador, MetaEsg.valor_do_indicador(estudio, indicador), alvo
+        ):
+            erros['alvo'] = self.MENSAGEM_JA_ALCANCADA
+
+        return erros
+
+
+class MetaRemoverView(AreaDoEstudioMixin, View):
+    """Só aceita POST, com o token CSRF, para um link não apagar a meta."""
+
+    def post(self, request, estudio_id, meta_id):
+        estudio = self.estudio
+        meta = get_object_or_404(MetaEsg, id=meta_id, estudio=estudio)
+        meta.delete()
+        messages.success(request, f'Meta removida: {meta.descricao()}.')
+        return redirect(reverse('forum:estudio_evolucao', args=[estudio.id]))
+
+
+class CampanhasView(View):
+    """Vitrine pública das campanhas sociais e dos estúdios que participam."""
+
+    def get(self, request):
+        estudio = None
+        if request.user.is_authenticated:
+            estudio = estudio_da_conta(request.user)
+
+        participa = set()
+        if estudio:
+            participa = set(estudio.campanhas.values_list('id', flat=True))
+
+        campanhas = list(Campanha.objects.prefetch_related('estudios'))
+        for campanha in campanhas:
+            campanha.participo = campanha.id in participa
+        # As abertas vêm primeiro; sorted mantém a ordem do banco no resto.
+        campanhas = sorted(campanhas, key=lambda c: not c.aberta())
+
+        contexto = {'campanhas': campanhas, 'estudio': estudio}
+        return render(request, 'forum/campanhas.html', contexto)
+
+
+class CampanhaParticiparView(AreaDoEstudioMixin, View):
+    MENSAGEM_ENCERRADA = (
+        'Esta campanha já foi encerrada. Veja as campanhas abertas!'
+    )
+
+    def post(self, request, estudio_id, campanha_id):
+        estudio = self.estudio
+        campanha = get_object_or_404(Campanha, id=campanha_id)
+
+        if not campanha.aberta():
+            messages.error(request, self.MENSAGEM_ENCERRADA)
+        else:
+            ParticipacaoCampanha.objects.get_or_create(
+                campanha=campanha, estudio=estudio
+            )
+            messages.success(
+                request,
+                f'{estudio.nome} agora participa de {campanha.titulo}. '
+                'Fale com a ONG para combinar os próximos passos.',
+            )
+        return redirect(reverse('forum:campanhas'))
+
+
+class CampanhaSairView(AreaDoEstudioMixin, View):
+    def post(self, request, estudio_id, campanha_id):
+        estudio = self.estudio
+        campanha = get_object_or_404(Campanha, id=campanha_id)
+        ParticipacaoCampanha.objects.filter(
+            campanha=campanha, estudio=estudio
+        ).delete()
+        messages.success(
+            request, f'{estudio.nome} saiu da campanha {campanha.titulo}.'
+        )
+        return redirect(reverse('forum:campanhas'))

@@ -958,7 +958,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Perspectiva e iluminação que acompanham o mouse
-    const canHover = window.matchMedia("(hover: hover: fine)").matches;
+    const canHover = window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+    ).matches;
     const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
     ).matches;

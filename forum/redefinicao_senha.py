@@ -125,12 +125,18 @@ def em_segundo_plano(funcao):
     threading.Thread(target=funcao, daemon=True).start()
 
 
-def enviar_email(assunto, modelo, contexto, destinatario):
-    """Monta o e-mail (texto + HTML) e envia em segundo plano."""
+def enviar_email(assunto, modelo, contexto, destinatario,
+                 responder_para=None):
+    """Monta o e-mail (texto + HTML) e envia em segundo plano.
+
+    responder_para é o endereço que o botão "Responder" do leitor de
+    e-mail usa, quando não for o do remetente.
+    """
     mensagem = EmailMultiAlternatives(
         subject=assunto,
         body=render_to_string(f'forum/emails/{modelo}.txt', contexto),
         to=[destinatario],
+        reply_to=[responder_para] if responder_para else None,
     )
     mensagem.attach_alternative(
         render_to_string(f'forum/emails/{modelo}.html', contexto), 'text/html'
@@ -141,7 +147,7 @@ def enviar_email(assunto, modelo, contexto, destinatario):
             mensagem.send()
         except Exception as erro:
             # Só o tipo do erro vai para o log, nunca o conteúdo do e-mail.
-            logger.error('Falha ao enviar e-mail de redefinição de senha (%s).',
+            logger.error('Falha ao enviar e-mail (%s).',
                          type(erro).__name__)
 
     em_segundo_plano(enviar)

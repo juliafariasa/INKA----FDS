@@ -1,0 +1,97 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Campanhas sociais - INKA{% endblock %}
+
+{% block content %}
+<section class="camp-pagina">
+
+    <header class="camp-intro">
+        <span class="camp-etiqueta">INKA / AÇÃO SOCIAL</span>
+        <h2>Tatuagem que transforma<span>.</span></h2>
+        <p>
+            Campanhas de ONGs e projetos parceiros em que os estúdios da rede
+            podem participar, como a cobertura gratuita de cicatrizes. Aqui
+            você vê as campanhas e os estúdios que fazem parte de cada uma.
+        </p>
+    </header>
+
+    {% if campanhas %}
+        <div class="camp-lista">
+            {% for campanha in campanhas %}
+                <article class="camp-card{% if not campanha.aberta %} camp-encerrada{% endif %}">
+
+                    <div class="camp-card-topo">
+                        <span class="camp-ong">{{ campanha.ong }}</span>
+                        <span class="camp-situacao">
+                            {% if not campanha.aberta %}Encerrada{% elif campanha.encerra_em %}Até {{ campanha.encerra_em|date:"d/m/Y" }}{% else %}Aberta{% endif %}
+                        </span>
+                    </div>
+
+                    <h3>{{ campanha.titulo }}</h3>
+
+                    <p>{{ campanha.descricao|linebreaksbr }}</p>
+
+                    <p class="camp-contato">
+                        {% if campanha.cidade %}<span>{{ campanha.cidade }}</span>{% endif %}
+                        {% if campanha.email %}<a href="mailto:{{ campanha.email }}">{{ campanha.email }}</a>{% endif %}
+                        {% if campanha.site %}<a href="{{ campanha.site }}" target="_blank" rel="noopener">Site da ONG ↗</a>{% endif %}
+                    </p>
+
+                    <div class="camp-participantes">
+                        <span class="camp-etiqueta">Estúdios participantes</span>
+                        {% with participantes=campanha.estudios.all %}
+                            {% if participantes %}
+                                <ul>
+                                    {% for participante in participantes %}
+                                        <li><a href="{% url 'forum:estudio_perfil' participante.id %}">{{ participante.nome }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>Nenhum estúdio ainda.{% if campanha.aberta %} Seja o primeiro!{% endif %}</p>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    {% if campanha.aberta %}
+                        {% if estudio %}
+                            {% if campanha.participo %}
+                                <form method="post"
+                                      action="{% url 'forum:estudio_campanha_sair' estudio.id campanha.id %}">
+                                    {% csrf_token %}
+                                    <p class="camp-participo">{{ estudio.nome }} participa desta campanha.</p>
+                                    <button type="submit" class="camp-botao camp-botao-sair">Sair da campanha</button>
+                                </form>
+                            {% else %}
+                                <form method="post"
+                                      action="{% url 'forum:estudio_campanha_participar' estudio.id campanha.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="camp-botao">Participar com {{ estudio.nome }}</button>
+                                </form>
+                            {% endif %}
+                        {% elif not user.is_authenticated %}
+                            <p class="camp-entrar">
+                                <a href="{% url 'forum:entrar' %}?next={% url 'forum:campanhas' %}">Entre com a conta do estúdio</a>
+                                para participar.
+                            </p>
+                        {% endif %}
+                    {% endif %}
+
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="camp-vazio">
+            <span>✳</span>
+            <div>
+                <strong>Nenhuma campanha por aqui ainda.</strong>
+                <p>
+                    Representa uma ONG ou um projeto social? Fale com a equipe
+                    pela página <a href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
+                    para divulgar sua campanha.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+</section>
+{% endblock %}

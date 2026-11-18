@@ -37,6 +37,27 @@
 </div>
 
 
+    {% if cidades|length > 1 %}
+    <form method="get" class="estudios-filtro">
+        <label for="cidade">Estúdios perto de você</label>
+        <div class="estudios-filtro-campos">
+            <select id="cidade" name="cidade">
+                <option value="">Todas as cidades</option>
+                {% for opcao in cidades %}
+                    <option value="{{ opcao }}"{% if opcao == cidade %} selected{% endif %}>{{ opcao }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filtrar</button>
+        </div>
+        {% if cidade %}
+            <p class="estudios-filtro-resumo">
+                {{ estudios|length }} estúdio(s) em {{ cidade }}.
+                <a href="{% url 'forum:estudios' %}">Ver todas as cidades</a>
+            </p>
+        {% endif %}
+    </form>
+    {% endif %}
+
     {% if estudios %}
     <div class="estudios-palco">
 

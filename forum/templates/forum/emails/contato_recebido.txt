@@ -1,0 +1,11 @@
+{% autoescape off %}Nova mensagem no Fale Conosco - INKA
+
+De: {{ contato.nome }} <{{ contato.email }}>{% if contato.empresa %}
+Empresa: {{ contato.empresa }}{% endif %}
+Assunto: {{ contato.get_assunto_display }}
+Enviada em: {{ contato.data_envio|date:"d/m/Y" }} às {{ contato.data_envio|date:"H:i" }}
+
+{{ contato.mensagem }}
+
+Para responder, use o "Responder" do seu e-mail: a resposta vai direto para {{ contato.email }}.
+Depois, marque a mensagem como respondida no admin.{% endautoescape %}

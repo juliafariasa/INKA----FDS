@@ -1155,6 +1155,11 @@
             Estúdios
         </a>
 
+        <a class="{% if pagina == 'campanhas' %}ativo{% endif %}"
+           href="{% url 'forum:campanhas' %}">
+            Campanhas
+        </a>
+
         {% if user.is_authenticated %}
 
             <a class="{% if pagina == 'minha_area' %}ativo{% endif %}"

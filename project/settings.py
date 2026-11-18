@@ -13,6 +13,7 @@ import os
 import sys
 from pathlib import Path
 
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -35,7 +36,21 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', str('runserver' in sys.argv)) == 'True'
 
-ALLOWED_HOSTS = ['*']
+# No Render o site só responde pelos próprios endereços: o que o Render
+# informa (RENDER_EXTERNAL_HOSTNAME), o endereço público do projeto e os
+# extras de ALLOWED_HOSTS (separados por vírgula, para um domínio próprio).
+# No computador de desenvolvimento qualquer endereço serve, para dar para
+# abrir o site pelo celular na mesma rede e testar o QR Code.
+if 'RENDER' in os.environ:
+    ALLOWED_HOSTS = ['esgrise-fds.onrender.com']
+    ALLOWED_HOSTS += [
+        endereco.strip() for endereco in (
+            os.environ.get('RENDER_EXTERNAL_HOSTNAME', '') + ','
+            + os.environ.get('ALLOWED_HOSTS', '')
+        ).split(',') if endereco.strip()
+    ]
+else:
+    ALLOWED_HOSTS = ['*']
 
 # Login dos estúdios: quem não está logado é mandado para esta página.
 LOGIN_URL = 'forum:entrar'
@@ -105,6 +120,16 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Com DATABASE_URL definida (PostgreSQL do Render), o site usa esse banco, que
+# continua existindo entre um deploy e outro. Sem ela, usa o arquivo SQLite
+# acima: é o que roda no computador de desenvolvimento e nos testes. No
+# Render o arquivo SQLite é apagado a cada deploy, a menos que o serviço tenha
+# um disco persistente.
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.parse(
+        os.environ['DATABASE_URL'], conn_max_age=600
+    )
 
 
 # Password validation
@@ -188,6 +213,10 @@ else:
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL', 'INKA <nao-responda@localhost>'
 )
+
+# Endereço da equipe que recebe um aviso a cada mensagem do Fale Conosco.
+# Vazio: a mensagem só fica guardada no admin, como antes.
+EMAIL_CONTATO = os.environ.get('EMAIL_CONTATO', '')
 
 # Atrás do proxy do Render o IP do visitante vem no cabeçalho X-Forwarded-For;
 # ele é usado no limite de pedidos de redefinição de senha.

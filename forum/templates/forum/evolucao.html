@@ -1,0 +1,202 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Painel de evolução - {{ estudio.nome }} - INKA{% endblock %}
+
+{% block content %}
+<section class="evo-pagina">
+
+    <header class="evo-intro">
+        <span class="evo-etiqueta">INKA / PAINEL DE EVOLUÇÃO</span>
+        <h2>Evolução de {{ estudio.nome }}</h2>
+        <p>
+            Acompanhe os indicadores do estúdio, confira as práticas de rotina,
+            escolha metas e veja no diário tudo o que já foi registrado.
+        </p>
+    </header>
+
+    <!-- INDICADORES -->
+    <div class="evo-indicadores">
+        <a class="evo-indicador"
+           href="{% url 'forum:estudio_diagnostico' estudio.id %}">
+            <span class="evo-rotulo">Índice de sustentabilidade</span>
+            {% if diagnostico %}
+                <strong>{{ diagnostico.indice|floatformat:0 }}<small>/100</small></strong>
+                <span class="evo-detalhe">{% if diagnostico.selo %}Selo {{ diagnostico.selo }}{% else %}Ainda sem selo{% endif %}</span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Faça o diagnóstico inicial</span>
+            {% endif %}
+        </a>
+
+        <a class="evo-indicador" href="#checklist">
+            <span class="evo-rotulo">Checklist de boas práticas</span>
+            {% if ultimo_checklist %}
+                <strong>{{ ultimo_checklist.percentual }}<small>%</small></strong>
+                <span class="evo-detalhe">
+                    {% if dias_sem_checklist == 0 %}Conferido hoje{% elif dias_sem_checklist == 1 %}Conferido ontem{% else %}Conferido há {{ dias_sem_checklist }} dias{% endif %}
+                </span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Nenhuma verificação ainda</span>
+            {% endif %}
+        </a>
+
+        <a class="evo-indicador"
+           href="{% url 'forum:estudio_residuos' estudio.id %}">
+            <span class="evo-rotulo">Resíduos por mês</span>
+            {% if calculo %}
+                <strong>{{ calculo.total }}<small> g</small></strong>
+                <span class="evo-detalhe">Calculado em {{ calculo.criado_em|date:"d/m/Y" }}</span>
+            {% else %}
+                <strong>—</strong>
+                <span class="evo-detalhe">Use a calculadora de resíduos</span>
+            {% endif %}
+        </a>
+
+        <a class="evo-indicador"
+           href="{% url 'forum:estudio_aulas' estudio.id %}">
+            <span class="evo-rotulo">Aulas de inclusão</span>
+            <strong>{{ aulas_concluidas }}<small>/{{ total_aulas }}</small></strong>
+            <span class="evo-detalhe">aula(s) concluída(s)</span>
+        </a>
+
+        <a class="evo-indicador" href="{% url 'forum:campanhas' %}">
+            <span class="evo-rotulo">Campanhas sociais</span>
+            <strong>{{ total_campanhas }}</strong>
+            <span class="evo-detalhe">com participação do estúdio</span>
+        </a>
+    </div>
+
+    <!-- CHECKLIST -->
+    <section class="evo-bloco" id="checklist">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">01 / ROTINA</span>
+            <h3>Checklist de boas práticas</h3>
+            <p>
+                Marque o que o estúdio está cumprindo hoje em higiene, segurança
+                e gestão de resíduos. Refazer no mesmo dia atualiza o registro.
+            </p>
+        </div>
+
+        {% if checklist_atrasado %}
+            <p class="evo-lembrete">
+                {% if ultimo_checklist %}
+                    A última verificação foi há {{ dias_sem_checklist }} dias.
+                    Confira as práticas desta semana.
+                {% else %}
+                    Seu estúdio ainda não fez nenhuma verificação. Comece hoje.
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {% if grupos %}
+            <form method="post" class="evo-checklist"
+                  action="{% url 'forum:estudio_checklist' estudio.id %}">
+                {% csrf_token %}
+
+                {% for grupo in grupos %}
+                    <fieldset>
+                        <legend>{{ grupo.rotulo }}</legend>
+                        {% for item in grupo.itens %}
+                            <label class="evo-item" for="item-{{ item.id }}">
+                                <input type="checkbox" id="item-{{ item.id }}"
+                                       name="itens" value="{{ item.id }}"
+                                       {% if item.marcado %}checked{% endif %}>
+                                <span>{{ item.texto }}</span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
+
+                <input type="submit" name="salvar_checklist"
+                       value="{% if checklist_do_dia %}Atualizar checklist de hoje{% else %}Salvar checklist de hoje{% endif %}">
+            </form>
+        {% else %}
+            <p class="evo-vazio">Ainda não há práticas no checklist.</p>
+        {% endif %}
+    </section>
+
+    <!-- METAS -->
+    <section class="evo-bloco" id="metas">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">02 / OBJETIVOS</span>
+            <h3>Metas do estúdio</h3>
+            <p>
+                Escolha um indicador, um valor e um prazo. O painel mostra o
+                quanto falta e avisa quando a meta for atingida.
+            </p>
+        </div>
+
+        {% if metas %}
+            <div class="evo-metas">
+                {% for meta in metas %}
+                    <article class="evo-meta{% if meta.atingida_em %} evo-meta-atingida{% elif meta.vencida %} evo-meta-vencida{% endif %}">
+                        <div class="evo-meta-topo">
+                            <span class="evo-meta-situacao">{{ meta.situacao }}</span>
+                            <span class="evo-meta-prazo">
+                                {% if meta.atingida_em %}em {{ meta.atingida_em|date:"d/m/Y" }}{% else %}até {{ meta.prazo|date:"d/m/Y" }}{% endif %}
+                            </span>
+                        </div>
+
+                        <h4>{{ meta.descricao }}</h4>
+
+                        <div class="evo-barra" role="img"
+                             aria-label="{{ meta.progresso }}% do caminho percorrido">
+                            <i style="--progresso: {{ meta.progresso }}"></i>
+                        </div>
+
+                        <p class="evo-meta-valores">
+                            {% with atual=meta.valor_atual %}
+                                {% if atual is None %}
+                                    Ainda sem medição deste indicador.
+                                {% else %}
+                                    Hoje: <b>{{ atual }} {{ meta.unidade }}</b>
+                                    · Meta: <b>{{ meta.alvo }} {{ meta.unidade }}</b>
+                                {% endif %}
+                            {% endwith %}
+                        </p>
+
+                        <form method="post"
+                              action="{% url 'forum:estudio_meta_remover' estudio.id meta.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="evo-meta-remover">Remover meta</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="evo-vazio">
+                Nenhuma meta definida ainda. Que tal começar pelo checklist?
+            </p>
+        {% endif %}
+
+        <a class="evo-acao" href="{% url 'forum:estudio_meta_nova' estudio.id %}">
+            <span>+</span> Definir nova meta
+        </a>
+    </section>
+
+    <!-- DIÁRIO -->
+    <section class="evo-bloco" id="diario">
+        <div class="evo-bloco-topo">
+            <span class="evo-etiqueta">03 / HISTÓRICO</span>
+            <h3>Diário de evolução</h3>
+            <p>O que o estúdio registrou na plataforma, do mais recente ao mais antigo.</p>
+        </div>
+
+        <ol class="evo-diario">
+            {% for evento in diario %}
+                <li>
+                    <time datetime="{{ evento.quando|date:'c' }}">{{ evento.quando|date:"d/m/Y" }}</time>
+                    <span class="evo-diario-tipo">{{ evento.tipo }}</span>
+                    <p>{{ evento.texto }}</p>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+
+    <a class="evo-voltar" href="{% url 'forum:estudio_perfil' estudio.id %}">
+        ← Voltar ao perfil do estúdio
+    </a>
+
+</section>
+{% endblock %}

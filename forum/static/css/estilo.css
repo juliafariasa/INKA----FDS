@@ -10986,3 +10986,515 @@ body::after {
         transition: none;
     }
 }
+
+/* =========================================
+   PAINEL DE EVOLUÇÃO (checklist, metas e diário)
+========================================= */
+
+.evo-pagina,
+.camp-pagina {
+    display: grid;
+    gap: 44px;
+}
+
+.evo-pagina-estreita {
+    max-width: 620px;
+}
+
+.evo-etiqueta,
+.camp-etiqueta {
+    display: block;
+    color: var(--inka-verde-claro);
+    font-size: 11px;
+    font-stretch: expanded;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.evo-intro h2,
+.camp-intro h2 {
+    margin: 12px 0 14px;
+}
+
+.camp-intro h2 span {
+    color: var(--inka-verde-claro);
+}
+
+.evo-intro p,
+.camp-intro p,
+.evo-bloco-topo p {
+    max-width: 640px;
+    margin: 0;
+    color: var(--inka-suave);
+}
+
+.evo-indicadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+body .evo-indicador {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+    color: var(--inka-claro);
+    text-decoration: none;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+body .evo-indicador:hover,
+body .evo-indicador:focus-visible {
+    border-color: var(--inka-verde-claro);
+    background-color: var(--inka-painel-alto);
+    outline: none;
+}
+
+.evo-rotulo {
+    color: var(--inka-suave);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.evo-indicador strong {
+    color: var(--inka-verde-claro);
+    font-size: 44px;
+    font-weight: normal;
+    line-height: 1;
+}
+
+.evo-indicador small {
+    color: var(--inka-suave);
+    font-size: 16px;
+}
+
+.evo-detalhe {
+    color: var(--inka-suave);
+    font-size: 13px;
+}
+
+.evo-bloco {
+    display: grid;
+    gap: 22px;
+    padding-top: 30px;
+    border-top: 1px solid var(--inka-linha);
+}
+
+.evo-bloco-topo h3 {
+    margin: 10px 0 8px;
+}
+
+.evo-lembrete {
+    margin: 0;
+    padding: 14px 18px;
+    border-left: 3px solid var(--inka-verde-claro);
+    background-color: var(--inka-painel-alto);
+}
+
+.evo-checklist {
+    display: grid;
+    gap: 20px;
+}
+
+.evo-checklist fieldset {
+    margin: 0;
+    padding: 6px 20px 16px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.evo-checklist legend {
+    padding: 0 8px;
+    color: var(--inka-verde-claro);
+    font-size: 12px;
+    font-stretch: expanded;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.evo-checklist .evo-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 0;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--inka-linha-suave);
+    color: var(--inka-claro);
+    font-size: 15px;
+    font-stretch: normal;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+}
+
+.evo-checklist .evo-item:last-child {
+    border-bottom: 0;
+}
+
+.evo-item input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+}
+
+.evo-checklist input[type="submit"],
+.evo-form input[type="submit"] {
+    justify-self: start;
+    width: auto;
+    margin-top: 4px;
+}
+
+.evo-form {
+    display: grid;
+}
+
+.evo-form input[type="submit"] {
+    margin-top: 24px;
+}
+
+.evo-metas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.evo-meta {
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.evo-meta-atingida {
+    border-color: var(--inka-verde-claro);
+}
+
+.evo-meta-vencida {
+    border-style: dashed;
+}
+
+.evo-meta-topo {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.evo-meta-situacao {
+    color: var(--inka-verde-claro);
+}
+
+.evo-meta-vencida .evo-meta-situacao,
+.evo-meta-prazo {
+    color: var(--inka-suave);
+}
+
+.evo-meta h4 {
+    margin: 0;
+    color: var(--inka-claro);
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.evo-barra {
+    height: 6px;
+    background-color: var(--inka-linha);
+}
+
+.evo-barra i {
+    display: block;
+    width: calc(var(--progresso) * 1%);
+    height: 100%;
+    background-color: var(--inka-verde-claro);
+}
+
+.evo-meta-valores {
+    margin: 0;
+    color: var(--inka-suave);
+    font-size: 13px;
+}
+
+.evo-meta-valores b {
+    color: var(--inka-claro);
+    font-weight: normal;
+}
+
+.evo-meta-remover {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--inka-suave);
+    font: inherit;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.evo-meta-remover:hover,
+.evo-meta-remover:focus-visible {
+    color: var(--inka-claro);
+}
+
+body .evo-acao {
+    justify-self: start;
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 18px;
+    border: 1px solid var(--inka-verde-claro);
+    color: var(--inka-verde-claro);
+    font-size: 11px;
+    font-stretch: expanded;
+    letter-spacing: 0.16em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+body .evo-acao:hover,
+body .evo-acao:focus-visible {
+    background-color: var(--inka-verde-claro);
+    color: var(--inka-preto);
+    outline: none;
+}
+
+.evo-vazio {
+    margin: 0;
+    color: var(--inka-suave);
+}
+
+.evo-diario {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.evo-diario li {
+    display: grid;
+    grid-template-columns: 96px 110px minmax(0, 1fr);
+    gap: 16px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--inka-linha-suave);
+}
+
+.evo-diario time {
+    color: var(--inka-suave);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.evo-diario-tipo {
+    color: var(--inka-verde-claro);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.evo-diario p {
+    margin: 0;
+}
+
+body .evo-voltar {
+    justify-self: start;
+    color: var(--inka-suave);
+    text-decoration: none;
+}
+
+body .evo-voltar:hover {
+    color: var(--inka-claro);
+}
+
+/* =========================================
+   CAMPANHAS SOCIAIS
+========================================= */
+
+.camp-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.camp-card {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    padding: 24px;
+    border: 1px solid var(--inka-linha);
+    background-color: var(--inka-painel);
+}
+
+.camp-encerrada {
+    border-style: dashed;
+    opacity: 0.75;
+}
+
+.camp-card-topo {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.camp-ong {
+    color: var(--inka-verde-claro);
+}
+
+.camp-situacao {
+    color: var(--inka-suave);
+}
+
+.camp-card h3 {
+    margin: 0;
+}
+
+.camp-card p {
+    margin: 0;
+}
+
+.camp-contato {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    color: var(--inka-suave);
+    font-size: 13px;
+}
+
+.camp-participantes {
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--inka-linha-suave);
+}
+
+.camp-participantes ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.camp-participantes p,
+.camp-participo,
+.camp-entrar {
+    color: var(--inka-suave);
+    font-size: 13px;
+}
+
+.camp-card form {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+}
+
+.camp-botao {
+    padding: 12px 18px;
+    border: 1px solid var(--inka-verde-claro);
+    background-color: var(--inka-verde-claro);
+    color: var(--inka-preto);
+    font: inherit;
+    font-size: 11px;
+    font-stretch: expanded;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.camp-botao:hover,
+.camp-botao:focus-visible {
+    background-color: transparent;
+    color: var(--inka-verde-claro);
+    outline: none;
+}
+
+.camp-botao-sair {
+    border-color: var(--inka-linha);
+    background-color: transparent;
+    color: var(--inka-suave);
+}
+
+.camp-botao-sair:hover,
+.camp-botao-sair:focus-visible {
+    border-color: var(--inka-claro);
+    color: var(--inka-claro);
+}
+
+.camp-vazio {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 24px;
+    border: 1px dashed var(--inka-linha);
+}
+
+.camp-vazio > span {
+    color: var(--inka-verde-claro);
+    font-size: 26px;
+    line-height: 1;
+}
+
+.camp-vazio p {
+    margin: 6px 0 0;
+    color: var(--inka-suave);
+}
+
+@media (max-width: 600px) {
+    .evo-diario li {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+}
+
+/* Lista de estúdios: filtro por cidade */
+
+.estudios-filtro {
+    max-width: 520px;
+    margin: 0 0 36px;
+}
+
+.estudios-filtro-campos {
+    display: flex;
+    gap: 10px;
+}
+
+.estudios-filtro button {
+    flex: none;
+    padding: 0 22px;
+    border: 1px solid var(--inka-verde-claro);
+    background-color: var(--inka-verde-claro);
+    color: var(--inka-preto);
+    font: inherit;
+    font-size: 11px;
+    font-stretch: expanded;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.estudios-filtro button:hover,
+.estudios-filtro button:focus-visible {
+    background-color: transparent;
+    color: var(--inka-verde-claro);
+    outline: none;
+}
+
+.estudios-filtro-resumo {
+    margin: 12px 0 0;
+    color: var(--inka-suave);
+    font-size: 13px;
+}

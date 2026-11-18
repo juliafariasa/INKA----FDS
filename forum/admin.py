@@ -3,15 +3,20 @@ from django.contrib import admin
 from .models import (
     Aula,
     CalculoResiduo,
+    Campanha,
+    Checklist,
     Contato,
     ConteudoDescarte,
     Diagnostico,
     EmpresaDescarte,
     Estudio,
+    ItemChecklist,
     ItemEstoque,
     ItemLista,
     Material,
     MembroEquipe,
+    MetaEsg,
+    ParticipacaoCampanha,
     Pilar,
     PraticaEstudio,
     ProgressoAula,
@@ -129,3 +134,35 @@ class AulaAdmin(admin.ModelAdmin):
 class ProgressoAulaAdmin(admin.ModelAdmin):
     list_display = ['estudio', 'aula', 'segundos_assistidos', 'concluida']
     list_filter = ['concluida', 'aula', 'estudio']
+
+
+@admin.register(ItemChecklist)
+class ItemChecklistAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'categoria', 'ordem', 'ativo']
+    list_filter = ['categoria', 'ativo']
+    search_fields = ['texto']
+
+
+@admin.register(Checklist)
+class ChecklistAdmin(admin.ModelAdmin):
+    list_display = ['estudio', 'data', 'cumpridos', 'total_itens']
+    list_filter = ['estudio']
+
+
+@admin.register(MetaEsg)
+class MetaEsgAdmin(admin.ModelAdmin):
+    list_display = ['estudio', 'indicador', 'alvo', 'prazo', 'atingida_em']
+    list_filter = ['indicador', 'estudio']
+
+
+class ParticipacaoCampanhaInline(admin.TabularInline):
+    model = ParticipacaoCampanha
+    extra = 0
+
+
+@admin.register(Campanha)
+class CampanhaAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'ong', 'cidade', 'encerra_em', 'ativa']
+    list_filter = ['ativa', 'cidade']
+    search_fields = ['titulo', 'ong', 'descricao']
+    inlines = [ParticipacaoCampanhaInline]
