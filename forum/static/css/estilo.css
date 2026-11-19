@@ -194,11 +194,116 @@ input.is-enviando {
     opacity: 0.72;
 }
 
+/* =========================================================
+   TOPO UNIFICADO
+   As páginas internas usam o mesmo logo das públicas, alinhado ao centro
+   com o subtítulo. O logo reage ao ponteiro como um carimbo leve.
+   ========================================================= */
+.topo:has(.topo-logo-img) {
+    align-items: center;
+    gap: 6px 28px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--inka-linha-suave);
+}
+
+.topo .topo-logo-link:has(.topo-logo-img) {
+    display: block;
+    font-size: 0;
+}
+
+.topo-logo-img {
+    display: block;
+    width: 92px;
+    height: auto;
+    transition: transform var(--inka-tempo-medio) var(--inka-curva-saida),
+                filter var(--inka-tempo-medio);
+}
+
+.topo .topo-logo-link:hover .topo-logo-img {
+    transform: rotate(-2deg) scale(1.04);
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--inka-verde-claro) 35%, transparent));
+}
+
+.topo:has(.topo-logo-img) .subtitulo {
+    padding-left: 28px;
+    border-left: 1px solid var(--inka-linha);
+    line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+    .topo-logo-img {
+        width: 70px;
+    }
+
+    .topo:has(.topo-logo-img) .subtitulo {
+        flex-basis: 100%;
+        padding-left: 0;
+        border-left: 0;
+        font-size: 10px;
+    }
+}
+
+/* =========================================================
+   ENTRADA COREOGRAFADA (iniciarCoreografia, script.js)
+   Estado temporário: as classes saem quando a entrada termina. O
+   !important garante a transição mesmo sobre componentes que declaram a
+   própria transition com seletor de id.
+   ========================================================= */
+.inka-entra {
+    opacity: 0 !important;
+    translate: 0 22px;
+    transition: none !important;
+}
+
+/* A transição fica só no estado final: o estado inicial entra sem animar. */
+.inka-entra.inka-entrou {
+    opacity: 1 !important;
+    translate: 0 0;
+    transition:
+        opacity 0.7s var(--inka-curva-saida) var(--inka-atraso, 0ms),
+        translate 0.9s var(--inka-curva-saida) var(--inka-atraso, 0ms) !important;
+}
+
+
+
+/* =========================================================
+   PÁGINAS-EXPERIÊNCIA SEM MOLDURA DUPLA
+   Cofre, flash sheet, arquivo, notebook, dossiê... já têm a própria
+   moldura. Nelas o painel do site some (borda, fundo e cantos) e a
+   experiência ocupa o espaço inteiro: uma moldura só, em vez de três.
+   ========================================================= */
+.container:has(> #inka-dashboard, > #inka-flash-sheet, > #inka-document-archive,
+               > #dossie-inka, > #inka-vault, > .vault-register, > .aulas-pagina,
+               > #inka-director, > .inka-descarte-pagina, > .diagnostico-painel,
+               > .inka-residuos-pagina, > .qr-pagina, > .camp-pagina) {
+    max-width: 1180px;
+    margin-top: 28px;
+    padding-top: 8px;
+    padding-inline: clamp(16px, 3vw, 32px);
+    border-color: transparent;
+    background-color: transparent;
+}
+
+.container:has(> #inka-dashboard, > #inka-flash-sheet, > #inka-document-archive,
+               > #dossie-inka, > #inka-vault, > .vault-register, > .aulas-pagina,
+               > #inka-director, > .inka-descarte-pagina, > .diagnostico-painel,
+               > .inka-residuos-pagina, > .qr-pagina, > .camp-pagina)::before,
+.container:has(> #inka-dashboard, > #inka-flash-sheet, > #inka-document-archive,
+               > #dossie-inka, > #inka-vault, > .vault-register, > .aulas-pagina,
+               > #inka-director, > .inka-descarte-pagina, > .diagnostico-painel,
+               > .inka-residuos-pagina, > .qr-pagina, > .camp-pagina)::after {
+    display: none;
+}
+
 /* Trilha "Minha Área / Seção / Página": mesma microtipografia dos rótulos
    editoriais (INKA / ARQUIVO DE MATERIAIS). Fica no alto de toda a área
    do estúdio, no mesmo lugar em todas as páginas. */
 .trilha {
-    margin: 0 0 28px;
+    margin: 0;
+    padding: 14px 96px 14px clamp(20px, 5vw, 64px);
+    border-bottom: 1px solid var(--inka-linha-suave);
+    background-color: color-mix(in srgb, var(--inka-preto) 82%, transparent);
     font-size: 11px;
     font-stretch: expanded;
     letter-spacing: 0.14em;
@@ -14136,3 +14241,46 @@ body .painel-menu a.ativo {
         transition: none;
     }
 }
+
+
+/* =========================================================
+   LINK DE RETORNO ÚNICO (.inka-voltar)
+   Todos os "← Voltar…" e "Cancelar…" do site com o mesmo desenho: rótulo
+   editorial largo (sem caixa alta: o texto visível segue igual ao do
+   template, que os testes E2E procuram), traço que se desenha no hover e seta que recua.
+   Fica no fim do arquivo e usa #conteudo para valer sobre os estilos
+   antigos de cada página (aulas-voltar, evo-voltar, qr-voltar...).
+   ========================================================= */
+#conteudo a.inka-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 10px 0;
+    border: 0;
+    background: linear-gradient(currentColor, currentColor) left calc(100% - 4px) / 0 1px no-repeat;
+    color: var(--inka-verde-claro);
+    font-family: var(--fonte);
+    font-size: 13px;
+    font-stretch: expanded;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    text-decoration: none;
+    box-shadow: none;
+    transition: color var(--inka-tempo-rapido),
+                background-size var(--inka-tempo-medio) var(--inka-curva-saida),
+                translate var(--inka-tempo-medio) var(--inka-curva-saida);
+}
+
+#conteudo a.inka-voltar:hover,
+#conteudo a.inka-voltar:focus-visible {
+    background-size: 100% 1px;
+    color: var(--inka-claro);
+    translate: -4px 0;
+}
+
+#conteudo a.inka-voltar > span {
+    color: inherit;
+}
+

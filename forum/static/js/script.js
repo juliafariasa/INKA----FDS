@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     iniciarMenu();
     iniciarEnvioDeFormularios();
+    iniciarCoreografia();
+    iniciarLuzDoCursor();
     desenharTintaDecorativa();
     iniciarDesenho();
     iniciarAnimacaoCaneta();
@@ -178,6 +180,151 @@ function iniciarMenu() {
     // O link da página atual é anunciado como tal pelo leitor de tela.
     menu.querySelectorAll('a.ativo').forEach(function (link) {
         link.setAttribute('aria-current', 'page');
+    });
+}
+
+// Entrada das páginas internas: o texto do topo de cada experiência entra em
+// sequência (rótulo, título, texto, botão) e os blocos seguintes aparecem
+// conforme a rolagem. Usa só opacity e "translate" (não mexe no transform que
+// os componentes 3D já usam) e as classes saem quando a entrada termina.
+// Fica de fora com movimento reduzido, nas páginas públicas (que já têm a
+// própria revelação) e sob automação de testes.
+function iniciarCoreografia() {
+    var main = document.getElementById('conteudo');
+    // O dossiê de documentos e o cadastro de aula já têm a própria abertura.
+    if (!main || document.body.classList.contains('tema-inka') ||
+            main.querySelector('#dossie-inka, #inka-director') ||
+            navigator.webdriver || !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    var ignorar = function (el) {
+        if (/^(SCRIPT|AUDIO|TEMPLATE|STYLE|DIALOG)$/.test(el.tagName) ||
+                el.classList.contains('aviso') || el.hidden) {
+            return true;
+        }
+        var estilo = getComputedStyle(el);
+        return estilo.position === 'fixed' || estilo.position === 'sticky' ||
+            estilo.position === 'absolute' || estilo.display === 'none' ||
+            el.offsetHeight === 0;
+    };
+    var filhosVisiveis = function (el) {
+        return Array.prototype.filter.call(el.children, function (filho) {
+            return !ignorar(filho);
+        });
+    };
+
+    // Tira as classes temporárias quando a entrada acaba (atraso + duração).
+    var terminar = function (el) {
+        var atraso = parseFloat(el.style.getPropertyValue('--inka-atraso')) || 0;
+        setTimeout(function () {
+            el.classList.remove('inka-entra', 'inka-entrou');
+            el.style.removeProperty('--inka-atraso');
+        }, atraso + 1000);
+    };
+    var revelar = function (el) {
+        void el.offsetWidth; // garante que o estado inicial foi aplicado
+        el.classList.add('inka-entrou');
+        terminar(el);
+    };
+
+    // 1. Texto do topo da experiência: entra em sequência logo ao abrir.
+    var copia = main.querySelector('.db-hero-copy, .ifs-hero-copy, .da-hero-copy, .aulas-hero-texto');
+    if (copia) {
+        var itens = filhosVisiveis(copia);
+        itens.forEach(function (el, indice) {
+            el.classList.add('inka-entra');
+            el.style.setProperty('--inka-atraso', (90 + indice * 85) + 'ms');
+        });
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                itens.forEach(revelar);
+            });
+        });
+    }
+
+    // 2. Blocos da página: desce enquanto houver um único invólucro e
+    //    revela cada bloco ao entrar na tela.
+    var no = main;
+    for (var nivel = 0; nivel < 3; nivel++) {
+        var filhos = filhosVisiveis(no);
+        if (filhos.length !== 1) {
+            break;
+        }
+        no = filhos[0];
+    }
+    var blocos = filhosVisiveis(no).filter(function (bloco) {
+        return !(copia && bloco.contains(copia));
+    });
+    if (blocos.length < 2) {
+        return;
+    }
+
+    var naTela = 0;
+    var observador = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (entrada) {
+            if (!entrada.isIntersecting) {
+                return;
+            }
+            var el = entrada.target;
+            // Os que já estão na tela ao abrir entram em cascata curta.
+            if (entrada.boundingClientRect.top < window.innerHeight) {
+                el.style.setProperty('--inka-atraso', Math.min(naTela, 4) * 90 + 'ms');
+                naTela++;
+            }
+            observador.unobserve(el);
+            revelar(el);
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+
+    blocos.forEach(function (bloco) {
+        bloco.classList.add('inka-entra');
+        observador.observe(bloco);
+    });
+}
+
+// Luz que acompanha o ponteiro nos painéis de abertura das experiências:
+// um halo verde muito sutil, como luz rasante sobre papel. Só com mouse.
+function iniciarLuzDoCursor() {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    var paineis = document.querySelectorAll(
+        '.db-hero, .ifs-hero, .da-hero, .aulas-hero, .inka-descarte-hero, .diagnostico-painel'
+    );
+    paineis.forEach(function (painel) {
+        if (getComputedStyle(painel).position === 'static') {
+            painel.style.position = 'relative';
+        }
+        var luz = document.createElement('span');
+        luz.className = 'inka-luz';
+        luz.setAttribute('aria-hidden', 'true');
+        painel.appendChild(luz);
+
+        var quadro = 0;
+        var x = 0;
+        var y = 0;
+        painel.addEventListener('pointermove', function (evento) {
+            var caixa = painel.getBoundingClientRect();
+            x = evento.clientX - caixa.left;
+            y = evento.clientY - caixa.top;
+            if (!quadro) {
+                quadro = requestAnimationFrame(function () {
+                    quadro = 0;
+                    luz.style.setProperty('--luz-x', x + 'px');
+                    luz.style.setProperty('--luz-y', y + 'px');
+                });
+            }
+        });
+        painel.addEventListener('pointerenter', function () {
+            luz.classList.add('acesa');
+        });
+        painel.addEventListener('pointerleave', function () {
+            luz.classList.remove('acesa');
+        });
     });
 }
 

@@ -64,7 +64,7 @@
 {% endif %}
 
 <p>
-    <a href="{% url 'forum:estudio_aulas' estudio.id %}">Voltar às aulas</a>
+    <a href="{% url 'forum:estudio_aulas' estudio.id %}" class="inka-voltar">Voltar às aulas</a>
     {% if aula.estudio_id == estudio.id %}
         |
         <a href="{% url 'forum:estudio_aula_remover' estudio.id aula.id %}">Remover esta aula</a>

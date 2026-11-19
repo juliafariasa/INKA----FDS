@@ -14,7 +14,7 @@
         <p>Uma dúvida, uma ideia ou uma parceria? Nossa máquina está pronta para receber sua mensagem.</p>
     </header>
 
-    <div class="type-experiencia" id="type-experiencia">
+    <div class="type-experiencia{% if erros %} type-aberto{% endif %}" id="type-experiencia">
 
         <div class="type-cena">
 
@@ -72,7 +72,8 @@
             <span class="type-legenda">UMA MENSAGEM PODE COMEÇAR AQUI.</span>
         </div>
 
-        <div class="type-form-container" id="type-form-container" hidden>
+        {# Com erro de validação a máquina já vem aberta: a pessoa vê o que corrigir. #}
+        <div class="type-form-container" id="type-form-container"{% if not erros %} hidden{% endif %}>
             <div class="type-form-papel">
 
                 <div class="type-form-cabecalho">

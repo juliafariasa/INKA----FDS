@@ -41,7 +41,7 @@
 {% endif %}
 
 <p>
-    <a href="{% url 'forum:descarte' %}">Voltar aos conteúdos sobre descarte</a>
+    <a href="{% url 'forum:descarte' %}" class="inka-voltar">Voltar aos conteúdos sobre descarte</a>
     {% if do_estudio %}
         |
         <a href="{% url 'forum:descarte_conteudo_remover' estudio.id conteudo.id %}">Remover este conteúdo</a>

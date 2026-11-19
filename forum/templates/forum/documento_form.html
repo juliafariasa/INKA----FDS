@@ -4,14 +4,9 @@
 
 {% block titulo %}{% if documento %}Editar documento{% else %}Cadastrar documento{% endif %} - {{ estudio.nome }} - INKA{% endblock %}
 
-{% block head_extra %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/dossie_inka.css' %}">
-<script src="{% static 'js/dossie_inka.js' %}" defer></script>
-{% endblock %}
 
 {% block content %}
-<main class="dossie" id="dossie-inka" data-errors="{% if erros %}1{% else %}0{% endif %}">
+<section class="dossie" id="dossie-inka" data-errors="{% if erros %}1{% else %}0{% endif %}">
 
   <header class="dossie-intro">
     <div class="dossie-topline">
@@ -272,7 +267,7 @@
   </section>
 
   <footer class="dossie-footer">
-    <a href="{% url 'forum:estudio_documentos' estudio.id %}">
+    <a href="{% url 'forum:estudio_documentos' estudio.id %}" class="inka-voltar">
       ← Voltar para os documentos
     </a>
     <span>INKA / DOCUMENT ARCHIVE</span>
@@ -286,5 +281,5 @@
       <small>ENCAMINHANDO AO ARQUIVO...</small>
     </div>
   </div>
-</main>
+</section>
 {% endblock %}

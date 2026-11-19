@@ -1,0 +1,62 @@
+{% comment %}
+    Trilha "Minha Área / Seção / Página" da área logada do estúdio.
+    Montada só com o nome da rota atual (request.resolver_match): fora da
+    área do estúdio, ou para visitante sem login, nada é exibido.
+    Os rótulos são os mesmos dos atalhos da Minha Área.
+{% endcomment %}
+{% with pagina=request.resolver_match.url_name eid=request.resolver_match.kwargs.estudio_id %}
+{% if user.is_authenticated %}
+{% if pagina == 'minha_area_dados' or pagina == 'alterar_senha' or pagina == 'estudio_qrcode' or pagina == 'estudio_diagnostico' or pagina == 'estudio_reavaliacao' or pagina == 'estudio_residuos' or pagina|slice:':15' == 'estudio_estoque' or pagina == 'estudio_aulas' or pagina == 'estudio_aula_nova' or pagina == 'estudio_aula' or pagina == 'estudio_aula_remover' or pagina == 'estudio_documentos' or pagina|slice:':17' == 'estudio_documento' or pagina == 'estudio_evolucao' or pagina == 'estudio_meta_nova' or pagina|slice:':8' == 'descarte' %}
+<nav class="trilha" aria-label="Você está em">
+    <ol>
+        <li><a href="{% url 'forum:minha_area' %}">Minha Área</a></li>
+
+        {% if pagina == 'minha_area_dados' %}
+            <li><span aria-current="page">Dados do estúdio</span></li>
+        {% elif pagina == 'alterar_senha' %}
+            <li><span aria-current="page">Alterar senha</span></li>
+        {% elif pagina == 'estudio_qrcode' %}
+            <li><span aria-current="page">QR Code</span></li>
+        {% elif pagina == 'estudio_diagnostico' %}
+            <li><span aria-current="page">Diagnóstico ESG</span></li>
+        {% elif pagina == 'estudio_reavaliacao' %}
+            <li><a href="{% url 'forum:estudio_diagnostico' eid %}">Diagnóstico ESG</a></li>
+            <li><span aria-current="page">Reavaliação</span></li>
+        {% elif pagina == 'estudio_residuos' %}
+            <li><span aria-current="page">Calculadora de resíduos</span></li>
+
+        {% elif pagina == 'estudio_estoque' %}
+            <li><span aria-current="page">Estoque</span></li>
+        {% elif pagina|slice:':15' == 'estudio_estoque' %}
+            <li><a href="{% url 'forum:estudio_estoque' eid %}">Estoque</a></li>
+            <li><span aria-current="page">{% if pagina == 'estudio_estoque_novo' %}Novo item{% elif pagina == 'estudio_estoque_editar' %}Editar item{% else %}Remover item{% endif %}</span></li>
+
+        {% elif pagina == 'estudio_aulas' %}
+            <li><span aria-current="page">Aulas</span></li>
+        {% elif pagina == 'estudio_aula_nova' or pagina == 'estudio_aula' or pagina == 'estudio_aula_remover' %}
+            <li><a href="{% url 'forum:estudio_aulas' eid %}">Aulas</a></li>
+            <li><span aria-current="page">{% if pagina == 'estudio_aula_nova' %}Nova aula{% elif pagina == 'estudio_aula' %}Aula{% else %}Remover aula{% endif %}</span></li>
+
+        {% elif pagina == 'estudio_documentos' %}
+            <li><span aria-current="page">Documentos e licenças</span></li>
+        {% elif pagina|slice:':17' == 'estudio_documento' %}
+            <li><a href="{% url 'forum:estudio_documentos' eid %}">Documentos e licenças</a></li>
+            <li><span aria-current="page">{% if pagina == 'estudio_documento_novo' %}Novo documento{% elif pagina == 'estudio_documento_editar' %}Editar documento{% else %}Remover documento{% endif %}</span></li>
+
+        {% elif pagina == 'estudio_evolucao' %}
+            <li><span aria-current="page">Painel de evolução</span></li>
+        {% elif pagina == 'estudio_meta_nova' %}
+            <li><a href="{% url 'forum:estudio_evolucao' eid %}">Painel de evolução</a></li>
+            <li><span aria-current="page">Nova meta</span></li>
+
+        {% elif pagina == 'descarte' %}
+            <li><span aria-current="page">Descarte</span></li>
+        {% else %}
+            <li><a href="{% url 'forum:descarte' %}">Descarte</a></li>
+            <li><span aria-current="page">{% if pagina == 'descarte_conteudo' %}Conteúdo{% elif pagina == 'descarte_conteudo_novo' %}Novo conteúdo{% elif pagina == 'descarte_empresa_nova' %}Nova empresa{% elif pagina == 'descarte_empresa_remover' %}Remover empresa{% else %}Remover conteúdo{% endif %}</span></li>
+        {% endif %}
+    </ol>
+</nav>
+{% endif %}
+{% endif %}
+{% endwith %}

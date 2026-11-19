@@ -4,12 +4,6 @@
 
 {% block titulo %}Documentos e licenças - {{ estudio.nome }} - INKA{% endblock %}
 
-{% block head_extra %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/documentos_archive.css' %}">
-<script src="{% static 'js/documentos_archive.js' %}" defer></script>
-{% endblock %}
-
 {% block content %}
 <section class="da" id="inka-document-archive">
   <header class="da-hero">
@@ -268,7 +262,7 @@
   {% endif %}
 
   <footer class="da-footer">
-    <a href="{% url 'forum:minha_area' %}">
+    <a href="{% url 'forum:minha_area' %}" class="inka-voltar">
       ← Voltar para a Minha Área
     </a>
     <span>INKA / GRAPHIC ARCHIVE</span>
