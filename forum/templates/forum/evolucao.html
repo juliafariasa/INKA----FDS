@@ -1,202 +1,1397 @@
+
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}Painel de evolução - {{ estudio.nome }} - INKA{% endblock %}
 
+{% block head_extra %}
+{{ block.super }}
+
+<link rel="stylesheet" href="{% static 'css/evolucao_flash.css' %}">
+<script src="{% static 'js/evolucao_flash.js' %}" defer></script>
+
+<style>
+/* ================================================
+   INKA / FLASH SHEET
+   CORREÇÕES ISOLADAS DO CHECKLIST E DIÁRIO
+   ================================================ */
+
+/* CHECKLIST: FUNDO ESCURO E TAMANHOS CONTROLADOS */
+
+#inka-flash-sheet .ifs-stencil {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: clamp(18px, 3vw, 36px);
+    background: #19231c !important;
+    color: #F6F6EF !important;
+    border: 1px solid rgba(185, 209, 136, .3);
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+#inka-flash-sheet .ifs-stencil *,
+#inka-flash-sheet .ifs-stencil *::before,
+#inka-flash-sheet .ifs-stencil *::after {
+    box-sizing: border-box;
+}
+
+#inka-flash-sheet .ifs-stencil-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(185, 209, 136, .22);
+    color: #B9D188;
+}
+
+#inka-flash-sheet .ifs-stencil-head > div {
+    display: grid;
+    gap: 8px;
+}
+
+#inka-flash-sheet .ifs-stencil-head strong {
+    color: #F6F6EF;
+    font-size: clamp(18px, 2vw, 25px);
+    line-height: 1.2;
+}
+
+#inka-flash-sheet .ifs-stencil-edition {
+    white-space: nowrap;
+}
+
+#inka-flash-sheet .ifs-stencil-counter {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 22px 0 28px;
+    color: #F6F6EF;
+}
+
+#inka-flash-sheet .ifs-stencil-counter b {
+    color: #B9D188;
+    font-size: 24px;
+}
+
+#inka-flash-sheet .ifs-stencil-counter small {
+    color: #F6F6EF;
+}
+
+#inka-flash-sheet .ifs-stencil-meter {
+    flex: 1;
+    height: 3px;
+    min-width: 35px;
+    overflow: hidden;
+    background: rgba(185, 209, 136, .17);
+}
+
+#inka-flash-sheet .ifs-stencil-meter > span {
+    display: block;
+    height: 100%;
+    max-width: 100%;
+    background: #B9D188;
+    transition: width .35s ease;
+}
+
+#inka-flash-sheet .ifs-stencil-groups {
+    display: grid;
+    gap: 16px;
+}
+
+#inka-flash-sheet fieldset.ifs-stencil-group {
+    display: block !important;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 18px 20px 8px !important;
+    background: #223427 !important;
+    border: 1px solid rgba(185, 209, 136, .24) !important;
+    border-radius: 8px;
+}
+
+#inka-flash-sheet .ifs-stencil-group legend {
+    float: none;
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 9px;
+    background: #223427 !important;
+    color: #F6F6EF !important;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+#inka-flash-sheet .ifs-stencil-group legend span {
+    color: #B9D188;
+    margin-right: 8px;
+}
+
+#inka-flash-sheet label.ifs-stencil-item {
+    display: flex !important;
+    position: relative !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px;
+    width: 100%;
+    min-width: 0;
+    height: auto !important;
+    min-height: 46px !important;
+    padding: 12px 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    color: #F6F6EF !important;
+    border: 0;
+    border-bottom: 1px solid rgba(185, 209, 136, .13);
+    cursor: pointer;
+}
+
+#inka-flash-sheet .ifs-stencil-item:last-child {
+    border-bottom: 0;
+}
+
+#inka-flash-sheet .ifs-stencil-item > input[type="checkbox"] {
+    position: absolute !important;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    opacity: 0;
+    z-index: 2;
+    cursor: pointer;
+}
+
+#inka-flash-sheet .ifs-stencil-check {
+    display: grid !important;
+    position: relative !important;
+    place-items: center;
+    flex: 0 0 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    max-width: 22px !important;
+    max-height: 22px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 1px solid #B9D188;
+    border-radius: 3px;
+    overflow: hidden !important;
+}
+
+#inka-flash-sheet .ifs-stencil-check > svg {
+    display: block !important;
+    position: static !important;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    fill: none !important;
+    stroke: #121314 !important;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transform: none !important;
+}
+
+#inka-flash-sheet .ifs-stencil-item input:checked + .ifs-stencil-check {
+    background: #B9D188 !important;
+}
+
+#inka-flash-sheet .ifs-stencil-item input:checked + .ifs-stencil-check svg {
+    opacity: 1;
+}
+
+#inka-flash-sheet .ifs-stencil-item input:focus-visible + .ifs-stencil-check {
+    outline: 2px solid #F6F6EF;
+    outline-offset: 3px;
+}
+
+#inka-flash-sheet .ifs-stencil-text {
+    display: block !important;
+    position: static !important;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    color: #F6F6EF !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow-wrap: anywhere;
+}
+
+#inka-flash-sheet .ifs-stencil-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(185, 209, 136, .23);
+}
+
+#inka-flash-sheet .ifs-stencil-foot > span {
+    color: #B9D188;
+}
+
+#inka-flash-sheet .ifs-stencil-foot button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    width: auto;
+    min-height: 46px;
+    padding: 12px 20px;
+    background: #5F7B44 !important;
+    color: #F6F6EF !important;
+    border: 1px solid #B9D188;
+    border-radius: 5px;
+    font: inherit;
+    cursor: pointer;
+}
+
+#inka-flash-sheet .ifs-stencil-foot button:hover {
+    background: #223427 !important;
+}
+
+/* ================================================
+   DIÁRIO: DATA EM COLUNA INDEPENDENTE
+   ================================================ */
+
+#inka-flash-sheet .ifs-timeline {
+    display: block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#inka-flash-sheet .ifs-timeline > li.ifs-event {
+    display: grid !important;
+    position: relative !important;
+    grid-template-columns: 18px 118px minmax(0, 1fr) 18px !important;
+    align-items: start !important;
+    column-gap: 18px;
+    row-gap: 8px;
+    width: 100%;
+    min-width: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 24px 0 !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(185, 209, 136, .18);
+}
+
+#inka-flash-sheet .ifs-event > .ifs-event-dot {
+    position: static !important;
+    grid-column: 1;
+    display: block;
+    width: 9px !important;
+    height: 9px !important;
+    margin: 6px auto 0 !important;
+    transform: rotate(45deg) !important;
+    border: 1px solid #B9D188;
+    background: transparent;
+}
+
+#inka-flash-sheet .ifs-event > .ifs-event-date {
+    position: static !important;
+    grid-column: 2;
+    display: block !important;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+}
+
+#inka-flash-sheet .ifs-event-date > time {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    color: #B9D188 !important;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#inka-flash-sheet .ifs-event > .ifs-event-content {
+    position: static !important;
+    grid-column: 3;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 9px;
+    min-width: 0;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+}
+
+#inka-flash-sheet .ifs-event-content > .ifs-event-type {
+    display: block !important;
+    position: static !important;
+    width: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    color: #B9D188 !important;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: .1em;
+}
+
+#inka-flash-sheet .ifs-event-content > p {
+    display: block !important;
+    position: static !important;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    color: #F6F6EF !important;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+#inka-flash-sheet .ifs-event > .ifs-event-arrow {
+    display: block !important;
+    position: static !important;
+    grid-column: 4;
+    margin: 0 !important;
+    transform: none !important;
+    color: #B9D188;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 680px) {
+    #inka-flash-sheet .ifs-stencil-head,
+    #inka-flash-sheet .ifs-stencil-counter {
+        flex-wrap: wrap;
+    }
+
+    #inka-flash-sheet fieldset.ifs-stencil-group {
+        padding: 14px 12px 6px !important;
+    }
+
+    #inka-flash-sheet .ifs-timeline > li.ifs-event {
+        grid-template-columns: 14px minmax(0, 1fr) 16px !important;
+        column-gap: 12px;
+    }
+
+    #inka-flash-sheet .ifs-event > .ifs-event-dot {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    #inka-flash-sheet .ifs-event > .ifs-event-date {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    #inka-flash-sheet .ifs-event > .ifs-event-content {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    #inka-flash-sheet .ifs-event > .ifs-event-arrow {
+        grid-column: 3;
+        grid-row: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #inka-flash-sheet .ifs-stencil-meter > span {
+        transition: none;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="evo-pagina">
 
-    <header class="evo-intro">
-        <span class="evo-etiqueta">INKA / PAINEL DE EVOLUÇÃO</span>
-        <h2>Evolução de {{ estudio.nome }}</h2>
-        <p>
-            Acompanhe os indicadores do estúdio, confira as práticas de rotina,
-            escolha metas e veja no diário tudo o que já foi registrado.
-        </p>
-    </header>
+<main class="ifs" id="inka-flash-sheet">
 
-    <!-- INDICADORES -->
-    <div class="evo-indicadores">
-        <a class="evo-indicador"
-           href="{% url 'forum:estudio_diagnostico' estudio.id %}">
-            <span class="evo-rotulo">Índice de sustentabilidade</span>
-            {% if diagnostico %}
-                <strong>{{ diagnostico.indice|floatformat:0 }}<small>/100</small></strong>
-                <span class="evo-detalhe">{% if diagnostico.selo %}Selo {{ diagnostico.selo }}{% else %}Ainda sem selo{% endif %}</span>
-            {% else %}
-                <strong>—</strong>
-                <span class="evo-detalhe">Faça o diagnóstico inicial</span>
-            {% endif %}
-        </a>
+    <!-- SVGs ORIGINAIS DA FLASH SHEET -->
 
-        <a class="evo-indicador" href="#checklist">
-            <span class="evo-rotulo">Checklist de boas práticas</span>
-            {% if ultimo_checklist %}
-                <strong>{{ ultimo_checklist.percentual }}<small>%</small></strong>
-                <span class="evo-detalhe">
-                    {% if dias_sem_checklist == 0 %}Conferido hoje{% elif dias_sem_checklist == 1 %}Conferido ontem{% else %}Conferido há {{ dias_sem_checklist }} dias{% endif %}
-                </span>
-            {% else %}
-                <strong>—</strong>
-                <span class="evo-detalhe">Nenhuma verificação ainda</span>
-            {% endif %}
-        </a>
+    <svg class="ifs-sprite"
+         xmlns="http://www.w3.org/2000/svg"
+         aria-hidden="true"
+         focusable="false">
 
-        <a class="evo-indicador"
-           href="{% url 'forum:estudio_residuos' estudio.id %}">
-            <span class="evo-rotulo">Resíduos por mês</span>
-            {% if calculo %}
-                <strong>{{ calculo.total }}<small> g</small></strong>
-                <span class="evo-detalhe">Calculado em {{ calculo.criado_em|date:"d/m/Y" }}</span>
-            {% else %}
-                <strong>—</strong>
-                <span class="evo-detalhe">Use a calculadora de resíduos</span>
-            {% endif %}
-        </a>
+        <symbol id="ifs-art-esg" viewBox="0 0 180 170">
+            <circle cx="90" cy="84" r="48"/>
+            <circle cx="90" cy="84" r="36" stroke-dasharray="2 8"/>
+            <path d="M90 29V16m0 137v-13M35 84H21m138 0h-14"/>
+            <path d="M90 42c-15 14-24 28-22 43 2 17 15 22 22 22 11-12 17-21 15-35-1-12-7-22-15-30Z"/>
+            <path d="M90 42v65M90 72c-15-10-22-9-29-7m29 20c11-11 18-12 25-13"/>
+            <path d="M59 121c-14 3-27 12-33 23 18 2 33-2 45-13m50-10c14 3 27 12 33 23-18 2-33-2-45-13"/>
+            <path d="M70 130c6 7 13 14 20 18 8-4 15-11 21-18"/>
+            <path d="m87 13 3-8 3 8M16 84l-7-3v6ZM164 84l7-3v6Z"/>
+        </symbol>
 
-        <a class="evo-indicador"
-           href="{% url 'forum:estudio_aulas' estudio.id %}">
-            <span class="evo-rotulo">Aulas de inclusão</span>
-            <strong>{{ aulas_concluidas }}<small>/{{ total_aulas }}</small></strong>
-            <span class="evo-detalhe">aula(s) concluída(s)</span>
-        </a>
+        <symbol id="ifs-art-check" viewBox="0 0 180 170">
+            <path d="M56 31H39v113h102V31h-17M56 31V18h68v13M66 18v-7h48v7"/>
+            <path d="M59 63l10 11 21-23M103 63h22M59 100l10 11 21-23M103 100h22M59 133h66"/>
+            <path d="M25 46c-8 12-10 27-6 42m142-13c5 21 3 37-8 49"/>
+            <path d="m25 39-6 7 9 1m126 84-1-7-8 4"/>
+        </symbol>
 
-        <a class="evo-indicador" href="{% url 'forum:campanhas' %}">
-            <span class="evo-rotulo">Campanhas sociais</span>
-            <strong>{{ total_campanhas }}</strong>
-            <span class="evo-detalhe">com participação do estúdio</span>
-        </a>
-    </div>
+        <symbol id="ifs-art-waste" viewBox="0 0 180 170">
+            <path d="M47 46h86l-9 91H56l-9-91ZM40 45h100M59 45V33h62v12M73 33V24h34v9"/>
+            <path d="M82 66h17M90 57v18M69 84c-7 6-11 16-8 26m58-26c6 9 7 18 3 26"/>
+            <path d="M72 114c9 7 27 8 37 0M69 137v8m42-8v8"/>
+            <path d="M31 55c-7 22-5 40 3 53m116-53c7 22 5 40-3 53"/>
+            <path d="m34 112-4-10 9 4m102 0 9-4-4 10"/>
+        </symbol>
 
-    <!-- CHECKLIST -->
-    <section class="evo-bloco" id="checklist">
-        <div class="evo-bloco-topo">
-            <span class="evo-etiqueta">01 / ROTINA</span>
-            <h3>Checklist de boas práticas</h3>
-            <p>
-                Marque o que o estúdio está cumprindo hoje em higiene, segurança
-                e gestão de resíduos. Refazer no mesmo dia atualiza o registro.
-            </p>
+        <symbol id="ifs-art-class" viewBox="0 0 180 170">
+            <rect x="33" y="40" width="114" height="83" rx="4"/>
+            <path d="M33 56h114M49 48h5m9 0h5m9 0h5"/>
+            <path d="m77 72 30 19-30 19V72Z"/>
+            <path d="M64 134h52M90 123v11"/>
+            <path d="M24 70c-6 24 0 45 12 57m120-57c6 24 0 45-12 57"/>
+            <path d="m31 131 5-4-1-8m110 0-1 8 5 4"/>
+        </symbol>
+
+        <symbol id="ifs-art-social" viewBox="0 0 180 170">
+            <path d="M90 87c-24-20-32-30-32-43 0-21 25-26 32-8 7-18 32-13 32 8 0 13-8 23-32 43Z"/>
+            <path d="M20 101c14-13 27-14 39-8l22 13c7 5 4 13-3 12l-16-6"/>
+            <path d="M160 101c-14-13-27-14-39-8l-22 13c-7 5-4 13 3 12l16-6"/>
+            <path d="M31 111c15 12 32 24 49 29h20c17-5 34-17 49-29M20 101l-9 10 22 20 10-10M160 101l9 10-22 20-10-10"/>
+            <path d="M90 94v-3m0-73V9m-39 29-7-6m91 6 7-6"/>
+        </symbol>
+
+        <symbol id="ifs-art-needle" viewBox="0 0 180 170">
+            <path d="m50 133 76-93m-67 99-15 14 7-20m71-100 15 12-14 17-15-12 14-17Z"/>
+            <path d="m83 92 15 12M94 77l15 12M105 63l15 12M45 153l-5 7"/>
+            <path d="M39 75c-8-13-16-18-24-18 0 14 4 22 14 30m106 17c11 3 20 9 25 20-14 4-26 2-35-5"/>
+            <path d="M33 38c-12-7-22-8-30-4 5 13 13 20 25 22M142 132c12 2 21 8 27 19-13 5-24 3-34-3"/>
+        </symbol>
+
+    </svg>
+
+    <!-- CABEÇALHO -->
+
+    <header class="ifs-hero" id="ifs-inicio">
+
+        <div class="ifs-kicker">
+            <span>INKA / PAINEL DE EVOLUÇÃO</span>
+            <span>FLASH ARCHIVE · 001</span>
         </div>
 
+        <div class="ifs-hero-grid">
+
+            <div class="ifs-hero-copy">
+
+                <span class="ifs-overline">
+                    TATTOO STUDIO / HISTÓRIA EM CONSTRUÇÃO
+                </span>
+
+                <h1>
+                    Evolução de <span>{{ estudio.nome }}</span><i>.</i>
+                </h1>
+
+                <p>
+                    Acompanhe os indicadores do estúdio, confira as práticas
+                    de rotina, escolha metas e veja no diário tudo o que
+                    já foi registrado.
+                </p>
+
+                <div class="ifs-hero-actions">
+
+                    <a href="#ifs-indicadores" class="ifs-button-main">
+                        Explorar a flash sheet
+                        <span aria-hidden="true">↘</span>
+                    </a>
+
+                    <a href="#ifs-diario" class="ifs-hero-link">
+                        Ver diário ↗
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div class="ifs-hero-poster" aria-hidden="true">
+
+                <div class="ifs-poster-top">
+                    <span>INKA / FLASH Nº 01</span>
+                    <span>ESTÚDIO ESG</span>
+                </div>
+
+                <svg class="ifs-poster-art" viewBox="0 0 420 420">
+
+                    <circle cx="210" cy="196" r="137"/>
+                    <circle cx="210" cy="196" r="119" stroke-dasharray="2 12"/>
+
+                    <path d="M210 45v24m0 254v24M59 196h24m254 0h24"/>
+
+                    <path d="M210 78c-30 23-57 40-59 78-3 36 29 65 59 80 30-15 62-44 59-80-2-38-29-55-59-78Z"/>
+
+                    <path d="M210 78v156m-30-103 30 23 29-23m-64 49 35 27 35-27"/>
+
+                    <path d="M151 182c-34-19-54-17-65-7 9 24 26 36 58 39m125-32c34-19 54-17 65-7-9 24-26 36-58 39"/>
+
+                    <path d="M170 237c-53-4-81 14-92 39 38 12 71 5 99-18m73-21c53-4 81 14 92 39-38 12-71 5-99-18"/>
+
+                    <path d="M210 235v77m-21-44 21 18 21-18"/>
+
+                    <path d="m207 45 3-9 3 9M59 193l-9 3 9 3m302-6 9 3-9 3M207 347l3 9 3-9"/>
+
+                    <path d="M84 90l14 14m224-14-14 14M84 306l14-14m224 14-14-14"/>
+
+                    <text x="210" y="377"
+                          text-anchor="middle"
+                          class="ifs-svg-letter">
+                        I N K A
+                    </text>
+
+                </svg>
+
+                <div class="ifs-poster-bottom">
+                    <span>LINHAS QUE CONTAM HISTÓRIAS</span>
+                    <span>EST. / 2026</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        {% if diagnostico %}
+
+            <div class="ifs-hero-status">
+
+                <div>
+                    <small>ÍNDICE DE SUSTENTABILIDADE</small>
+
+                    <strong>
+                        {{ diagnostico.indice|floatformat:0 }}
+                        <span>/100</span>
+                    </strong>
+                </div>
+
+                <div class="ifs-status-seal {% if diagnostico.selo == 'Ouro' %}ifs-seal-gold{% endif %}">
+
+                    {% if diagnostico.selo %}
+
+                        <svg viewBox="0 0 64 64" aria-hidden="true">
+                            <path d="M32 6 39 11 48 10 51 19 59 25 55 33 59 42 51 46 48 55 39 54 32 59 25 54 16 55 13 46 5 42 9 33 5 25 13 19 16 10 25 11Z"/>
+                            <circle cx="32" cy="32" r="17"/>
+                            <path d="m32 20 4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1Z"/>
+                        </svg>
+
+                        <div>
+                            <small>RECONHECIMENTO ESG</small>
+                            <strong>Selo {{ diagnostico.selo }}</strong>
+                        </div>
+
+                    {% else %}
+
+                        <div>
+                            <small>RECONHECIMENTO ESG</small>
+                            <strong>Ainda sem selo</strong>
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">
+                    Ver diagnóstico ↗
+                </a>
+
+            </div>
+
+        {% else %}
+
+            <div class="ifs-hero-status ifs-hero-status-empty">
+
+                <span>Ainda sem diagnóstico</span>
+
+                <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">
+                    Faça o diagnóstico inicial ↗
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </header>
+
+    <!-- NAVEGAÇÃO -->
+
+    <nav class="ifs-nav" aria-label="Seções da evolução">
+
+        <div class="ifs-nav-list">
+
+            <a href="#ifs-indicadores"
+               class="ifs-nav-link is-current"
+               aria-current="location">
+                <span>01</span> Flash sheet
+            </a>
+
+            <a href="#ifs-checklist" class="ifs-nav-link">
+                <span>02</span> Stencil / rotina
+            </a>
+
+            <a href="#ifs-metas" class="ifs-nav-link">
+                <span>03</span> Traços / metas
+            </a>
+
+            <a href="#ifs-diario" class="ifs-nav-link">
+                <span>04</span> Arquivo / diário
+            </a>
+
+        </div>
+
+        <div class="ifs-nav-progress" aria-hidden="true">
+            <span></span>
+        </div>
+
+    </nav>
+
+    <!-- LINHA DE TINTA ANIMADA -->
+
+    <svg class="ifs-page-thread"
+         aria-hidden="true"
+         focusable="false">
+
+        <path class="ifs-page-thread-track"/>
+        <path class="ifs-page-thread-ink"/>
+        <circle class="ifs-page-thread-tip" r="3"/>
+
+    </svg>
+
+    <!-- 01 / INDICADORES -->
+
+    <section class="ifs-section ifs-section-sheet"
+             id="ifs-indicadores"
+             aria-labelledby="ifs-title-indicadores">
+
+        <div class="ifs-section-head">
+
+            <div>
+                <span class="ifs-section-no">
+                    01 / TATTOO FLASH
+                </span>
+
+                <h2 id="ifs-title-indicadores">
+                    As marcas da evolução<span>.</span>
+                </h2>
+            </div>
+
+            <p>ESCOLHA UM DESENHO PARA EXPLORAR</p>
+
+        </div>
+
+        <div class="ifs-sheet-guide">
+            <span>INKA // FLASH COLLECTION</span>
+            <span>5 MARCAS · 5 INDICADORES</span>
+        </div>
+
+        <div class="ifs-flash-grid">
+
+            <!-- ESG -->
+
+            <a href="{% url 'forum:estudio_diagnostico' estudio.id %}"
+               class="ifs-flash ifs-flash-esg">
+
+                <div class="ifs-flash-top">
+                    <span>01 / ESG</span>
+                    <span>FLASH A</span>
+                </div>
+
+                <div class="ifs-flash-drawing">
+                    <svg viewBox="0 0 180 170" aria-hidden="true">
+                        <use href="#ifs-art-esg"/>
+                    </svg>
+                </div>
+
+                <div class="ifs-flash-bottom">
+
+                    <span>Índice de sustentabilidade</span>
+
+                    {% if diagnostico %}
+
+                        <strong>
+                            {{ diagnostico.indice|floatformat:0 }}
+                            <small>/100</small>
+                        </strong>
+
+                        <span class="ifs-flash-detail">
+                            {% if diagnostico.selo %}
+                                Selo {{ diagnostico.selo }}
+                            {% else %}
+                                Ainda sem selo
+                            {% endif %}
+                        </span>
+
+                    {% else %}
+
+                        <strong>—</strong>
+
+                        <span class="ifs-flash-detail">
+                            Faça o diagnóstico inicial
+                        </span>
+
+                    {% endif %}
+
+                    <span class="ifs-flash-arrow" aria-hidden="true">↗</span>
+
+                </div>
+
+            </a>
+
+            <!-- CHECKLIST -->
+
+            <a href="#ifs-checklist"
+               class="ifs-flash ifs-flash-check">
+
+                <div class="ifs-flash-top">
+                    <span>02 / ROTINA</span>
+                    <span>FLASH B</span>
+                </div>
+
+                <div class="ifs-flash-drawing">
+                    <svg viewBox="0 0 180 170" aria-hidden="true">
+                        <use href="#ifs-art-check"/>
+                    </svg>
+                </div>
+
+                <div class="ifs-flash-bottom">
+
+                    <span>Checklist de boas práticas</span>
+
+                    {% if ultimo_checklist %}
+
+                        <strong>
+                            {{ ultimo_checklist.percentual }}
+                            <small>%</small>
+                        </strong>
+
+                        <span class="ifs-flash-detail">
+
+                            {% if dias_sem_checklist == 0 %}
+                                Conferido hoje
+                            {% elif dias_sem_checklist == 1 %}
+                                Conferido ontem
+                            {% else %}
+                                Conferido há {{ dias_sem_checklist }} dias
+                            {% endif %}
+
+                        </span>
+
+                    {% else %}
+
+                        <strong>—</strong>
+
+                        <span class="ifs-flash-detail">
+                            Nenhuma verificação ainda
+                        </span>
+
+                    {% endif %}
+
+                    <span class="ifs-flash-arrow" aria-hidden="true">↗</span>
+
+                </div>
+
+            </a>
+
+            <!-- RESÍDUOS -->
+
+            <a href="{% url 'forum:estudio_residuos' estudio.id %}"
+               class="ifs-flash ifs-flash-waste">
+
+                <div class="ifs-flash-top">
+                    <span>03 / AMBIENTAL</span>
+                    <span>FLASH C</span>
+                </div>
+
+                <div class="ifs-flash-drawing">
+                    <svg viewBox="0 0 180 170" aria-hidden="true">
+                        <use href="#ifs-art-waste"/>
+                    </svg>
+                </div>
+
+                <div class="ifs-flash-bottom">
+
+                    <span>Resíduos por mês</span>
+
+                    {% if calculo %}
+
+                        <strong>
+                            {{ calculo.total }}
+                            <small> g</small>
+                        </strong>
+
+                        <span class="ifs-flash-detail">
+                            Calculado em {{ calculo.criado_em|date:"d/m/Y" }}
+                        </span>
+
+                    {% else %}
+
+                        <strong>—</strong>
+
+                        <span class="ifs-flash-detail">
+                            Use a calculadora de resíduos
+                        </span>
+
+                    {% endif %}
+
+                    <span class="ifs-flash-arrow" aria-hidden="true">↗</span>
+
+                </div>
+
+            </a>
+
+            <!-- AULAS -->
+
+            <a href="{% url 'forum:estudio_aulas' estudio.id %}"
+               class="ifs-flash ifs-flash-class">
+
+                <div class="ifs-flash-top">
+                    <span>04 / EDUCAÇÃO</span>
+                    <span>FLASH D</span>
+                </div>
+
+                <div class="ifs-flash-drawing">
+                    <svg viewBox="0 0 180 170" aria-hidden="true">
+                        <use href="#ifs-art-class"/>
+                    </svg>
+                </div>
+
+                <div class="ifs-flash-bottom">
+
+                    <span>Aulas de inclusão</span>
+
+                    <strong>
+                        {{ aulas_concluidas }}
+                        <small>/{{ total_aulas }}</small>
+                    </strong>
+
+                    <span class="ifs-flash-detail">
+                        aula(s) concluída(s)
+                    </span>
+
+                    <span class="ifs-flash-arrow" aria-hidden="true">↗</span>
+
+                </div>
+
+            </a>
+
+            <!-- CAMPANHAS -->
+
+            <a href="{% url 'forum:campanhas' %}"
+               class="ifs-flash ifs-flash-social">
+
+                <div class="ifs-flash-top">
+                    <span>05 / SOCIAL</span>
+                    <span>FLASH E</span>
+                </div>
+
+                <div class="ifs-flash-drawing">
+                    <svg viewBox="0 0 180 170" aria-hidden="true">
+                        <use href="#ifs-art-social"/>
+                    </svg>
+                </div>
+
+                <div class="ifs-flash-bottom">
+
+                    <span>Campanhas sociais</span>
+
+                    <strong>{{ total_campanhas }}</strong>
+
+                    <span class="ifs-flash-detail">
+                        com participação do estúdio
+                    </span>
+
+                    <span class="ifs-flash-arrow" aria-hidden="true">↗</span>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="ifs-sheet-signature">
+
+            <span>DESENHOS COM PROPÓSITO</span>
+
+            <svg viewBox="0 0 80 25" aria-hidden="true">
+                <path d="M3 15c18-24 26 22 43 0 8-12 15-12 31-2"/>
+            </svg>
+
+            <span>INKA ORIGINALS</span>
+
+        </div>
+
+    </section>
+
+    <!-- 02 / CHECKLIST -->
+
+    <section class="ifs-section ifs-section-check"
+             id="ifs-checklist"
+             aria-labelledby="ifs-title-checklist">
+
+        <div class="ifs-section-head">
+
+            <div>
+                <span class="ifs-section-no">
+                    02 / STENCIL DE ROTINA
+                </span>
+
+                <h2 id="ifs-title-checklist">
+                    Checklist de boas práticas<span>.</span>
+                </h2>
+            </div>
+
+            <p>O COMPROMISSO É FEITO NO DIA A DIA</p>
+
+        </div>
+
+        <p class="ifs-section-lead">
+            Marque o que o estúdio está cumprindo hoje em higiene,
+            segurança e gestão de resíduos. Refazer no mesmo dia
+            atualiza o registro.
+        </p>
+
         {% if checklist_atrasado %}
-            <p class="evo-lembrete">
+
+            <p class="ifs-warning" role="status">
+
                 {% if ultimo_checklist %}
+
                     A última verificação foi há {{ dias_sem_checklist }} dias.
                     Confira as práticas desta semana.
+
                 {% else %}
-                    Seu estúdio ainda não fez nenhuma verificação. Comece hoje.
+
+                    Seu estúdio ainda não fez nenhuma verificação.
+                    Comece hoje.
+
                 {% endif %}
+
             </p>
+
         {% endif %}
 
         {% if grupos %}
-            <form method="post" class="evo-checklist"
+
+            <form class="ifs-stencil"
+                  method="post"
                   action="{% url 'forum:estudio_checklist' estudio.id %}">
+
                 {% csrf_token %}
 
-                {% for grupo in grupos %}
-                    <fieldset>
-                        <legend>{{ grupo.rotulo }}</legend>
-                        {% for item in grupo.itens %}
-                            <label class="evo-item" for="item-{{ item.id }}">
-                                <input type="checkbox" id="item-{{ item.id }}"
-                                       name="itens" value="{{ item.id }}"
-                                       {% if item.marcado %}checked{% endif %}>
-                                <span>{{ item.texto }}</span>
-                            </label>
-                        {% endfor %}
-                    </fieldset>
-                {% endfor %}
+                <div class="ifs-stencil-head">
 
-                <input type="submit" name="salvar_checklist"
-                       value="{% if checklist_do_dia %}Atualizar checklist de hoje{% else %}Salvar checklist de hoje{% endif %}">
+                    <div>
+                        <span>INKA / TRANSFER SHEET</span>
+                        <strong>FICHA DE BOAS PRÁTICAS</strong>
+                    </div>
+
+                    <span class="ifs-stencil-edition">
+                        ROTINA // 02
+                    </span>
+
+                </div>
+
+                <div class="ifs-stencil-counter" aria-live="polite">
+
+                    <div>
+                        <b data-ifs-done>0</b>
+                        <span> / </span>
+                        <b data-ifs-total>0</b>
+                        <small> práticas marcadas</small>
+                    </div>
+
+                    <div class="ifs-stencil-meter" aria-hidden="true">
+                        <span></span>
+                    </div>
+
+                </div>
+
+                <div class="ifs-stencil-groups">
+
+                    {% for grupo in grupos %}
+
+                        <fieldset class="ifs-stencil-group">
+
+                            <legend>
+                                <span>
+                                    {{ forloop.counter|stringformat:"02d" }} /
+                                </span>
+                                {{ grupo.rotulo }}
+                            </legend>
+
+                            {% for item in grupo.itens %}
+
+                                <label class="ifs-stencil-item"
+                                       for="item-{{ item.id }}">
+
+                                    <input
+                                        type="checkbox"
+                                        id="item-{{ item.id }}"
+                                        name="itens"
+                                        value="{{ item.id }}"
+                                        {% if item.marcado %}checked{% endif %}
+                                    >
+
+                                    <span class="ifs-stencil-check"
+                                          aria-hidden="true">
+
+                                        <svg viewBox="0 0 28 28">
+                                            <path d="m5 14 6 6L23 6"/>
+                                        </svg>
+
+                                    </span>
+
+                                    <span class="ifs-stencil-text">
+                                        {{ item.texto }}
+                                    </span>
+
+                                </label>
+
+                            {% endfor %}
+
+                        </fieldset>
+
+                    {% endfor %}
+
+                </div>
+
+                <div class="ifs-stencil-foot">
+
+                    <span>
+                        CONFIRME PARA SALVAR SUAS MARCAÇÕES
+                    </span>
+
+                    <button type="submit"
+                            name="salvar_checklist"
+                            value="{% if checklist_do_dia %}Atualizar checklist de hoje{% else %}Salvar checklist de hoje{% endif %}">
+
+                        {% if checklist_do_dia %}
+                            Atualizar checklist de hoje
+                        {% else %}
+                            Salvar checklist de hoje
+                        {% endif %}
+
+                        <span aria-hidden="true">↗</span>
+
+                    </button>
+
+                </div>
+
             </form>
+
         {% else %}
-            <p class="evo-vazio">Ainda não há práticas no checklist.</p>
+
+            <p class="ifs-empty">
+                Ainda não há práticas no checklist.
+            </p>
+
         {% endif %}
+
     </section>
 
-    <!-- METAS -->
-    <section class="evo-bloco" id="metas">
-        <div class="evo-bloco-topo">
-            <span class="evo-etiqueta">02 / OBJETIVOS</span>
-            <h3>Metas do estúdio</h3>
-            <p>
-                Escolha um indicador, um valor e um prazo. O painel mostra o
-                quanto falta e avisa quando a meta for atingida.
-            </p>
+    <!-- 03 / METAS -->
+
+    <section class="ifs-section ifs-section-goals"
+             id="ifs-metas"
+             aria-labelledby="ifs-title-metas">
+
+        <div class="ifs-section-head">
+
+            <div>
+                <span class="ifs-section-no">
+                    03 / DESENHOS EM CONSTRUÇÃO
+                </span>
+
+                <h2 id="ifs-title-metas">
+                    Metas do estúdio<span>.</span>
+                </h2>
+            </div>
+
+            <p>CADA CONQUISTA DEIXA UM TRAÇO</p>
+
         </div>
 
+        <p class="ifs-section-lead">
+            Escolha um indicador, um valor e um prazo.
+            O painel mostra o quanto falta e avisa
+            quando a meta for atingida.
+        </p>
+
         {% if metas %}
-            <div class="evo-metas">
+
+            <div class="ifs-goals">
+
                 {% for meta in metas %}
-                    <article class="evo-meta{% if meta.atingida_em %} evo-meta-atingida{% elif meta.vencida %} evo-meta-vencida{% endif %}">
-                        <div class="evo-meta-topo">
-                            <span class="evo-meta-situacao">{{ meta.situacao }}</span>
-                            <span class="evo-meta-prazo">
-                                {% if meta.atingida_em %}em {{ meta.atingida_em|date:"d/m/Y" }}{% else %}até {{ meta.prazo|date:"d/m/Y" }}{% endif %}
+
+                    <article
+                        class="ifs-goal {% if meta.atingida_em %}ifs-goal-done{% elif meta.vencida %}ifs-goal-overdue{% endif %}"
+                        data-goal-progress="{{ meta.progresso }}"
+                    >
+
+                        <div class="ifs-goal-top">
+
+                            <span class="ifs-goal-status">
+                                {{ meta.situacao }}
                             </span>
-                        </div>
 
-                        <h4>{{ meta.descricao }}</h4>
+                            <span>
 
-                        <div class="evo-barra" role="img"
-                             aria-label="{{ meta.progresso }}% do caminho percorrido">
-                            <i style="--progresso: {{ meta.progresso }}"></i>
-                        </div>
-
-                        <p class="evo-meta-valores">
-                            {% with atual=meta.valor_atual %}
-                                {% if atual is None %}
-                                    Ainda sem medição deste indicador.
+                                {% if meta.atingida_em %}
+                                    em {{ meta.atingida_em|date:"d/m/Y" }}
                                 {% else %}
-                                    Hoje: <b>{{ atual }} {{ meta.unidade }}</b>
-                                    · Meta: <b>{{ meta.alvo }} {{ meta.unidade }}</b>
+                                    até {{ meta.prazo|date:"d/m/Y" }}
                                 {% endif %}
-                            {% endwith %}
-                        </p>
+
+                            </span>
+
+                        </div>
+
+                        <div class="ifs-goal-body">
+
+                            <div class="ifs-goal-flower" aria-hidden="true">
+
+                                <svg viewBox="0 0 190 195"
+                                     class="ifs-growth-svg">
+
+                                    <g class="ifs-growth-guide">
+                                        <path d="M95 180V63"/>
+                                        <path d="M95 146Q66 138 55 104"/>
+                                        <path d="M95 126q29-12 40-42"/>
+                                        <path d="M95 115q-18-29-12-49"/>
+                                        <path d="M95 63Q70 59 65 41Q89 33 95 63Z"/>
+                                        <path d="M95 63q-25-25-9-42 21 9 9 42Z"/>
+                                        <path d="M95 63q13-34 32-28-2 23-32 28Z"/>
+                                        <path d="M55 104Q38 88 28 100q4 19 27 4ZM135 84q20-17 30-3-7 19-30 3Z"/>
+                                        <path d="M81 67q-19-10-27 4 13 16 27-4Z"/>
+                                    </g>
+
+                                    <g class="ifs-growth-drawn">
+                                        <path d="M95 180V63"/>
+                                        <path d="M95 146Q66 138 55 104"/>
+                                        <path d="M95 126q29-12 40-42"/>
+                                        <path d="M95 115q-18-29-12-49"/>
+                                        <path d="M95 63Q70 59 65 41Q89 33 95 63Z"/>
+                                        <path d="M95 63q-25-25-9-42 21 9 9 42Z"/>
+                                        <path d="M95 63q13-34 32-28-2 23-32 28Z"/>
+                                        <path d="M55 104Q38 88 28 100q4 19 27 4ZM135 84q20-17 30-3-7 19-30 3Z"/>
+                                        <path d="M81 67q-19-10-27 4 13 16 27-4Z"/>
+                                    </g>
+
+                                </svg>
+
+                                <span class="ifs-flower-percent">
+                                    {{ meta.progresso }}%
+                                </span>
+
+                            </div>
+
+                            <div class="ifs-goal-copy">
+
+                                <h3>{{ meta.descricao }}</h3>
+
+                                <div class="ifs-goal-progress"
+                                     role="img"
+                                     aria-label="{{ meta.progresso }}% do caminho percorrido">
+
+                                    <span data-ifs-bar="{{ meta.progresso }}"></span>
+
+                                </div>
+
+                                <p>
+
+                                    {% with atual=meta.valor_atual %}
+
+                                        {% if atual is None %}
+
+                                            Ainda sem medição deste indicador.
+
+                                        {% else %}
+
+                                            Hoje:
+                                            <b>{{ atual }} {{ meta.unidade }}</b>
+
+                                            · Meta:
+                                            <b>{{ meta.alvo }} {{ meta.unidade }}</b>
+
+                                        {% endif %}
+
+                                    {% endwith %}
+
+                                </p>
+
+                            </div>
+
+                        </div>
 
                         <form method="post"
                               action="{% url 'forum:estudio_meta_remover' estudio.id meta.id %}">
+
                             {% csrf_token %}
-                            <button type="submit" class="evo-meta-remover">Remover meta</button>
+
+                            <button class="ifs-goal-remove"
+                                    type="submit">
+                                Remover meta
+                            </button>
+
                         </form>
+
                     </article>
+
                 {% endfor %}
+
             </div>
+
         {% else %}
-            <p class="evo-vazio">
-                Nenhuma meta definida ainda. Que tal começar pelo checklist?
+
+            <p class="ifs-empty">
+                Nenhuma meta definida ainda.
+                Que tal começar pelo checklist?
             </p>
+
         {% endif %}
 
-        <a class="evo-acao" href="{% url 'forum:estudio_meta_nova' estudio.id %}">
-            <span>+</span> Definir nova meta
+        <a href="{% url 'forum:estudio_meta_nova' estudio.id %}"
+           class="ifs-add-goal">
+
+            <span aria-hidden="true">+</span>
+            Definir nova meta
+            <span aria-hidden="true">↗</span>
+
         </a>
+
     </section>
 
-    <!-- DIÁRIO -->
-    <section class="evo-bloco" id="diario">
-        <div class="evo-bloco-topo">
-            <span class="evo-etiqueta">03 / HISTÓRICO</span>
-            <h3>Diário de evolução</h3>
-            <p>O que o estúdio registrou na plataforma, do mais recente ao mais antigo.</p>
+    <!-- 04 / DIÁRIO CORRIGIDO -->
+
+    <section class="ifs-section ifs-section-history"
+             id="ifs-diario"
+             aria-labelledby="ifs-title-diario">
+
+        <div class="ifs-section-head">
+
+            <div>
+
+                <span class="ifs-section-no">
+                    04 / ARQUIVO DE FLASHES
+                </span>
+
+                <h2 id="ifs-title-diario">
+                    Diário de evolução<span>.</span>
+                </h2>
+
+            </div>
+
+            <p>HISTÓRIA REGISTRADA EM TINTA</p>
+
         </div>
 
-        <ol class="evo-diario">
-            {% for evento in diario %}
-                <li>
-                    <time datetime="{{ evento.quando|date:'c' }}">{{ evento.quando|date:"d/m/Y" }}</time>
-                    <span class="evo-diario-tipo">{{ evento.tipo }}</span>
-                    <p>{{ evento.texto }}</p>
-                </li>
-            {% endfor %}
-        </ol>
+        <p class="ifs-section-lead">
+            O que o estúdio registrou na plataforma,
+            do mais recente ao mais antigo.
+        </p>
+
+        <div class="ifs-archive">
+
+            <div class="ifs-archive-header">
+
+                <span>INKA / FIELD NOTES</span>
+
+                <span>DO MAIS RECENTE AO MAIS ANTIGO</span>
+
+            </div>
+
+            <ol class="ifs-timeline">
+
+                {% for evento in diario %}
+
+                    <li class="ifs-event">
+
+                        <span class="ifs-event-dot"
+                              aria-hidden="true"></span>
+
+                        <!-- DATA: COLUNA EXCLUSIVA -->
+
+                        <div class="ifs-event-date">
+
+                            <time datetime="{{ evento.quando|date:'c' }}">
+                                {{ evento.quando|date:"d/m/Y" }}
+                            </time>
+
+                        </div>
+
+                        <!-- CONTEÚDO: COLUNA EXCLUSIVA -->
+
+                        <div class="ifs-event-content">
+
+                            <span class="ifs-event-type">
+                                {{ evento.tipo }}
+                            </span>
+
+                            <p>
+                                {{ evento.texto }}
+                            </p>
+
+                        </div>
+
+                        <span class="ifs-event-arrow"
+                              aria-hidden="true">
+                            ↗
+                        </span>
+
+                    </li>
+
+                {% endfor %}
+
+            </ol>
+
+        </div>
+
     </section>
 
-    <a class="evo-voltar" href="{% url 'forum:minha_area' %}">
-        ← Voltar para a Minha Área
-    </a>
+    <!-- RODAPÉ -->
 
-</section>
+    <footer class="ifs-footer">
+
+        <a href="{% url 'forum:minha_area' %}">
+            ← Voltar para a Minha Área
+        </a>
+
+        <span>
+            INKA / TODA MARCA CONTA UMA HISTÓRIA
+        </span>
+
+    </footer>
+
+    <button type="button"
+            class="ifs-backtop"
+            aria-label="Voltar ao início">
+        ↑
+    </button>
+
+</main>
+
 {% endblock %}

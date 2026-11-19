@@ -1543,3 +1543,317 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+/* INKA / EVOLUÇÃO LAB: cinco estilos, uma única fonte de dados e formulários Django. */
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.getElementById('evolucao-lab');
+  if (!page) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
+  const themes = {flash:'01 / THE LIVING FLASH SHEET',press:'02 / INK PRESS',blackbook:'03 / BLACKBOOK',needle:'04 / NEEDLEWORK',map:'05 / MARKS OF PROGRESS'};
+  const buttons = [...page.querySelectorAll('[data-select-theme]')];
+  const caption = page.querySelector('#el-theme-caption');
+  const toast = page.querySelector('.el-toast');
+  let toastTimer;
+  function showToast(message){if(!toast)return;toast.textContent=message;toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2300)}
+  function setTheme(theme, notify=false){
+    if(!(theme in themes))return;
+    page.dataset.theme=theme;
+    if(caption)caption.textContent=themes[theme];
+    buttons.forEach(button=>{const active=button.dataset.selectTheme===theme;button.classList.toggle('is-current',active);button.setAttribute('aria-pressed',String(active))});
+    try{sessionStorage.setItem('inka-evolucao-tema',theme)}catch(_){/* privacidade / storage restrito */}
+    if(notify)showToast('Estética aplicada: '+themes[theme].split(' / ')[1]);
+  }
+  let saved='flash';try{saved=sessionStorage.getItem('inka-evolucao-tema')||'flash'}catch(_){}
+  setTheme(saved);
+  buttons.forEach(button=>button.addEventListener('click',()=>setTheme(button.dataset.selectTheme,true)));
+
+  const nav=page.querySelector('.el-chapters');
+  const chapterLinks=[...page.querySelectorAll('.el-chapter')];
+  const chapters=chapterLinks.map(link=>({link,element:page.querySelector(link.getAttribute('href'))})).filter(item=>item.element);
+  const bar=page.querySelector('.el-chapter-track span');
+  const back=page.querySelector('.el-backtop');
+  const offset=()=>((nav?.getBoundingClientRect().height||0)+(Number.parseFloat(getComputedStyle(nav).top)||0)+18);
+  page.querySelectorAll('a[href^="#el-"]').forEach(link=>link.addEventListener('click',event=>{
+    const target=page.querySelector(link.getAttribute('href'));if(!target)return;
+    event.preventDefault();const y=window.scrollY+target.getBoundingClientRect().top-offset();
+    window.scrollTo({top:Math.max(0,y),behavior:reduce.matches?'auto':'smooth'});
+  }));
+  let ticking=false;
+  function updateNav(){
+    const scrolled=window.scrollY;
+    const max=document.documentElement.scrollHeight-window.innerHeight;
+    if(bar)bar.style.width=(max>0?Math.min(100,100*scrolled/max):100)+'%';
+    if(back)back.classList.toggle('is-visible',scrolled>500);
+    const threshold=offset()+28;let current=chapters[0];
+    chapters.forEach(item=>{if(item.element.getBoundingClientRect().top<=threshold)current=item});
+    if(current)chapterLinks.forEach(link=>{const active=link===current.link;link.classList.toggle('is-active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')});
+    ticking=false;
+  }
+  window.addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(updateNav)},{passive:true});
+  window.addEventListener('resize',updateNav);updateNav();
+  if(back)back.addEventListener('click',()=>window.scrollTo({top:0,behavior:reduce.matches?'auto':'smooth'}));
+
+  // Checklist: atualização visual local. O registro só é salvo pelo POST original.
+  const form=page.querySelector('.el-check-form');
+  if(form){
+    const checks=[...form.querySelectorAll('input[type="checkbox"][name="itens"]')];
+    const count=form.querySelector('[data-completed]');const total=form.querySelector('[data-total]');const progress=form.querySelector('.el-form-progress span');
+    function updateChecklist(){const completed=checks.filter(check=>check.checked).length;if(count)count.textContent=completed;if(total)total.textContent=checks.length;if(progress)progress.style.width=(checks.length?100*completed/checks.length:0)+'%'}
+    checks.forEach(check=>check.addEventListener('change',updateChecklist));updateChecklist();
+  }
+
+  // Valores Django que podem aparecer com vírgula decimal em pt-BR.
+  function percent(str){const value=Number.parseFloat(String(str||'0').replace(',','.'));return Number.isFinite(value)?Math.max(0,Math.min(100,value)):0}
+  const meters=[...page.querySelectorAll('[data-el-progress]')];
+  const renderMeter=element=>{element.style.width=percent(element.dataset.elProgress)+'%'};
+  if('IntersectionObserver' in window && !reduce.matches){
+    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){renderMeter(entry.target);io.unobserve(entry.target)}}),{threshold:.15});meters.forEach(element=>io.observe(element));
+  }else meters.forEach(renderMeter);
+
+  // Microinteração de tinta na flash sheet e luz local sem afetar eventos/campos.
+  if(finePointer.matches&&!reduce.matches){
+    page.querySelectorAll('.el-indicator').forEach(card=>card.addEventListener('pointermove',event=>{
+      if(page.dataset.theme!=='flash'&&page.dataset.theme!=='map')return;
+      const r=card.getBoundingClientRect();card.style.setProperty('--el-mx',(event.clientX-r.left)+'px');card.style.setProperty('--el-my',(event.clientY-r.top)+'px');
+    },{passive:true}));
+  }
+});
+/* ============================================================
+   INKA / THE LIVING FLASH SHEET
+   Isolado em #inka-flash-sheet; sem dependências externas.
+   Interações visuais não alteram o envio dos formulários Django.
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.getElementById('inka-flash-sheet');
+  if (!root) return;
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const chapters = root.querySelector('.ifs-nav');
+  const links = [...root.querySelectorAll('.ifs-nav-link')];
+  const sections = links.map(link => ({
+    link,
+    element: root.querySelector(link.getAttribute('href'))
+  })).filter(item => item.element);
+  const progressBar = root.querySelector('.ifs-nav-progress span');
+  const backTop = root.querySelector('.ifs-backtop');
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const number = value => {
+    const parsed = Number.parseFloat(String(value ?? '0').replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+  const motion = () => reduce.matches ? 'auto' : 'smooth';
+
+  // O menu principal do INKA pode ser fixo ou estático. Ajustamos o
+  // offset apenas quando ele está efetivamente ocupando o topo da tela.
+  function mainHeaderBottom() {
+    const header = document.querySelector('body > .topo, body > header.topo, .topo');
+    if (!header || header.contains(root)) return 12;
+    const style = window.getComputedStyle(header);
+    if (style.position !== 'fixed' && style.position !== 'sticky') return 12;
+    const rect = header.getBoundingClientRect();
+    return rect.bottom > 0 ? clamp(rect.bottom + 8, 12, 170) : 12;
+  }
+
+  function navOffset() {
+    const top = mainHeaderBottom();
+    root.style.setProperty('--ifs-nav-top', `${top}px`);
+    return top + (chapters?.offsetHeight || 0) + 18;
+  }
+
+  root.querySelectorAll('a[href^="#ifs-"]').forEach(link => {
+    link.addEventListener('click', event => {
+      const selector = link.getAttribute('href');
+      const target = selector && root.querySelector(selector);
+      if (!target) return;
+      event.preventDefault();
+      const y = window.scrollY + target.getBoundingClientRect().top - navOffset();
+      window.scrollTo({ top: Math.max(0, y), behavior: motion() });
+    });
+  });
+
+  if (backTop) {
+    backTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: motion() });
+    });
+  }
+
+  // Os cinco desenhos ganham uma segunda camada de tinta no hover.
+  // Sem JS, o SVG original continua completamente visível.
+  if (!reduce.matches) {
+    root.querySelectorAll('.ifs-flash-drawing svg').forEach(svg => {
+      svg.classList.add('ifs-ink-base');
+      const tracing = svg.cloneNode(true);
+      tracing.classList.remove('ifs-ink-base');
+      tracing.classList.add('ifs-ink-trace');
+      tracing.setAttribute('aria-hidden', 'true');
+      svg.after(tracing);
+    });
+  }
+
+  // Checklist: somente contador e marcação. O salvamento permanece no POST.
+  const checklist = root.querySelector('.ifs-stencil');
+  if (checklist) {
+    const checks = [...checklist.querySelectorAll('input[type="checkbox"][name="itens"]')];
+    const doneEl = checklist.querySelector('[data-ifs-done]');
+    const totalEl = checklist.querySelector('[data-ifs-total]');
+    const meter = checklist.querySelector('.ifs-stencil-meter span');
+    const updateChecklist = () => {
+      const done = checks.filter(input => input.checked).length;
+      if (doneEl) doneEl.textContent = String(done);
+      if (totalEl) totalEl.textContent = String(checks.length);
+      if (meter) meter.style.width = `${checks.length ? done * 100 / checks.length : 0}%`;
+    };
+    checks.forEach(input => input.addEventListener('change', updateChecklist));
+    updateChecklist();
+  }
+
+  // Cada meta é um ramo botânico. Os traços são revelados em sequência,
+  // de acordo com o percentual enviado pelo Django (incluindo vírgula pt-BR).
+  const goals = [...root.querySelectorAll('.ifs-goal[data-goal-progress]')];
+  goals.forEach(goal => {
+    const paths = [...goal.querySelectorAll('.ifs-growth-drawn path')];
+    const lengths = paths.map(path => {
+      const length = path.getTotalLength();
+      path.style.strokeDasharray = `${length}`;
+      path.style.strokeDashoffset = `${length}`;
+      return length;
+    });
+    const totalLength = lengths.reduce((sum, value) => sum + value, 0);
+    const percent = clamp(number(goal.dataset.goalProgress), 0, 100);
+    goal._flashDraw = () => {
+      let remaining = totalLength * percent / 100;
+      paths.forEach((path, index) => {
+        const revealed = clamp(remaining, 0, lengths[index]);
+        path.style.transition = reduce.matches ? 'none' : 'stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1)';
+        path.style.strokeDashoffset = String(lengths[index] - revealed);
+        remaining -= lengths[index];
+      });
+      const bar = goal.querySelector('[data-ifs-bar]');
+      if (bar) bar.style.width = `${percent}%`;
+    };
+  });
+
+  if ('IntersectionObserver' in window && !reduce.matches) {
+    const goalObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target._flashDraw?.();
+        goalObserver.unobserve(entry.target);
+      });
+    }, { threshold: .12, rootMargin: '0px 0px 40px 0px' });
+    goals.forEach(goal => goalObserver.observe(goal));
+  } else {
+    goals.forEach(goal => goal._flashDraw?.());
+  }
+
+  // Diário: a linha de tinta avança em função da rolagem, e cada
+  // registro aparece como uma nova marca de arquivo.
+  const timeline = root.querySelector('.ifs-timeline');
+  if (timeline) {
+    const events = [...timeline.querySelectorAll('.ifs-event')];
+    if ('IntersectionObserver' in window) {
+      const diaryObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-seen');
+            diaryObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: .1 });
+      events.forEach(event => diaryObserver.observe(event));
+    } else {
+      events.forEach(event => event.classList.add('is-seen'));
+    }
+  }
+
+  // Fio de tinta que conecta os quatro capítulos na margem esquerda.
+  // É apenas decorativo e se desativa em telas menores.
+  const threadSvg = root.querySelector('.ifs-page-thread');
+  const threadTrack = threadSvg?.querySelector('.ifs-page-thread-track');
+  const threadInk = threadSvg?.querySelector('.ifs-page-thread-ink');
+  const threadTip = threadSvg?.querySelector('.ifs-page-thread-tip');
+  let threadLength = 0;
+  let threadStart = 0;
+  let threadEnd = 0;
+
+  function rebuildThread() {
+    if (!threadSvg || !threadTrack || !threadInk || !threadTip) return;
+    if (window.innerWidth <= 760 || sections.length < 2) return;
+
+    const rootRect = root.getBoundingClientRect();
+    const positions = sections.map(item =>
+      item.element.getBoundingClientRect().top - rootRect.top + 34
+    );
+    const x = 12;
+    let d = `M ${x} ${positions[0]}`;
+    for (let i = 1; i < positions.length; i++) {
+      const previous = positions[i - 1];
+      const current = positions[i];
+      d += ` C ${x - 9} ${previous + 55}, ${x + 9} ${current - 55}, ${x} ${current}`;
+    }
+    threadSvg.setAttribute('viewBox', `0 0 ${root.clientWidth} ${root.scrollHeight}`);
+    threadTrack.setAttribute('d', d);
+    threadInk.setAttribute('d', d);
+    threadLength = threadInk.getTotalLength();
+    threadInk.style.strokeDasharray = `${threadLength}`;
+    threadStart = positions[0];
+    threadEnd = positions[positions.length - 1];
+    updateThread();
+  }
+
+  function updateThread() {
+    if (!threadInk || !threadTip || !threadLength || window.innerWidth <= 760) return;
+    const rect = root.getBoundingClientRect();
+    const viewportCursor = window.innerHeight * .58 - rect.top;
+    const fraction = clamp((viewportCursor - threadStart) / Math.max(1, threadEnd - threadStart), 0, 1);
+    const drawn = threadLength * fraction;
+    threadInk.style.strokeDashoffset = String(threadLength - drawn);
+    const point = threadInk.getPointAtLength(drawn);
+    threadTip.setAttribute('cx', String(point.x));
+    threadTip.setAttribute('cy', String(point.y));
+  }
+
+  let framePending = false;
+  function updateScroll() {
+    const offset = navOffset();
+    const scrollTop = window.scrollY;
+    const maximum = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (progressBar) progressBar.style.width = `${maximum ? scrollTop / maximum * 100 : 100}%`;
+    if (backTop) backTop.classList.toggle('is-visible', scrollTop > 550);
+
+    let active = sections[0];
+    sections.forEach(item => {
+      if (item.element.getBoundingClientRect().top <= offset + 30) active = item;
+    });
+    if (active) {
+      links.forEach(link => {
+        const current = link === active.link;
+        link.classList.toggle('is-current', current);
+        if (current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    }
+
+    if (timeline) {
+      const rect = timeline.getBoundingClientRect();
+      const height = Math.max(0, rect.height - 54);
+      const reached = clamp(window.innerHeight * .57 - rect.top - 24, 0, height);
+      timeline.style.setProperty('--ifs-timeline-progress', `${reached}px`);
+    }
+    updateThread();
+    framePending = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (framePending) return;
+    framePending = true;
+    window.requestAnimationFrame(updateScroll);
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    rebuildThread();
+    updateScroll();
+  });
+  rebuildThread();
+  updateScroll();
+});
