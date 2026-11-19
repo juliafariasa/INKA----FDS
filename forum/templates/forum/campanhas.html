@@ -1,97 +1,411 @@
+
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}Campanhas sociais - INKA{% endblock %}
 
 {% block content %}
-<section class="camp-pagina">
 
+<section class="camp-pagina" id="camp-galeria">
+
+    <!-- INTRODUÇÃO / ENTRADA DA EXPOSIÇÃO -->
     <header class="camp-intro">
-        <span class="camp-etiqueta">INKA / AÇÃO SOCIAL</span>
-        <h2>Tatuagem que transforma<span>.</span></h2>
-        <p>
-            Campanhas de ONGs e projetos parceiros em que os estúdios da rede
-            podem participar, como a cobertura gratuita de cicatrizes. Aqui
-            você vê as campanhas e os estúdios que fazem parte de cada uma.
-        </p>
+
+        <div class="camp-intro-conteudo">
+            <span class="camp-etiqueta">INKA / AÇÃO SOCIAL</span>
+
+            <div class="camp-titulo-area">
+                <h2>Tatuagem que transforma<span>.</span></h2>
+
+                <div class="camp-simbolo" aria-hidden="true">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="35"/>
+                        <circle cx="50" cy="50" r="27"/>
+                        <path d="M50 5V95M5 50H95"/>
+                        <path d="M26 26L74 74M74 26L26 74"/>
+                        <circle cx="50" cy="50" r="7"/>
+                    </svg>
+                </div>
+            </div>
+
+            <p>
+                Campanhas de ONGs e projetos parceiros em que os estúdios da rede
+                podem participar, como a cobertura gratuita de cicatrizes. Aqui
+                você vê as campanhas e os estúdios que fazem parte de cada uma.
+            </p>
+        </div>
+
+        <div class="camp-intro-rodape">
+            <span>GALERIA DE HISTÓRIAS</span>
+            <span>UMA EXPOSIÇÃO SOBRE TRANSFORMAÇÃO SOCIAL</span>
+            <span aria-hidden="true">✳</span>
+        </div>
+
     </header>
 
     {% if campanhas %}
+
+        <!-- CORREDOR DA GALERIA -->
+        <div class="camp-galeria-cabecalho">
+            <div>
+                <span class="camp-etiqueta">ACERVO / INKA</span>
+                <h3>Histórias em exposição<span>.</span></h3>
+            </div>
+
+            <p>
+                Selecione uma obra para conhecer a campanha.
+            </p>
+        </div>
+
         <div class="camp-lista">
+
             {% for campanha in campanhas %}
-                <article class="camp-card{% if not campanha.aberta %} camp-encerrada{% endif %}">
 
-                    <div class="camp-card-topo">
-                        <span class="camp-ong">{{ campanha.ong }}</span>
-                        <span class="camp-situacao">
-                            {% if not campanha.aberta %}Encerrada{% elif campanha.encerra_em %}Até {{ campanha.encerra_em|date:"d/m/Y" }}{% else %}Aberta{% endif %}
-                        </span>
+                <article
+                    class="camp-card{% if not campanha.aberta %} camp-encerrada{% endif %}"
+                    style="--camp-indice: {{ forloop.counter0 }};"
+                >
+
+                    <div class="camp-card-legenda-superior">
+                        <span>INKA / OBRA Nº {{ forloop.counter|stringformat:"02d" }}</span>
+                        <span>ARQUIVO SOCIAL</span>
                     </div>
 
-                    <h3>{{ campanha.titulo }}</h3>
+                    <!-- OBRA INTERATIVA -->
+                    <details class="camp-obra-detalhes">
 
-                    <p>{{ campanha.descricao|linebreaksbr }}</p>
+                        <summary class="camp-obra">
 
-                    <p class="camp-contato">
-                        {% if campanha.cidade %}<span>{{ campanha.cidade }}</span>{% endif %}
-                        {% if campanha.email %}<a href="mailto:{{ campanha.email }}">{{ campanha.email }}</a>{% endif %}
-                        {% if campanha.site %}<a href="{{ campanha.site }}" target="_blank" rel="noopener">Site da ONG ↗</a>{% endif %}
-                    </p>
+                            <div class="camp-moldura">
 
-                    <div class="camp-participantes">
-                        <span class="camp-etiqueta">Estúdios participantes</span>
-                        {% with participantes=campanha.estudios.all %}
-                            {% if participantes %}
-                                <ul>
-                                    {% for participante in participantes %}
-                                        <li><a href="{% url 'forum:estudio_perfil' participante.id %}">{{ participante.nome }}</a></li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p>Nenhum estúdio ainda.{% if campanha.aberta %} Seja o primeiro!{% endif %}</p>
-                            {% endif %}
-                        {% endwith %}
-                    </div>
+                                <div class="camp-moldura-interior">
 
-                    {% if campanha.aberta %}
-                        {% if estudio %}
-                            {% if campanha.participo %}
-                                <form method="post"
-                                      action="{% url 'forum:estudio_campanha_sair' estudio.id campanha.id %}">
-                                    {% csrf_token %}
-                                    <p class="camp-participo">{{ estudio.nome }} participa desta campanha.</p>
-                                    <button type="submit" class="camp-botao camp-botao-sair">Sair da campanha</button>
-                                </form>
-                            {% else %}
-                                <form method="post"
-                                      action="{% url 'forum:estudio_campanha_participar' estudio.id campanha.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="camp-botao">Participar com {{ estudio.nome }}</button>
-                                </form>
-                            {% endif %}
-                        {% elif not user.is_authenticated %}
-                            <p class="camp-entrar">
-                                <a href="{% url 'forum:entrar' %}?next={% url 'forum:campanhas' %}">Entre com a conta do estúdio</a>
-                                para participar.
-                            </p>
-                        {% endif %}
-                    {% endif %}
+                                    <div class="camp-arte" aria-hidden="true">
+
+                                        <span class="camp-arte-orbita"></span>
+                                        <span class="camp-arte-orbita camp-arte-orbita-2"></span>
+
+                                        <svg
+                                            class="camp-arte-flor"
+                                            viewBox="0 0 240 270"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            aria-hidden="true"
+                                        >
+                                            <g stroke="currentColor"
+                                               stroke-linecap="round"
+                                               stroke-linejoin="round">
+
+                                                <!-- FLOR -->
+                                                <path d="M120 135
+                                                    C95 113 84 84 101 67
+                                                    C112 56 126 61 131 76
+                                                    C145 59 164 65 166 82
+                                                    C169 101 146 123 120 135Z"/>
+
+                                                <path d="M120 135
+                                                    C87 130 64 107 70 89
+                                                    C77 73 95 78 103 89"/>
+
+                                                <path d="M120 135
+                                                    C151 132 177 111 176 93
+                                                    C174 78 160 77 151 86"/>
+
+                                                <path d="M119 134
+                                                    C105 106 107 83 123 82
+                                                    C139 81 147 97 137 112
+                                                    C130 122 117 120 116 107
+                                                    C115 97 125 94 131 102"/>
+
+                                                <path d="M120 135
+                                                    C117 159 122 197 119 244"/>
+
+                                                <!-- FOLHAS -->
+                                                <path d="M120 176
+                                                    C103 151 82 147 70 155
+                                                    C75 171 96 180 120 176Z"/>
+
+                                                <path d="M120 196
+                                                    C139 174 159 171 172 180
+                                                    C161 196 139 203 120 196Z"/>
+
+                                                <path d="M119 219
+                                                    C108 207 91 207 83 214
+                                                    C90 225 104 230 119 219Z"/>
+
+                                                <path d="M70 155L120 176"/>
+                                                <path d="M172 180L120 196"/>
+                                                <path d="M83 214L119 219"/>
+
+                                                <!-- PEQUENOS DETALHES -->
+                                                <path d="M120 37V49M120 221V234"/>
+                                                <path d="M49 121H61M179 121H191"/>
+                                                <path d="M67 64L76 73M164 73L173 64"/>
+
+                                                <circle cx="120" cy="135" r="86"
+                                                        stroke-dasharray="2 8"
+                                                        opacity=".45"/>
+
+                                            </g>
+                                        </svg>
+
+                                        <span class="camp-arte-numero">
+                                            {{ forloop.counter|stringformat:"02d" }}
+                                        </span>
+
+                                        <span class="camp-arte-assinatura">
+                                            INKA · HISTÓRIAS
+                                        </span>
+
+                                    </div>
+
+                                    <span class="camp-luz" aria-hidden="true"></span>
+
+                                </div>
+
+                            </div>
+
+                            <!-- PLAQUINHA DE MUSEU -->
+                            <div class="camp-placa">
+
+                                <div class="camp-placa-topo">
+                                    <span class="camp-ong">{{ campanha.ong }}</span>
+
+                                    <span class="camp-situacao">
+                                        {% if not campanha.aberta %}
+                                            Encerrada
+                                        {% elif campanha.encerra_em %}
+                                            Até {{ campanha.encerra_em|date:"d/m/Y" }}
+                                        {% else %}
+                                            Aberta
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <h3>{{ campanha.titulo }}</h3>
+
+                                <span class="camp-explorar">
+                                    <span>CONHECER ESTA HISTÓRIA</span>
+                                    <span class="camp-explorar-seta" aria-hidden="true">↗</span>
+                                </span>
+
+                            </div>
+
+                        </summary>
+
+                        <!-- FICHA CURATORIAL EXPANDIDA -->
+                        <div class="camp-ficha">
+
+                            <div class="camp-ficha-cabecalho">
+                                <span class="camp-etiqueta">
+                                    INKA / FICHA DA CAMPANHA
+                                </span>
+
+                                <span>OBRA Nº {{ forloop.counter|stringformat:"02d" }}</span>
+                            </div>
+
+                            <div class="camp-ficha-corpo">
+
+                                <div class="camp-ficha-historia">
+
+                                    <span class="camp-ficha-subtitulo">
+                                        SOBRE ESTA HISTÓRIA
+                                    </span>
+
+                                    <p class="camp-descricao">
+                                        {{ campanha.descricao|linebreaksbr }}
+                                    </p>
+
+                                    <p class="camp-contato">
+                                        {% if campanha.cidade %}
+                                            <span>{{ campanha.cidade }}</span>
+                                        {% endif %}
+
+                                        {% if campanha.email %}
+                                            <a href="mailto:{{ campanha.email }}">
+                                                {{ campanha.email }}
+                                            </a>
+                                        {% endif %}
+
+                                        {% if campanha.site %}
+                                            <a
+                                                href="{{ campanha.site }}"
+                                                target="_blank"
+                                                rel="noopener"
+                                            >
+                                                Site da ONG ↗
+                                            </a>
+                                        {% endif %}
+                                    </p>
+
+                                </div>
+
+                                <div class="camp-ficha-participacao">
+
+                                    <div class="camp-participantes">
+
+                                        <span class="camp-etiqueta">
+                                            Estúdios participantes
+                                        </span>
+
+                                        {% with participantes=campanha.estudios.all %}
+
+                                            {% if participantes %}
+
+                                                <ul>
+                                                    {% for participante in participantes %}
+                                                        <li>
+                                                            <a href="{% url 'forum:estudio_perfil' participante.id %}">
+                                                                {{ participante.nome }}
+                                                            </a>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+
+                                            {% else %}
+
+                                                <p>
+                                                    Nenhum estúdio ainda.{% if campanha.aberta %} Seja o primeiro!{% endif %}
+                                                </p>
+
+                                            {% endif %}
+
+                                        {% endwith %}
+
+                                    </div>
+
+                                    {% if campanha.aberta %}
+
+                                        {% if estudio %}
+
+                                            {% if campanha.participo %}
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'forum:estudio_campanha_sair' estudio.id campanha.id %}"
+                                                >
+                                                    {% csrf_token %}
+
+                                                    <p class="camp-participo">
+                                                        {{ estudio.nome }} participa desta campanha.
+                                                    </p>
+
+                                                    <button
+                                                        type="submit"
+                                                        class="camp-botao camp-botao-sair"
+                                                    >
+                                                        Sair da campanha
+                                                    </button>
+                                                </form>
+
+                                            {% else %}
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'forum:estudio_campanha_participar' estudio.id campanha.id %}"
+                                                >
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="camp-botao"
+                                                    >
+                                                        Participar com {{ estudio.nome }}
+                                                    </button>
+                                                </form>
+
+                                            {% endif %}
+
+                                        {% elif not user.is_authenticated %}
+
+                                            <p class="camp-entrar">
+                                                <a href="{% url 'forum:entrar' %}?next={% url 'forum:campanhas' %}">
+                                                    Entre com a conta do estúdio
+                                                </a>
+                                                para participar.
+                                            </p>
+
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </details>
 
                 </article>
+
             {% endfor %}
+
         </div>
+
     {% else %}
+
+        <!-- GALERIA VAZIA -->
         <div class="camp-vazio">
+
             <span>✳</span>
+
             <div>
                 <strong>Nenhuma campanha por aqui ainda.</strong>
+
                 <p>
                     Representa uma ONG ou um projeto social? Fale com a equipe
-                    pela página <a href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
+                    pela página
+                    <a href="{% url 'forum:fale_conosco' %}">Fale Conosco</a>
                     para divulgar sua campanha.
                 </p>
             </div>
+
         </div>
+
     {% endif %}
 
 </section>
+
+<!-- ILUMINAÇÃO INTERATIVA DAS OBRAS -->
+<script>
+(() => {
+    const galeria = document.getElementById("camp-galeria");
+    if (!galeria) return;
+
+    const movimentoReduzido = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    galeria.querySelectorAll(".camp-moldura").forEach((moldura) => {
+        moldura.addEventListener("pointermove", (evento) => {
+            if (evento.pointerType === "touch" || movimentoReduzido.matches) {
+                return;
+            }
+
+            const area = moldura.getBoundingClientRect();
+
+            const x = ((evento.clientX - area.left) / area.width) * 100;
+            const y = ((evento.clientY - area.top) / area.height) * 100;
+
+            moldura.style.setProperty("--luz-x", x + "%");
+            moldura.style.setProperty("--luz-y", y + "%");
+
+            const giroY = (x - 50) * 0.055;
+            const giroX = (50 - y) * 0.055;
+
+            moldura.style.setProperty("--giro-x", giroX + "deg");
+            moldura.style.setProperty("--giro-y", giroY + "deg");
+        });
+
+        moldura.addEventListener("pointerleave", () => {
+            moldura.style.removeProperty("--luz-x");
+            moldura.style.removeProperty("--luz-y");
+            moldura.style.removeProperty("--giro-x");
+            moldura.style.removeProperty("--giro-y");
+        });
+    });
+})();
+</script>
+
 {% endblock %}

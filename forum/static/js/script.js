@@ -1172,3 +1172,246 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+/* ==============================================
+   INKA / CONTROL ROOM · INTERAÇÕES
+============================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const pagina = document.querySelector("#ma-atelier");
+    if (!pagina) return;
+
+    const reduzirMovimento = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    const links = [...pagina.querySelectorAll(".ma-nav-link")];
+    const progresso = pagina.querySelector("#ma-progresso-pagina");
+    const voltar = pagina.querySelector(".ma-voltar-inicio");
+
+    const secoes = links.map(link => ({
+        link,
+        elemento: document.querySelector(link.getAttribute("href"))
+    })).filter(item => item.elemento);
+
+    /* ==========================================
+       01 / ROLAGEM ENTRE CAPÍTULOS
+    ========================================== */
+
+    links.forEach(link => {
+
+        link.addEventListener("click", evento => {
+
+            const destino = document.querySelector(
+                link.getAttribute("href")
+            );
+
+            if (!destino) return;
+
+            evento.preventDefault();
+
+            destino.scrollIntoView({
+                behavior: reduzirMovimento.matches ? "instant" : "smooth",
+                block: "start"
+            });
+
+            links.forEach(item => {
+                item.classList.remove("ativo");
+                item.removeAttribute("aria-current");
+            });
+
+            link.classList.add("ativo");
+            link.setAttribute("aria-current", "location");
+
+        });
+
+    });
+
+    /* ==========================================
+       02 / PROGRESSO E CAPÍTULO ATIVO
+    ========================================== */
+
+    let rolando = false;
+
+    function atualizarNavegacao() {
+
+        const posicao = window.scrollY;
+        const altura = document.documentElement.scrollHeight
+            - window.innerHeight;
+
+        const percentual = altura > 0
+            ? Math.min(100, Math.max(0, (posicao / altura) * 100))
+            : 100;
+
+        if (progresso) {
+            progresso.style.width = percentual + "%";
+        }
+
+        if (voltar) {
+            voltar.classList.toggle(
+                "aparecer",
+                posicao > 550
+            );
+        }
+
+        const referencia = window.innerHeight * 0.36;
+        let ativa = secoes[0];
+
+        secoes.forEach(item => {
+            if (
+                item.elemento.getBoundingClientRect().top
+                <= referencia
+            ) {
+                ativa = item;
+            }
+        });
+
+        if (ativa) {
+            links.forEach(link => {
+                const selecionado = link === ativa.link;
+
+                link.classList.toggle("ativo", selecionado);
+
+                if (selecionado) {
+                    link.setAttribute("aria-current", "location");
+                } else {
+                    link.removeAttribute("aria-current");
+                }
+            });
+        }
+
+        rolando = false;
+    }
+
+    window.addEventListener("scroll", () => {
+        if (rolando) return;
+
+        rolando = true;
+        requestAnimationFrame(atualizarNavegacao);
+    }, { passive: true });
+
+    window.addEventListener("resize", atualizarNavegacao);
+
+    atualizarNavegacao();
+
+    /* ==========================================
+       03 / ANIMAÇÃO DE ENTRADA
+    ========================================== */
+
+    const elementos = pagina.querySelectorAll(
+        ".ma-acessos, .evo-bloco, .ma-rodape-atelier"
+    );
+
+    if ("IntersectionObserver" in window
+        && !reduzirMovimento.matches) {
+
+        const observador = new IntersectionObserver(
+            entradas => {
+                entradas.forEach(entrada => {
+
+                    if (!entrada.isIntersecting) return;
+
+                    entrada.target.classList.add("ma-visivel");
+                    observador.unobserve(entrada.target);
+
+                });
+            },
+            {
+                threshold: 0.08,
+                rootMargin: "0px 0px 50px 0px"
+            }
+        );
+
+        elementos.forEach(elemento => {
+            elemento.classList.add("ma-reveal");
+            observador.observe(elemento);
+        });
+
+        pagina.classList.add("ma-animar");
+    }
+
+    /* ==========================================
+       04 / ANIMAÇÃO DAS BARRAS DE PROGRESSO
+    ========================================== */
+
+    const indicadores = pagina.querySelectorAll(
+        ".ma-indicador-diagnostico, .ma-indicador-checklist"
+    );
+
+    if ("IntersectionObserver" in window
+        && !reduzirMovimento.matches) {
+
+        const observadorIndicadores = new IntersectionObserver(
+            entradas => {
+                entradas.forEach(entrada => {
+
+                    if (!entrada.isIntersecting) return;
+
+                    entrada.target.classList.add("ma-valor-ativo");
+                    observadorIndicadores.unobserve(entrada.target);
+
+                });
+            },
+            { threshold: 0.3 }
+        );
+
+        indicadores.forEach(indicador => {
+            observadorIndicadores.observe(indicador);
+        });
+
+    } else {
+        indicadores.forEach(indicador => {
+            indicador.classList.add("ma-valor-ativo");
+        });
+    }
+
+    /* ==========================================
+       05 / ILUMINAÇÃO NO CURSOR
+    ========================================== */
+
+    const aceitaHover = window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+    );
+
+    if (aceitaHover.matches && !reduzirMovimento.matches) {
+
+        pagina.querySelectorAll(".ma-grupo").forEach(grupo => {
+
+            grupo.addEventListener("pointermove", evento => {
+
+                const area = grupo.getBoundingClientRect();
+
+                const x = evento.clientX - area.left;
+                const y = evento.clientY - area.top;
+
+                grupo.style.setProperty("--ma-luz-x", x + "px");
+                grupo.style.setProperty("--ma-luz-y", y + "px");
+
+            });
+
+            grupo.addEventListener("pointerleave", () => {
+                grupo.style.removeProperty("--ma-luz-x");
+                grupo.style.removeProperty("--ma-luz-y");
+            });
+
+        });
+
+    }
+
+    /* ==========================================
+       06 / VOLTAR PARA O INÍCIO
+    ========================================== */
+
+    if (voltar) {
+        voltar.addEventListener("click", () => {
+
+            window.scrollTo({
+                top: 0,
+                behavior: reduzirMovimento.matches ? "instant" : "smooth"
+            });
+
+        });
+    }
+
+});
