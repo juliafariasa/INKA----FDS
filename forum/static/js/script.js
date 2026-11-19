@@ -1,12 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.aviso-success').forEach(function (aviso) {
-        setTimeout(function () {
-            aviso.classList.add('sumindo');
-            setTimeout(function () {
-                aviso.remove();
-            }, 500);
-        }, 5000);
-    });
+    iniciarAvisos();
 
     var mensagem = document.getElementById('mensagem');
     if (mensagem) {
@@ -31,22 +24,28 @@ document.addEventListener('DOMContentLoaded', function () {
         atualizar();
     }
 
-    var botaoTopo = document.createElement('button');
-    botaoTopo.type = 'button';
-    botaoTopo.className = 'voltar-topo';
-    botaoTopo.textContent = '↑';
-    botaoTopo.setAttribute('aria-label', 'Voltar ao topo');
-    document.body.appendChild(botaoTopo);
+    // Minha Área e Evolução têm o próprio botão de voltar ao topo; nelas o
+    // botão global não é criado, para não aparecerem dois.
+    if (!document.querySelector('.db-back-top, .ifs-backtop')) {
+        var botaoTopo = document.createElement('button');
+        botaoTopo.type = 'button';
+        botaoTopo.className = 'voltar-topo';
+        botaoTopo.textContent = '↑';
+        botaoTopo.setAttribute('aria-label', 'Voltar ao topo');
+        document.body.appendChild(botaoTopo);
 
-    botaoTopo.addEventListener('click', function () {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+        botaoTopo.addEventListener('click', function () {
+            var suave = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' });
+        });
 
-    window.addEventListener('scroll', function () {
-        botaoTopo.classList.toggle('visivel', window.scrollY > 300);
-    });
+        window.addEventListener('scroll', function () {
+            botaoTopo.classList.toggle('visivel', window.scrollY > 300);
+        }, { passive: true });
+    }
 
     iniciarMenu();
+    iniciarEnvioDeFormularios();
     desenharTintaDecorativa();
     iniciarDesenho();
     iniciarAnimacaoCaneta();
@@ -55,9 +54,77 @@ document.addEventListener('DOMContentLoaded', function () {
     revelarSecoes();
 });
 
+// Avisos do Django ("Item cadastrado", "Senha alterada"...). Todos ganham
+// um botão de fechar. Os de sucesso somem sozinhos depois de alguns segundos,
+// com uma linha que mostra o tempo restante; passar o mouse ou focar o aviso
+// pausa a contagem (WCAG 2.2.1). Os de erro ficam até a pessoa fechar.
+function iniciarAvisos() {
+    var DURACAO = 6000;
+
+    document.querySelectorAll('p.aviso').forEach(function (aviso) {
+        var fechar = document.createElement('button');
+        fechar.type = 'button';
+        fechar.className = 'aviso-fechar';
+        fechar.setAttribute('aria-label', 'Fechar aviso');
+        fechar.textContent = '×';
+        aviso.appendChild(fechar);
+
+        var sair = function () {
+            if (aviso.classList.contains('sumindo')) {
+                return;
+            }
+            aviso.classList.add('sumindo');
+            setTimeout(function () {
+                aviso.remove();
+            }, 500);
+        };
+        fechar.addEventListener('click', sair);
+
+        if (!aviso.classList.contains('aviso-success')) {
+            return;
+        }
+
+        var restante = DURACAO;
+        var inicio = 0;
+        var relogio = null;
+        var rodar = function () {
+            inicio = Date.now();
+            relogio = setTimeout(sair, restante);
+            aviso.classList.remove('pausado');
+        };
+        var pausar = function () {
+            if (relogio === null) {
+                return;
+            }
+            clearTimeout(relogio);
+            relogio = null;
+            restante = Math.max(0, restante - (Date.now() - inicio));
+            aviso.classList.add('pausado');
+        };
+        var retomar = function () {
+            if (relogio === null && !aviso.matches(':hover, :focus-within')) {
+                rodar();
+            }
+        };
+
+        aviso.style.setProperty('--aviso-duracao', DURACAO + 'ms');
+        aviso.classList.add('aviso-temporizado');
+        aviso.addEventListener('pointerenter', pausar);
+        aviso.addEventListener('pointerleave', retomar);
+        aviso.addEventListener('focusin', pausar);
+        aviso.addEventListener('focusout', function () {
+            setTimeout(retomar, 0);
+        });
+        rodar();
+    });
+}
+
 function iniciarMenu() {
     var botao = document.querySelector('.menu-botao');
     var menu = document.getElementById('menu');
+    if (!botao || !menu) {
+        return;
+    }
     var aberto = function () {
         return document.body.classList.contains('menu-aberto');
     };
@@ -87,7 +154,115 @@ function iniciarMenu() {
         if (evento.key === 'Escape' && aberto()) {
             alternar(false);
             botao.focus();
+            return;
         }
+
+        // Com a gaveta aberta, o Tab circula entre o botão e os links dela
+        // em vez de escapar para a página escurecida por trás.
+        if (evento.key === 'Tab' && aberto()) {
+            var focaveis = [botao].concat(Array.prototype.slice.call(
+                menu.querySelectorAll('a[href], button:not([disabled])')
+            ));
+            var primeiro = focaveis[0];
+            var ultimo = focaveis[focaveis.length - 1];
+            if (evento.shiftKey && document.activeElement === primeiro) {
+                evento.preventDefault();
+                ultimo.focus();
+            } else if (!evento.shiftKey && document.activeElement === ultimo) {
+                evento.preventDefault();
+                primeiro.focus();
+            }
+        }
+    });
+
+    // O link da página atual é anunciado como tal pelo leitor de tela.
+    menu.querySelectorAll('a.ativo').forEach(function (link) {
+        link.setAttribute('aria-current', 'page');
+    });
+}
+
+// Traço de tinta no topo da tela: mostra que o sistema está trabalhando
+// enquanto um formulário é enviado ou a próxima página carrega. Só aparece
+// se a espera passar de 150 ms, para não piscar em respostas rápidas.
+function criarTracoDeProgresso() {
+    var traco = document.createElement('div');
+    traco.className = 'inka-progresso';
+    traco.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(traco);
+
+    var espera = null;
+    return {
+        iniciar: function () {
+            clearTimeout(espera);
+            espera = setTimeout(function () {
+                traco.classList.add('ativo');
+            }, 150);
+        },
+        parar: function () {
+            clearTimeout(espera);
+            traco.classList.remove('ativo');
+        }
+    };
+}
+
+// Envio único para todos os formulários POST: o segundo clique é ignorado
+// enquanto o primeiro está em andamento. O botão não recebe "disabled" (isso
+// tiraria o name/value dele do POST); fica com aria-disabled e o formulário
+// com aria-busy. Formulários com fluxo próprio (dossiê de documentos e
+// cadastro de aula) já cuidam disso e ficam de fora.
+function iniciarEnvioDeFormularios() {
+    var traco = criarTracoDeProgresso();
+    var PROPRIOS = '#dossie-inka, #inka-director, [data-envio-proprio]';
+
+    document.addEventListener('submit', function (evento) {
+        var formulario = evento.target;
+        if (evento.defaultPrevented || formulario.closest(PROPRIOS) ||
+                (formulario.getAttribute('method') || '').toLowerCase() !== 'post') {
+            return;
+        }
+        if (formulario.dataset.enviando === '1') {
+            evento.preventDefault();
+            return;
+        }
+        formulario.dataset.enviando = '1';
+        formulario.setAttribute('aria-busy', 'true');
+        var botao = evento.submitter;
+        if (botao) {
+            botao.setAttribute('aria-disabled', 'true');
+            botao.classList.add('is-enviando');
+        }
+        traco.iniciar();
+    });
+
+    // Links internos: o mesmo traço indica que a próxima página está vindo.
+    document.addEventListener('click', function (evento) {
+        var link = evento.target.closest('a[href]');
+        if (!link || evento.defaultPrevented || evento.button !== 0 ||
+                evento.metaKey || evento.ctrlKey || evento.shiftKey ||
+                evento.altKey || link.target === '_blank' ||
+                link.hasAttribute('download')) {
+            return;
+        }
+        var destino = new URL(link.href, location.href);
+        var mesmaPagina = destino.pathname === location.pathname &&
+            destino.search === location.search;
+        if (destino.origin === location.origin && !mesmaPagina) {
+            traco.iniciar();
+        }
+    });
+
+    // Voltando pelo histórico, a página pode ser restaurada da memória com o
+    // formulário ainda marcado como "enviando".
+    window.addEventListener('pageshow', function () {
+        traco.parar();
+        document.querySelectorAll('form[data-enviando]').forEach(function (formulario) {
+            delete formulario.dataset.enviando;
+            formulario.removeAttribute('aria-busy');
+            formulario.querySelectorAll('.is-enviando').forEach(function (botao) {
+                botao.removeAttribute('aria-disabled');
+                botao.classList.remove('is-enviando');
+            });
+        });
     });
 }
 
@@ -566,7 +741,7 @@ function iniciarAnimacaoCaneta() {
     figura.addEventListener('pointerenter', tocar);
 }
 
-// Fale Conosco: leva o foco ao primeiro campo com erro e evita envio duplo.
+// Fale Conosco: leva o foco ao primeiro campo com erro.
 function iniciarFormularioContato() {
     var formulario = document.getElementById('formulario-contato');
     if (!formulario) {
@@ -578,20 +753,8 @@ function iniciarFormularioContato() {
         primeiroErro.focus();
     }
 
-    var botao = formulario.querySelector('[type="submit"]');
-    var textoBotao = botao.querySelector('.landing-botao-texto');
-    var textoOriginal = textoBotao.textContent;
-
-    formulario.addEventListener('submit', function () {
-        botao.disabled = true;
-        textoBotao.textContent = 'Enviando…';
-    });
-
-    // Ao voltar pelo histórico, o navegador pode restaurar o botão travado.
-    window.addEventListener('pageshow', function () {
-        botao.disabled = false;
-        textoBotao.textContent = textoOriginal;
-    });
+    // O envio único e o estado "Enviando…" ficam com iniciarEnvioDeFormularios,
+    // que vale para todos os formulários do site.
 }
 
 // Quem Somos: cada integrante aparece suavemente ao entrar na tela. Sem
@@ -663,8 +826,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!experiencia || !botao || !formulario || !fechar) return;
 
-    let aberto = false;
+    // Quando o servidor devolve erros, o template já entrega o formulário
+    // aberto; o estado inicial acompanha.
+    let aberto = !formulario.hidden;
     let digitando = false;
+    if (aberto && textoBotao) textoBotao.textContent = "MÁQUINA ACIONADA";
     let temporizadores = [];
 
     const agendar = (funcao, tempo) => {
@@ -892,12 +1058,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Abertura cinematográfica ao entrar na página
+    // Abertura cinematográfica só na primeira visita da sessão. Ao voltar
+    // depois de cadastrar ou editar um item, o cofre já está aberto e o
+    // resultado aparece na hora; o mesmo vale para quem pede menos movimento.
+    const CHAVE_COFRE = "inka-cofre-aberto";
+    const lembrar = (valor) => {
+        try { sessionStorage.setItem(CHAVE_COFRE, valor); } catch (erro) { /* modo privado */ }
+    };
+    let jaAbriuNaSessao = false;
+    try { jaAbriuNaSessao = sessionStorage.getItem(CHAVE_COFRE) === "1"; } catch (erro) { /* modo privado */ }
+    const semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    control.addEventListener("click", () => {
+        // Depois do clique, o estado escolhido vale para a próxima visita.
+        lembrar(vaultState === "open" || vaultState === "opening" ? "0" : "1");
+    });
+
     updateControl();
 
-    setTimeout(() => {
-        openVault();
-    }, 650);
+    if (jaAbriuNaSessao || semMovimento) {
+        scene.classList.add("sem-transicao", "is-open");
+        vaultState = "open";
+        setStatus("COFRE ABERTO / SISTEMA ATIVO");
+        updateControl();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            scene.classList.remove("sem-transicao");
+        }));
+    } else {
+        setTimeout(() => {
+            openVault();
+            lembrar("1");
+        }, 650);
+    }
 
     // Interação individual das gavetas
     drawers.forEach((drawer) => {
@@ -994,426 +1186,6 @@ document.addEventListener("DOMContentLoaded", () => {
             scene.style.setProperty("--scene-rotate-y", "0deg");
         });
     }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const livro = document.querySelector("#aula-livro");
-    const botaoAbrir = document.querySelector("#aula-abrir-livro");
-    const instrucao = document.querySelector("#aula-livro-instrucao");
-
-    if (!livro || !botaoAbrir) return;
-
-    botaoAbrir.addEventListener("click", () => {
-        livro.classList.add("aula-livro-aberto");
-
-        botaoAbrir.disabled = true;
-
-        if (instrucao) {
-            instrucao.textContent = "LIVRO ABERTO · NOVO REGISTRO";
-        }
-
-        setTimeout(() => {
-            const primeiroCampo = document.querySelector("#titulo");
-
-            if (primeiroCampo) {
-                primeiroCampo.focus({ preventScroll: true });
-            }
-        }, 1900);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const livro = document.querySelector("#aula-livro");
-    const botaoAbrir = document.querySelector("#aula-abrir-livro");
-    const instrucao = document.querySelector("#aula-livro-instrucao");
-    const folha = document.querySelector("#aula-folha-surpresa");
-
-    if (!livro || !botaoAbrir || !folha) return;
-
-    let livroAberto = false;
-
-    botaoAbrir.addEventListener("click", () => {
-
-        if (livroAberto) return;
-
-        livroAberto = true;
-        botaoAbrir.disabled = true;
-
-        // ETAPA 1: ABRIR A CAPA
-        livro.classList.add("aula-livro-aberto");
-
-        if (instrucao) {
-            instrucao.textContent = "ABRINDO O REGISTRO...";
-        }
-
-        // ETAPA 2: ARRANCAR A FOLHA
-        setTimeout(() => {
-
-            if (instrucao) {
-                instrucao.textContent = "REVELANDO O CONTEÚDO...";
-            }
-
-            // Prepara a revelação antes de iniciar a animação
-            const revelarFormulario = () => {
-
-                livro.classList.add("aula-conteudo-revelado");
-
-                if (instrucao) {
-                    instrucao.textContent = "NOVO REGISTRO DISPONÍVEL";
-                }
-
-                // Foca no primeiro campo depois da entrada
-                setTimeout(() => {
-
-                    const primeiroCampo = document.querySelector("#titulo");
-
-                    if (primeiroCampo) {
-                        primeiroCampo.focus({ preventScroll: true });
-                    }
-
-                }, 600);
-
-            };
-
-            folha.addEventListener(
-                "animationend",
-                revelarFormulario,
-                { once: true }
-            );
-
-            livro.classList.add("aula-folha-arrancando");
-
-        }, 1500);
-
-    });
-
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const livro = document.querySelector("#aula-livro");
-    const botaoAbrir = document.querySelector("#aula-abrir-livro");
-    const instrucao = document.querySelector("#aula-livro-instrucao");
-    const folha = document.querySelector("#aula-folha-surpresa");
-
-    if (!livro || !botaoAbrir || !folha) return;
-
-    let livroAberto = false;
-
-    botaoAbrir.addEventListener("click", () => {
-
-        if (livroAberto) return;
-
-        livroAberto = true;
-        botaoAbrir.disabled = true;
-
-        livro.classList.add("aula-livro-aberto");
-
-        if (instrucao) {
-            instrucao.textContent = "ABRINDO O LIVRO...";
-        }
-
-        setTimeout(() => {
-
-            if (instrucao) {
-                instrucao.textContent = "REVELANDO O CONTEÚDO...";
-            }
-
-            folha.addEventListener("animationend", () => {
-
-                livro.classList.add("aula-conteudo-revelado");
-
-                if (instrucao) {
-                    instrucao.textContent = "NOVO REGISTRO DISPONÍVEL";
-                }
-
-                setTimeout(() => {
-                    const primeiroCampo = document.querySelector("#titulo");
-
-                    if (primeiroCampo) {
-                        primeiroCampo.focus({ preventScroll: true });
-                    }
-                }, 700);
-
-            }, { once: true });
-
-            livro.classList.add("aula-folha-arrancando");
-
-        }, 1500);
-
-    });
-
-});
-
-/* =========================================
-   MINHA ÁREA / COPIAR LINK DO PERFIL
-   O link continua visível na página para quem não puder copiar pelo botão
-   (navegador sem permissão para a área de transferência, por exemplo).
-========================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("[data-copiar]").forEach((botao) => {
-        const aviso = botao.parentElement.querySelector(".ma-copiado");
-
-        const avisar = (texto) => {
-            if (aviso) aviso.textContent = texto;
-        };
-
-        botao.addEventListener("click", () => {
-            if (!navigator.clipboard) {
-                avisar("Copie o link logo abaixo.");
-                return;
-            }
-            navigator.clipboard.writeText(botao.dataset.copiar).then(
-                () => avisar("Link copiado!"),
-                () => avisar("Não deu para copiar. Use o link logo abaixo.")
-            );
-        });
-    });
-});
-
-/* ==============================================
-   INKA / CONTROL ROOM · INTERAÇÕES
-============================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const pagina = document.querySelector("#ma-atelier");
-    if (!pagina) return;
-
-    const reduzirMovimento = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    );
-
-    const links = [...pagina.querySelectorAll(".ma-nav-link")];
-    const progresso = pagina.querySelector("#ma-progresso-pagina");
-    const voltar = pagina.querySelector(".ma-voltar-inicio");
-
-    const secoes = links.map(link => ({
-        link,
-        elemento: document.querySelector(link.getAttribute("href"))
-    })).filter(item => item.elemento);
-
-    /* ==========================================
-       01 / ROLAGEM ENTRE CAPÍTULOS
-    ========================================== */
-
-    links.forEach(link => {
-
-        link.addEventListener("click", evento => {
-
-            const destino = document.querySelector(
-                link.getAttribute("href")
-            );
-
-            if (!destino) return;
-
-            evento.preventDefault();
-
-            destino.scrollIntoView({
-                behavior: reduzirMovimento.matches ? "instant" : "smooth",
-                block: "start"
-            });
-
-            links.forEach(item => {
-                item.classList.remove("ativo");
-                item.removeAttribute("aria-current");
-            });
-
-            link.classList.add("ativo");
-            link.setAttribute("aria-current", "location");
-
-        });
-
-    });
-
-    /* ==========================================
-       02 / PROGRESSO E CAPÍTULO ATIVO
-    ========================================== */
-
-    let rolando = false;
-
-    function atualizarNavegacao() {
-
-        const posicao = window.scrollY;
-        const altura = document.documentElement.scrollHeight
-            - window.innerHeight;
-
-        const percentual = altura > 0
-            ? Math.min(100, Math.max(0, (posicao / altura) * 100))
-            : 100;
-
-        if (progresso) {
-            progresso.style.width = percentual + "%";
-        }
-
-        if (voltar) {
-            voltar.classList.toggle(
-                "aparecer",
-                posicao > 550
-            );
-        }
-
-        const referencia = window.innerHeight * 0.36;
-        let ativa = secoes[0];
-
-        secoes.forEach(item => {
-            if (
-                item.elemento.getBoundingClientRect().top
-                <= referencia
-            ) {
-                ativa = item;
-            }
-        });
-
-        if (ativa) {
-            links.forEach(link => {
-                const selecionado = link === ativa.link;
-
-                link.classList.toggle("ativo", selecionado);
-
-                if (selecionado) {
-                    link.setAttribute("aria-current", "location");
-                } else {
-                    link.removeAttribute("aria-current");
-                }
-            });
-        }
-
-        rolando = false;
-    }
-
-    window.addEventListener("scroll", () => {
-        if (rolando) return;
-
-        rolando = true;
-        requestAnimationFrame(atualizarNavegacao);
-    }, { passive: true });
-
-    window.addEventListener("resize", atualizarNavegacao);
-
-    atualizarNavegacao();
-
-    /* ==========================================
-       03 / ANIMAÇÃO DE ENTRADA
-    ========================================== */
-
-    const elementos = pagina.querySelectorAll(
-        ".ma-acessos, .evo-bloco, .ma-rodape-atelier"
-    );
-
-    if ("IntersectionObserver" in window
-        && !reduzirMovimento.matches) {
-
-        const observador = new IntersectionObserver(
-            entradas => {
-                entradas.forEach(entrada => {
-
-                    if (!entrada.isIntersecting) return;
-
-                    entrada.target.classList.add("ma-visivel");
-                    observador.unobserve(entrada.target);
-
-                });
-            },
-            {
-                threshold: 0.08,
-                rootMargin: "0px 0px 50px 0px"
-            }
-        );
-
-        elementos.forEach(elemento => {
-            elemento.classList.add("ma-reveal");
-            observador.observe(elemento);
-        });
-
-        pagina.classList.add("ma-animar");
-    }
-
-    /* ==========================================
-       04 / ANIMAÇÃO DAS BARRAS DE PROGRESSO
-    ========================================== */
-
-    const indicadores = pagina.querySelectorAll(
-        ".ma-indicador-diagnostico, .ma-indicador-checklist"
-    );
-
-    if ("IntersectionObserver" in window
-        && !reduzirMovimento.matches) {
-
-        const observadorIndicadores = new IntersectionObserver(
-            entradas => {
-                entradas.forEach(entrada => {
-
-                    if (!entrada.isIntersecting) return;
-
-                    entrada.target.classList.add("ma-valor-ativo");
-                    observadorIndicadores.unobserve(entrada.target);
-
-                });
-            },
-            { threshold: 0.3 }
-        );
-
-        indicadores.forEach(indicador => {
-            observadorIndicadores.observe(indicador);
-        });
-
-    } else {
-        indicadores.forEach(indicador => {
-            indicador.classList.add("ma-valor-ativo");
-        });
-    }
-
-    /* ==========================================
-       05 / ILUMINAÇÃO NO CURSOR
-    ========================================== */
-
-    const aceitaHover = window.matchMedia(
-        "(hover: hover) and (pointer: fine)"
-    );
-
-    if (aceitaHover.matches && !reduzirMovimento.matches) {
-
-        pagina.querySelectorAll(".ma-grupo").forEach(grupo => {
-
-            grupo.addEventListener("pointermove", evento => {
-
-                const area = grupo.getBoundingClientRect();
-
-                const x = evento.clientX - area.left;
-                const y = evento.clientY - area.top;
-
-                grupo.style.setProperty("--ma-luz-x", x + "px");
-                grupo.style.setProperty("--ma-luz-y", y + "px");
-
-            });
-
-            grupo.addEventListener("pointerleave", () => {
-                grupo.style.removeProperty("--ma-luz-x");
-                grupo.style.removeProperty("--ma-luz-y");
-            });
-
-        });
-
-    }
-
-    /* ==========================================
-       06 / VOLTAR PARA O INÍCIO
-    ========================================== */
-
-    if (voltar) {
-        voltar.addEventListener("click", () => {
-
-            window.scrollTo({
-                top: 0,
-                behavior: reduzirMovimento.matches ? "instant" : "smooth"
-            });
-
-        });
-    }
-
 });
 
 /* INKA / MINHA ÁREA · EDIÇÃO 02
@@ -1520,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const copy = root.querySelector('.db-copy');
   const feedback = root.querySelector('.db-copy-feedback');
   if (copy) copy.addEventListener('click', async () => {
-    const value = copy.dataset.dbCopy;
+    const value = copy.dataset.copiar;
     if (!value) return;
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -1544,81 +1316,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* INKA / EVOLUÇÃO LAB: cinco estilos, uma única fonte de dados e formulários Django. */
-document.addEventListener('DOMContentLoaded', () => {
-  const page = document.getElementById('evolucao-lab');
-  if (!page) return;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
-  const themes = {flash:'01 / THE LIVING FLASH SHEET',press:'02 / INK PRESS',blackbook:'03 / BLACKBOOK',needle:'04 / NEEDLEWORK',map:'05 / MARKS OF PROGRESS'};
-  const buttons = [...page.querySelectorAll('[data-select-theme]')];
-  const caption = page.querySelector('#el-theme-caption');
-  const toast = page.querySelector('.el-toast');
-  let toastTimer;
-  function showToast(message){if(!toast)return;toast.textContent=message;toast.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2300)}
-  function setTheme(theme, notify=false){
-    if(!(theme in themes))return;
-    page.dataset.theme=theme;
-    if(caption)caption.textContent=themes[theme];
-    buttons.forEach(button=>{const active=button.dataset.selectTheme===theme;button.classList.toggle('is-current',active);button.setAttribute('aria-pressed',String(active))});
-    try{sessionStorage.setItem('inka-evolucao-tema',theme)}catch(_){/* privacidade / storage restrito */}
-    if(notify)showToast('Estética aplicada: '+themes[theme].split(' / ')[1]);
-  }
-  let saved='flash';try{saved=sessionStorage.getItem('inka-evolucao-tema')||'flash'}catch(_){}
-  setTheme(saved);
-  buttons.forEach(button=>button.addEventListener('click',()=>setTheme(button.dataset.selectTheme,true)));
-
-  const nav=page.querySelector('.el-chapters');
-  const chapterLinks=[...page.querySelectorAll('.el-chapter')];
-  const chapters=chapterLinks.map(link=>({link,element:page.querySelector(link.getAttribute('href'))})).filter(item=>item.element);
-  const bar=page.querySelector('.el-chapter-track span');
-  const back=page.querySelector('.el-backtop');
-  const offset=()=>((nav?.getBoundingClientRect().height||0)+(Number.parseFloat(getComputedStyle(nav).top)||0)+18);
-  page.querySelectorAll('a[href^="#el-"]').forEach(link=>link.addEventListener('click',event=>{
-    const target=page.querySelector(link.getAttribute('href'));if(!target)return;
-    event.preventDefault();const y=window.scrollY+target.getBoundingClientRect().top-offset();
-    window.scrollTo({top:Math.max(0,y),behavior:reduce.matches?'auto':'smooth'});
-  }));
-  let ticking=false;
-  function updateNav(){
-    const scrolled=window.scrollY;
-    const max=document.documentElement.scrollHeight-window.innerHeight;
-    if(bar)bar.style.width=(max>0?Math.min(100,100*scrolled/max):100)+'%';
-    if(back)back.classList.toggle('is-visible',scrolled>500);
-    const threshold=offset()+28;let current=chapters[0];
-    chapters.forEach(item=>{if(item.element.getBoundingClientRect().top<=threshold)current=item});
-    if(current)chapterLinks.forEach(link=>{const active=link===current.link;link.classList.toggle('is-active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')});
-    ticking=false;
-  }
-  window.addEventListener('scroll',()=>{if(ticking)return;ticking=true;requestAnimationFrame(updateNav)},{passive:true});
-  window.addEventListener('resize',updateNav);updateNav();
-  if(back)back.addEventListener('click',()=>window.scrollTo({top:0,behavior:reduce.matches?'auto':'smooth'}));
-
-  // Checklist: atualização visual local. O registro só é salvo pelo POST original.
-  const form=page.querySelector('.el-check-form');
-  if(form){
-    const checks=[...form.querySelectorAll('input[type="checkbox"][name="itens"]')];
-    const count=form.querySelector('[data-completed]');const total=form.querySelector('[data-total]');const progress=form.querySelector('.el-form-progress span');
-    function updateChecklist(){const completed=checks.filter(check=>check.checked).length;if(count)count.textContent=completed;if(total)total.textContent=checks.length;if(progress)progress.style.width=(checks.length?100*completed/checks.length:0)+'%'}
-    checks.forEach(check=>check.addEventListener('change',updateChecklist));updateChecklist();
-  }
-
-  // Valores Django que podem aparecer com vírgula decimal em pt-BR.
-  function percent(str){const value=Number.parseFloat(String(str||'0').replace(',','.'));return Number.isFinite(value)?Math.max(0,Math.min(100,value)):0}
-  const meters=[...page.querySelectorAll('[data-el-progress]')];
-  const renderMeter=element=>{element.style.width=percent(element.dataset.elProgress)+'%'};
-  if('IntersectionObserver' in window && !reduce.matches){
-    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){renderMeter(entry.target);io.unobserve(entry.target)}}),{threshold:.15});meters.forEach(element=>io.observe(element));
-  }else meters.forEach(renderMeter);
-
-  // Microinteração de tinta na flash sheet e luz local sem afetar eventos/campos.
-  if(finePointer.matches&&!reduce.matches){
-    page.querySelectorAll('.el-indicator').forEach(card=>card.addEventListener('pointermove',event=>{
-      if(page.dataset.theme!=='flash'&&page.dataset.theme!=='map')return;
-      const r=card.getBoundingClientRect();card.style.setProperty('--el-mx',(event.clientX-r.left)+'px');card.style.setProperty('--el-my',(event.clientY-r.top)+'px');
-    },{passive:true}));
-  }
-});
 /* ============================================================
    INKA / THE LIVING FLASH SHEET
    Isolado em #inka-flash-sheet; sem dependências externas.
@@ -1972,629 +1669,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   update();
 })();
-
-document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
-
-    const root = document.getElementById("inka-document-press");
-    if (!root) return;
-
-    const form = document.getElementById("dp-form");
-    const stage = document.getElementById("dp-stage");
-    const machine = document.getElementById("dp-machine");
-    const submit = document.getElementById("dp-submit");
-
-    const tipo = document.getElementById("tipo");
-    const descricao = document.getElementById("descricao");
-    const emitido = document.getElementById("emitido_em");
-    const validade = document.getElementById("validade");
-    const link = document.getElementById("link");
-
-    const previewType = document.getElementById("dp-preview-type");
-    const previewDescription = document.getElementById("dp-preview-description");
-    const previewIssued = document.getElementById("dp-preview-issued");
-    const previewExpiry = document.getElementById("dp-preview-expiry");
-    const statusText = document.getElementById("dp-status-text");
-    const progress = document.getElementById("dp-progress");
-
-    const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    );
-
-    let submitting = false;
-
-    function formatDate(value) {
-        if (!value) return "—";
-
-        const parts = value.split("-");
-        if (parts.length !== 3) return value;
-
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
-    function updatePreview() {
-        const selected = tipo.options[tipo.selectedIndex];
-
-        previewType.textContent =
-            tipo.value && selected
-                ? selected.textContent.trim()
-                : "TIPO DE DOCUMENTO";
-
-        previewDescription.textContent =
-            descricao.value.trim() || "DESCRIÇÃO DO REGISTRO";
-
-        previewIssued.textContent =
-            emitido.value
-                ? formatDate(emitido.value)
-                : "00/00/0000";
-
-        previewExpiry.textContent =
-            formatDate(validade.value);
-
-        const requiredFields = [tipo, emitido];
-
-        const completedRequired = requiredFields.filter(
-            field => field.value.trim() !== ""
-        ).length;
-
-        const optionalFields = [descricao, validade, link];
-
-        const completedOptional = optionalFields.filter(
-            field => field.value.trim() !== ""
-        ).length;
-
-        // Indicador visual de preenchimento, não de validade legal.
-        const percentage = Math.round(
-            ((completedRequired + completedOptional) / 5) * 100
-        );
-
-        progress.textContent =
-            String(percentage).padStart(2, "0") + "%";
-
-        if (completedRequired === requiredFields.length) {
-            statusText.textContent = "REGISTRO PRONTO PARA REVISÃO";
-        } else if (completedRequired > 0 || completedOptional > 0) {
-            statusText.textContent = "REGISTRO EM PREPARAÇÃO";
-        } else {
-            statusText.textContent = "AGUARDANDO INFORMAÇÕES";
-        }
-    }
-
-    [tipo, descricao, emitido, validade, link].forEach(field => {
-        field.addEventListener("input", updatePreview);
-        field.addEventListener("change", updatePreview);
-    });
-
-    updatePreview();
-
-    /* INTERAÇÃO 3D COM O CURSOR */
-
-    if (stage && machine && !reducedMotion.matches) {
-        stage.addEventListener("pointermove", event => {
-            if (event.pointerType === "touch" || submitting) return;
-
-            const rect = stage.getBoundingClientRect();
-
-            const x =
-                ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-
-            const y =
-                ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-
-            const rotateY = -9 + x * 8;
-            const rotateX = 9 - y * 6;
-
-            machine.style.transform =
-                `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-
-        stage.addEventListener("pointerleave", () => {
-            machine.style.transform =
-                "rotateX(9deg) rotateY(-9deg)";
-        });
-    }
-
-    /* PRENSA E ENVIO REAL DO FORMULÁRIO */
-
-    form.addEventListener("submit", event => {
-        if (submitting) {
-            event.preventDefault();
-            return;
-        }
-
-        if (!form.checkValidity()) {
-            return;
-        }
-
-        if (reducedMotion.matches) {
-            return;
-        }
-
-        event.preventDefault();
-
-        submitting = true;
-
-        root.classList.add("is-printing");
-
-        statusText.textContent = "PROCESSANDO DOCUMENTO...";
-
-        submit.disabled = true;
-
-        const buttonLabel = submit.querySelector("span");
-        if (buttonLabel) {
-            buttonLabel.textContent = "Processando...";
-        }
-
-        // Envia após a animação.
-        // O Django continua validando e salvando os dados.
-        window.setTimeout(() => {
-            HTMLFormElement.prototype.submit.call(form);
-        }, 1550);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
-
-    const root = document.getElementById("inka-documento-oficial");
-    if (!root) return;
-
-    const openButton = document.getElementById("ido-open");
-    const workspace = document.getElementById("ido-workspace");
-    const form = document.getElementById("ido-form");
-    const submitButton = document.getElementById("ido-submit");
-    const document3D = document.getElementById("ido-document");
-
-    if (!openButton || !workspace || !form) return;
-
-    const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    const hasErrors = root.dataset.hasErrors === "true";
-
-    let opening = false;
-    let opened = false;
-    let submitting = false;
-
-    // Só esconde o formulário quando o JS está ativo.
-    root.classList.add("is-enhanced");
-
-    function showWorkspace(animate = true) {
-        if (opened) return;
-
-        opened = true;
-        root.classList.remove("is-opening");
-        root.classList.add("is-open");
-
-        openButton.setAttribute("aria-expanded", "true");
-
-        if (animate) {
-            requestAnimationFrame(() => {
-                workspace.scrollIntoView({
-                    behavior: reducedMotion ? "auto" : "smooth",
-                    block: "start"
-                });
-            });
-        }
-    }
-
-    function openDocument() {
-        if (opening || opened) return;
-
-        opening = true;
-        root.classList.add("is-opening");
-
-        openButton.disabled = true;
-
-        const label = openButton.querySelector("span");
-        if (label) label.textContent = "ABRINDO REGISTRO...";
-
-        window.setTimeout(() => {
-            showWorkspace();
-        }, reducedMotion ? 0 : 1250);
-    }
-
-    openButton.addEventListener("click", openDocument);
-
-    // Se o Django devolveu erros, o formulário já aparece aberto.
-    // Assim o usuário não precisa repetir a animação para corrigir.
-    if (hasErrors) {
-        showWorkspace(false);
-    }
-
-    // Interação 3D delicada antes da abertura.
-    if (document3D && !reducedMotion) {
-        const scene = document.getElementById("ido-scene");
-
-        scene.addEventListener("pointermove", event => {
-            if (opening || opened || event.pointerType === "touch") {
-                return;
-            }
-
-            const rect = scene.getBoundingClientRect();
-
-            const x =
-                ((event.clientX - rect.left) / rect.width - .5) * 2;
-
-            const y =
-                ((event.clientY - rect.top) / rect.height - .5) * 2;
-
-            document3D.style.transform = `
-                rotateX(${14 - y * 6}deg)
-                rotateY(${-12 + x * 10}deg)
-                rotateZ(-4deg)
-            `;
-        });
-
-        scene.addEventListener("pointerleave", () => {
-            if (opening || opened) return;
-            document3D.style.transform = "";
-        });
-
-        openButton.addEventListener("click", () => {
-            document3D.style.transform = "";
-        });
-    }
-
-    // Envio Django com animação de protocolo.
-    form.addEventListener("submit", event => {
-        if (submitting) {
-            event.preventDefault();
-            return;
-        }
-
-        if (!form.checkValidity()) {
-            return;
-        }
-
-        if (reducedMotion) {
-            return;
-        }
-
-        event.preventDefault();
-        submitting = true;
-
-        root.classList.add("is-submitting");
-
-        submitButton.disabled = true;
-
-        const label = submitButton.querySelector("span");
-        if (label) label.textContent = "ENVIANDO REGISTRO...";
-
-        // O input hidden "salvar" permanece no POST.
-        // O carimbo não indica sucesso confirmado pelo servidor.
-        window.setTimeout(() => {
-            HTMLFormElement.prototype.submit.call(form);
-        }, 1050);
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
-
-    const root = document.getElementById("inka-casefile");
-    if (!root) return;
-
-    const board = document.getElementById("cf-board");
-    const svg = document.getElementById("cf-threads");
-    const form = document.getElementById("cf-form");
-    const submitButton = document.getElementById("cf-submit");
-
-    const countLabel = document.getElementById("cf-count");
-    const progressFill = document.getElementById("cf-progress-fill");
-
-    if (!board || !svg || !form) return;
-
-    const notes = Array.from(
-        root.querySelectorAll("[data-cf-step]")
-    );
-
-    const pins = Array.from(
-        root.querySelectorAll("[data-cf-pin]")
-    );
-
-    const fields = [
-        document.getElementById("tipo"),
-        document.getElementById("descricao"),
-        document.getElementById("emitido_em"),
-        document.getElementById("validade"),
-        document.getElementById("link")
-    ];
-
-    const reducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    );
-
-    const SVG_NS = "http://www.w3.org/2000/svg";
-
-    let drawFrame = null;
-    let firstDrawing = true;
-    let sending = false;
-
-    /* =====================================
-       POSIÇÃO REAL DOS ALFINETES
-       ===================================== */
-
-    function getPinPosition(pin) {
-        const boardRect = board.getBoundingClientRect();
-        const rect = pin.getBoundingClientRect();
-
-        return {
-            x: rect.left + rect.width / 2 - boardRect.left,
-            y: rect.top + rect.height / 2 - boardRect.top
-        };
-    }
-
-    /* =====================================
-       CAMINHO DO FIO ENTRE DOIS PONTOS
-       ===================================== */
-
-    function makeThreadPath(start, end) {
-        const dx = end.x - start.x;
-        const dy = end.y - start.y;
-
-        // Curva suave com leve tensão visual.
-        const controlX1 = start.x + dx * 0.28;
-        const controlY1 = start.y + dy * 0.22;
-
-        const controlX2 = end.x - dx * 0.28;
-        const controlY2 = end.y - dy * 0.22;
-
-        return [
-            `M ${start.x} ${start.y}`,
-            `C ${controlX1} ${controlY1},`,
-            `${controlX2} ${controlY2},`,
-            `${end.x} ${end.y}`
-        ].join(" ");
-    }
-
-    function createPath(className, d) {
-        const path = document.createElementNS(
-            SVG_NS,
-            "path"
-        );
-
-        path.setAttribute("d", d);
-        path.setAttribute("class", className);
-
-        return path;
-    }
-
-    /* =====================================
-       DESENHAR TODAS AS CONEXÕES
-       ===================================== */
-
-    function drawThreads() {
-        drawFrame = null;
-
-        const width = board.clientWidth;
-        const height = board.clientHeight;
-
-        if (!width || !height) return;
-
-        svg.setAttribute(
-            "viewBox",
-            `0 0 ${width} ${height}`
-        );
-
-        svg.setAttribute("width", width);
-        svg.setAttribute("height", height);
-
-        svg.replaceChildren();
-
-        const fragment = document.createDocumentFragment();
-        const animate = firstDrawing && !reducedMotion.matches;
-
-        for (let index = 0; index < pins.length - 1; index++) {
-            const start = getPinPosition(pins[index]);
-            const end = getPinPosition(pins[index + 1]);
-
-            const d = makeThreadPath(start, end);
-
-            const shadow = createPath(
-                "cf-thread-shadow",
-                d
-            );
-
-            const thread = createPath(
-                "cf-thread",
-                d
-            );
-
-            fragment.appendChild(shadow);
-            fragment.appendChild(thread);
-
-            if (animate) {
-                // A animação usa o comprimento real de cada fio.
-                const length = Math.hypot(
-                    end.x - start.x,
-                    end.y - start.y
-                ) * 1.6;
-
-                thread.style.setProperty(
-                    "--cf-wire-length",
-                    `${length}px`
-                );
-
-                thread.style.setProperty(
-                    "--cf-wire-delay",
-                    `${index * 0.21}s`
-                );
-            }
-        }
-
-        svg.appendChild(fragment);
-
-        if (animate) {
-            // Recalcula com o comprimento preciso de cada SVG.
-            svg.querySelectorAll(".cf-thread").forEach(
-                (path, index) => {
-                    const length = path.getTotalLength();
-
-                    path.style.setProperty(
-                        "--cf-wire-length",
-                        `${length}px`
-                    );
-
-                    path.style.setProperty(
-                        "--cf-wire-delay",
-                        `${index * 0.21}s`
-                    );
-                }
-            );
-
-            requestAnimationFrame(() => {
-                svg.querySelectorAll(".cf-thread").forEach(
-                    path => path.classList.add("is-drawn")
-                );
-            });
-        }
-
-        firstDrawing = false;
-    }
-
-    function scheduleDrawing() {
-        if (drawFrame !== null) return;
-
-        drawFrame = requestAnimationFrame(drawThreads);
-    }
-
-    /* =====================================
-       DETECTAR PREENCHIMENTO
-       ===================================== */
-
-    function updateProgress() {
-        let completed = 0;
-
-        fields.forEach((field, index) => {
-            if (!field) return;
-
-            const isFilled = field.value.trim() !== "";
-
-            if (isFilled) completed++;
-
-            const note = notes.find(
-                item => Number(item.dataset.cfStep) === index + 1
-            );
-
-            if (note) {
-                note.classList.toggle(
-                    "is-filled",
-                    isFilled
-                );
-            }
-        });
-
-        if (countLabel) {
-            countLabel.textContent =
-                `${completed}/${fields.length}`;
-        }
-
-        if (progressFill) {
-            progressFill.style.width =
-                `${completed / fields.length * 100}%`;
-        }
-    }
-
-    fields.forEach(field => {
-        if (!field) return;
-
-        field.addEventListener("input", updateProgress);
-        field.addEventListener("change", updateProgress);
-    });
-
-    /* =====================================
-       INICIAR E MANTER RESPONSIVO
-       ===================================== */
-
-    updateProgress();
-
-    scheduleDrawing();
-
-    window.addEventListener(
-        "resize",
-        scheduleDrawing,
-        { passive: true }
-    );
-
-    if ("ResizeObserver" in window) {
-        const resizeObserver = new ResizeObserver(
-            scheduleDrawing
-        );
-
-        resizeObserver.observe(board);
-
-        notes.forEach(note => {
-            resizeObserver.observe(note);
-        });
-    }
-
-    // Reposiciona os fios depois de carregar a tipografia.
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(scheduleDrawing);
-    }
-
-    // O hover desloca levemente o cartão.
-    // Atualizar as conexões mantém os fios presos aos alfinetes.
-    notes.forEach(note => {
-        note.addEventListener(
-            "pointerenter",
-            scheduleDrawing
-        );
-
-        note.addEventListener(
-            "pointerleave",
-            scheduleDrawing
-        );
-
-        note.addEventListener(
-            "transitionend",
-            scheduleDrawing
-        );
-    });
-
-    /* =====================================
-       ANIMAÇÃO DE ENVIO
-       ===================================== */
-
-    form.addEventListener("submit", event => {
-        if (sending) return;
-
-        // O navegador continua validando campos obrigatórios e URLs.
-        if (!form.checkValidity()) return;
-
-        // Respeita a preferência de movimento reduzido.
-        if (reducedMotion.matches) return;
-
-        event.preventDefault();
-        sending = true;
-
-        const finalNote = root.querySelector(
-            ".cf-note-submit"
-        );
-
-        if (finalNote) {
-            finalNote.classList.add("is-sending");
-        }
-
-        const buttonText = submitButton?.querySelector("span");
-
-        if (buttonText) {
-            buttonText.textContent = "ENVIANDO REGISTRO...";
-        }
-
-        // Aguarda somente a microanimação de protocolo.
-        // requestSubmit mantém o botão "salvar" no POST Django.
-        window.setTimeout(() => {
-            if (submitButton) {
-                form.requestSubmit(submitButton);
-            } else {
-                form.requestSubmit();
-            }
-        }, 550);
-    });
-});
 
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
