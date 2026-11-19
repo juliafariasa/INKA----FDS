@@ -1,58 +1,277 @@
+
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}Documentos e licenças - {{ estudio.nome }} - INKA{% endblock %}
 
+{% block head_extra %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/documentos_archive.css' %}">
+<script src="{% static 'js/documentos_archive.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
-<section class="evo-pagina">
-
-    <header class="evo-intro">
-        <span class="evo-etiqueta">INKA / BIOSSEGURANÇA</span>
-        <h2>Documentos e licenças</h2>
-        <p>
-            Licença sanitária, alvará, contrato de coleta, laudo da autoclave e
-            certificados da equipe, com a validade de cada um. O INKA avisa na
-            Minha Área quando um documento está para vencer. No perfil público
-            aparece só a situação ("Licença sanitária em dia"), nunca o documento.
-        </p>
-    </header>
-
-    <div class="painel-acoes">
-        <a class="evo-acao" href="{% url 'forum:estudio_documento_novo' estudio.id %}"><span>+</span> Cadastrar documento</a>
+<section class="da" id="inka-document-archive">
+  <header class="da-hero">
+    <div class="da-topline">
+      <span>INKA / BIOSSEGURANÇA</span>
+      <span>DOCUMENT ARCHIVE / 001</span>
     </div>
 
-    {% if documentos %}
-        <div class="painel-tabela-rolagem">
-            <table class="painel-tabela">
-                <thead>
-                    <tr><th>Documento</th><th>Emissão</th><th>Validade</th><th>Situação</th><th></th></tr>
-                </thead>
-                <tbody>
-                    {% for documento in documentos %}
-                        <tr>
-                            <td>
-                                {{ documento.get_tipo_display }}
-                                {% if documento.descricao %}<small>{{ documento.descricao }}</small>{% endif %}
-                                {% if documento.link %}<small><a href="{{ documento.link }}" target="_blank" rel="noopener">Abrir documento ↗</a></small>{% endif %}
-                            </td>
-                            <td>{{ documento.emitido_em|date:"d/m/Y" }}</td>
-                            <td>{{ documento.validade|date:"d/m/Y"|default:"—" }}</td>
-                            <td><span class="doc-situacao doc-{{ documento.situacao }}">{{ documento.situacao_display }}</span></td>
-                            <td class="painel-links">
-                                <a href="{% url 'forum:estudio_documento_editar' estudio.id documento.id %}">Editar</a>
-                                <a href="{% url 'forum:estudio_documento_remover' estudio.id documento.id %}">Remover</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <p class="evo-vazio">
-            Nenhum documento cadastrado. Comece pela licença sanitária: ela
-            aparece em dia no perfil público do estúdio.
-        </p>
-    {% endif %}
+    <div class="da-hero-grid">
+      <div class="da-hero-copy">
+        <span class="da-eyebrow">
+          ARQUIVO DO ESTÚDIO / {{ estudio.nome }}
+        </span>
 
-    <a class="evo-voltar" href="{% url 'forum:minha_area' %}">← Voltar para a Minha Área</a>
+        <h2>Documentos <em>&</em> licenças<span>.</span></h2>
+
+        <p>
+          Licença sanitária, alvará, contrato de coleta, laudo da autoclave e
+          certificados da equipe, com a validade de cada um. O INKA avisa na
+          Minha Área quando um documento está para vencer. No perfil público
+          aparece só a situação ("Licença sanitária em dia"), nunca o documento.
+        </p>
+
+        <a class="da-create"
+           href="{% url 'forum:estudio_documento_novo' estudio.id %}">
+          <span class="da-create-plus" aria-hidden="true">+</span>
+          <span>Cadastrar documento</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <div class="da-hero-art" aria-hidden="true">
+        <span class="da-art-tag">REGISTROS / DOCUMENTAÇÃO</span>
+
+        <svg viewBox="0 0 280 250"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.35"
+             stroke-linejoin="round">
+          <path d="M67 48h102l40 39v124H67z"/>
+          <path d="M169 48v39h40M89 112h96M89 127h96M89 142h67"/>
+          <path d="M44 72v151h139M57 59v151h139"
+                stroke-dasharray="3 5"/>
+          <circle cx="166" cy="172" r="30"/>
+          <circle cx="166" cy="172" r="23"
+                  stroke-dasharray="2 5"/>
+          <path d="m154 172 8 8 17-19"/>
+          <path d="M221 50v-16m-8 8h16M47 40l-7-7m0 7 7-7M220 214l-6 9m6 0-6-9"/>
+        </svg>
+
+        <span class="da-art-foot">EVERY RECORD MATTERS.</span>
+      </div>
+    </div>
+
+    <div class="da-hero-bottom">
+      <span>INKA / GRAPHIC ARCHIVE</span>
+      <span>DOCUMENTOS QUE SUSTENTAM BOAS PRÁTICAS</span>
+    </div>
+  </header>
+
+  {% if documentos %}
+
+  <div class="da-workspace">
+    <div class="da-workspace-head">
+      <div>
+        <span class="da-kicker">01 / CATÁLOGO</span>
+        <h3>Seu arquivo<span>.</span></h3>
+      </div>
+
+      <p>
+        <strong data-da-visible>{{ documentos|length }}</strong>
+        / {{ documentos|length }} DOCUMENTOS
+      </p>
+    </div>
+
+    <div class="da-toolbar"
+         role="search"
+         aria-label="Pesquisar e filtrar documentos">
+
+      <label class="da-search">
+        <span aria-hidden="true">⌕</span>
+        <span class="da-sr">Pesquisar documentos</span>
+        <input
+          type="search"
+          data-da-search
+          placeholder="Pesquisar documento ou descrição..."
+          autocomplete="off"
+        >
+      </label>
+
+      <div class="da-filters"
+           role="group"
+           aria-label="Filtrar por situação">
+
+        <button type="button"
+                class="da-filter is-active"
+                data-da-filter="all"
+                aria-pressed="true">
+          Todos
+        </button>
+
+        <button type="button"
+                class="da-filter"
+                data-da-filter="valid"
+                aria-pressed="false">
+          Em dia
+        </button>
+
+        <button type="button"
+                class="da-filter"
+                data-da-filter="warning"
+                aria-pressed="false">
+          A vencer
+        </button>
+
+        <button type="button"
+                class="da-filter"
+                data-da-filter="expired"
+                aria-pressed="false">
+          Vencidos
+        </button>
+      </div>
+
+      <label class="da-sort-label">
+        ORDEM
+        <select data-da-sort aria-label="Ordenar documentos">
+          <option value="original">Cadastro</option>
+          <option value="name">A–Z</option>
+          <option value="expiry">Validade</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="da-gallery" data-da-gallery>
+
+      {% for documento in documentos %}
+
+      <article
+        class="da-file"
+        data-da-file
+        data-name="{{ documento.get_tipo_display|lower }} {{ documento.descricao|default:''|lower }}"
+        data-status="{{ documento.situacao|lower }} {{ documento.situacao_display|lower }}"
+        data-expiry="{{ documento.validade|date:'Y-m-d' }}"
+        data-order="{{ forloop.counter0 }}"
+      >
+
+        <div class="da-file-top">
+          <span>FILE / {{ forloop.counter|stringformat:"03d" }}</span>
+          <span>INKA · DOC</span>
+        </div>
+
+        <div class="da-file-paper" aria-hidden="true">
+          <svg viewBox="0 0 120 145"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.25">
+            <path d="M19 9h56l26 26v101H19z"/>
+            <path d="M75 9v26h26M34 55h52M34 68h52M34 81h37M34 94h46"/>
+            <circle cx="78" cy="112" r="14"/>
+            <path d="m71 112 5 5 9-11"/>
+          </svg>
+
+          <span class="da-paper-stamp">INKA / ARCHIVED</span>
+        </div>
+
+        <div class="da-file-body">
+          <span class="da-file-category">
+            DOCUMENTAÇÃO / {{ forloop.counter|stringformat:"02d" }}
+          </span>
+
+          <h4>{{ documento.get_tipo_display }}</h4>
+
+          {% if documento.descricao %}
+            <p class="da-file-desc">{{ documento.descricao }}</p>
+          {% endif %}
+
+          <div class="da-file-dates">
+            <div>
+              <small>EMISSÃO</small>
+              <time>{{ documento.emitido_em|date:"d/m/Y" }}</time>
+            </div>
+
+            <div>
+              <small>VALIDADE</small>
+              <time>
+                {% if documento.validade %}
+                  {{ documento.validade|date:"d/m/Y" }}
+                {% else %}
+                  —
+                {% endif %}
+              </time>
+            </div>
+          </div>
+
+          <div class="da-file-status">
+            <span class="da-status-mark" aria-hidden="true"></span>
+            <span class="doc-situacao doc-{{ documento.situacao }}">
+              {{ documento.situacao_display }}
+            </span>
+          </div>
+        </div>
+
+        <div class="da-file-actions">
+          {% if documento.link %}
+            <a href="{{ documento.link }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="da-action-open">
+              Abrir documento
+              <span aria-hidden="true">↗</span>
+            </a>
+          {% endif %}
+
+          <a href="{% url 'forum:estudio_documento_editar' estudio.id documento.id %}">
+            Editar
+          </a>
+
+          <a href="{% url 'forum:estudio_documento_remover' estudio.id documento.id %}"
+             class="da-action-remove">
+            Remover
+          </a>
+        </div>
+      </article>
+
+      {% endfor %}
+
+    </div>
+
+    <p class="da-no-results" data-da-empty hidden>
+      Nenhum documento corresponde à sua pesquisa.
+      Tente outro termo ou filtro.
+    </p>
+  </div>
+
+  {% else %}
+
+  <div class="da-empty-state">
+    <span class="da-kicker">01 / ARQUIVO VAZIO</span>
+    <div class="da-empty-icon" aria-hidden="true">▤</div>
+
+    <h3>O primeiro registro começa aqui<span>.</span></h3>
+
+    <p>
+      Nenhum documento cadastrado. Comece pela licença sanitária:
+      ela aparece em dia no perfil público do estúdio.
+    </p>
+
+    <a class="da-create"
+       href="{% url 'forum:estudio_documento_novo' estudio.id %}">
+      <span class="da-create-plus" aria-hidden="true">+</span>
+      Cadastrar documento
+      <span aria-hidden="true">↗</span>
+    </a>
+  </div>
+
+  {% endif %}
+
+  <footer class="da-footer">
+    <a href="{% url 'forum:minha_area' %}">
+      ← Voltar para a Minha Área
+    </a>
+    <span>INKA / GRAPHIC ARCHIVE</span>
+  </footer>
 </section>
 {% endblock %}

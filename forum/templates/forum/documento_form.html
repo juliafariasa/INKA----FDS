@@ -1,51 +1,290 @@
+
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}{% if documento %}Editar documento{% else %}Cadastrar documento{% endif %} - {{ estudio.nome }} - INKA{% endblock %}
 
+{% block head_extra %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dossie_inka.css' %}">
+<script src="{% static 'js/dossie_inka.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
-<section class="evo-pagina evo-pagina-estreita">
+<main class="dossie" id="dossie-inka" data-errors="{% if erros %}1{% else %}0{% endif %}">
 
-    <header class="evo-intro">
-        <span class="evo-etiqueta">INKA / DOCUMENTOS E LICENÇAS</span>
-        <h2>{% if documento %}Editar {{ documento }}{% else %}Cadastrar documento{% endif %}</h2>
-    </header>
+  <header class="dossie-intro">
+    <div class="dossie-topline">
+      <span>INKA / DOCUMENTOS E LICENÇAS</span>
+      <span>ARQUIVO Nº 002</span>
+    </div>
 
-    <form method="post" class="evo-form">
-        {% csrf_token %}
+    <span class="dossie-overline">CONTROLE DOCUMENTAL / {{ estudio.nome }}</span>
 
-        <label for="tipo">Tipo de documento</label>
-        <select id="tipo" name="tipo">
-            <option value="">Escolha o tipo</option>
-            {% for codigo, rotulo in tipos %}
-                <option value="{{ codigo }}"{% if dados.tipo == codigo %} selected{% endif %}>{{ rotulo }}</option>
-            {% endfor %}
-        </select>
-        {% if erros.tipo %}<p class="erro">{{ erros.tipo }}</p>{% endif %}
+    <h2>{% if documento %}Editar documento{% else %}Cadastrar documento{% endif %}<span>.</span></h2>
 
-        <label for="descricao">Descrição (obrigatória em "Outro documento")</label>
-        <input type="text" id="descricao" name="descricao" maxlength="150" value="{{ dados.descricao|default:'' }}">
-        {% if erros.descricao %}<p class="erro">{{ erros.descricao }}</p>{% endif %}
+    <p>
+      Abra o dossiê e organize as informações do documento
+      em um único registro.
+    </p>
+  </header>
 
-        <label for="emitido_em">Emitido em</label>
-        <input type="date" id="emitido_em" name="emitido_em" value="{{ dados.emitido_em|default:'' }}">
-        {% if erros.emitido_em %}<p class="erro">{{ erros.emitido_em }}</p>{% endif %}
+  <div class="dossie-scene" id="dossie-scene">
 
-        <label for="validade">Válido até (opcional)</label>
-        <input type="date" id="validade" name="validade" value="{{ dados.validade|default:'' }}">
-        {% if erros.validade %}<p class="erro">{{ erros.validade }}</p>{% endif %}
-        <p class="ajuda">Deixe vazio se o documento não vence.</p>
+    <div class="dossie-scene-label">
+      <span>INKA / DOCUMENTAÇÃO</span>
+      <span>DOCUMENTO 002 / 2026</span>
+    </div>
 
-        <label for="link">Link do documento (opcional)</label>
-        <input type="url" id="link" name="link" maxlength="500" value="{{ dados.link|default:'' }}">
-        {% if erros.link %}<p class="erro">{{ erros.link }}</p>{% endif %}
-        <p class="ajuda">
-            O INKA não guarda arquivos. Se quiser, cole o link do documento no
-            Google Drive ou em outro serviço; só a conta do estúdio vê esse link.
-        </p>
+    <!-- A pasta é a própria experiência de abertura -->
+    <div class="dossie-folder" id="dossie-folder">
 
-        <input type="submit" name="salvar" value="{% if documento %}Salvar alterações{% else %}Cadastrar documento{% endif %}">
+      <div class="dossie-folder-back" aria-hidden="true">
+        <span class="dossie-folder-tab">INKA / FILE 002</span>
+      </div>
+
+      <div class="dossie-paper-edge dossie-paper-edge-a" aria-hidden="true"></div>
+      <div class="dossie-paper-edge dossie-paper-edge-b" aria-hidden="true"></div>
+
+      <div class="dossie-folder-cover" aria-hidden="true">
+        <div class="dossie-cover-border">
+          <div class="dossie-cover-meta">
+            <span>INKA</span>
+            <span>CONFIDENTIAL / STUDIO RECORD</span>
+          </div>
+
+          <div class="dossie-cover-main">
+            <span>DOCUMENT CONTROL SYSTEM</span>
+            <strong>CASE<br>FILE<span>.</span></strong>
+            <p>
+              {% if documento %}
+              DOCUMENT REVIEW
+              {% else %}
+              NEW REGISTRATION
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="dossie-cover-bottom">
+            <span>ARCHIVE / 002</span>
+            <span>ESG · INKA</span>
+          </div>
+
+          <span class="dossie-cover-stamp">INKA<br>02</span>
+        </div>
+      </div>
+
+      <button type="button" class="dossie-open" id="dossie-open"
+              aria-controls="dossie-content" aria-expanded="false">
+        <span>ABRIR DOSSIÊ</span>
+        <span aria-hidden="true">↗</span>
+      </button>
+    </div>
+
+    <p class="dossie-scene-hint" id="dossie-hint">
+      UM ARQUIVO. TRÊS ETAPAS. UM REGISTRO.
+    </p>
+  </div>
+
+  <!-- O conteúdo permanece acessível se o JavaScript falhar -->
+  <section class="dossie-content" id="dossie-content">
+    <div class="dossie-file-heading">
+      <span>INKA / REGISTRO ADMINISTRATIVO</span>
+      <span>FORM. Nº 002</span>
+    </div>
+
+    <!-- Linha animada e alfinetes de progresso -->
+    <nav class="dossie-timeline" aria-label="Etapas do formulário">
+      <svg class="dossie-wire" id="dossie-wire" aria-hidden="true"></svg>
+
+      <button type="button" class="dossie-point is-current"
+              data-step-target="0" aria-current="step">
+        <i aria-hidden="true"></i>
+        <span>01. IDENTIFICAÇÃO</span>
+      </button>
+
+      <button type="button" class="dossie-point"
+              data-step-target="1">
+        <i aria-hidden="true"></i>
+        <span>02. VIGÊNCIA</span>
+      </button>
+
+      <button type="button" class="dossie-point"
+              data-step-target="2">
+        <i aria-hidden="true"></i>
+        <span>03. ARQUIVAMENTO</span>
+      </button>
+    </nav>
+
+    <form method="post" id="dossie-form" class="dossie-form">
+      {% csrf_token %}
+
+      <input type="hidden" name="salvar"
+             value="{% if documento %}Salvar alterações{% else %}Cadastrar documento{% endif %}">
+
+      <div class="dossie-paper-stack">
+
+        <!-- ETAPA 01 -->
+        <section class="dossie-sheet is-active" data-dossie-step="0">
+          <div class="dossie-sheet-meta">
+            <span>DOCUMENTO / 01</span>
+            <span>IDENTIFICAÇÃO</span>
+          </div>
+
+          <div class="dossie-sheet-title">
+            <span>SEÇÃO I / INFORMAÇÕES GERAIS</span>
+            <h3>Identificação<span>.</span></h3>
+            <p>Especifique qual documento será registrado.</p>
+          </div>
+
+          <div class="dossie-field">
+            <label for="tipo">Tipo de documento <b>*</b></label>
+            <select id="tipo" name="tipo" required>
+              <option value="">Escolha o tipo</option>
+              {% for codigo, rotulo in tipos %}
+              <option value="{{ codigo }}"{% if dados.tipo == codigo %} selected{% endif %}>{{ rotulo }}</option>
+              {% endfor %}
+            </select>
+            {% if erros.tipo %}
+              <p class="dossie-error" role="alert">{{ erros.tipo }}</p>
+            {% endif %}
+          </div>
+
+          <div class="dossie-field">
+            <label for="descricao">Descrição (obrigatória em "Outro documento")</label>
+            <input id="descricao" name="descricao" type="text"
+                   maxlength="150"
+                   value="{{ dados.descricao|default:'' }}"
+                   placeholder="Informações complementares">
+            {% if erros.descricao %}
+              <p class="dossie-error" role="alert">{{ erros.descricao }}</p>
+            {% endif %}
+          </div>
+
+          <div class="dossie-sheet-actions">
+            <span>01 / 03</span>
+            <button type="button" class="dossie-next" data-next>
+              CONTINUAR <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ETAPA 02 -->
+        <section class="dossie-sheet" data-dossie-step="1">
+          <div class="dossie-sheet-meta">
+            <span>DOCUMENTO / 02</span>
+            <span>PERÍODO DE VIGÊNCIA</span>
+          </div>
+
+          <div class="dossie-sheet-title">
+            <span>SEÇÃO II / CONTROLE DE PRAZOS</span>
+            <h3>Vigência<span>.</span></h3>
+            <p>Registre as datas para acompanhar a validade.</p>
+          </div>
+
+          <div class="dossie-date-grid">
+            <div class="dossie-field">
+              <label for="emitido_em">Emitido em <b>*</b></label>
+              <input id="emitido_em" name="emitido_em"
+                     type="date" required
+                     value="{{ dados.emitido_em|default:'' }}">
+              {% if erros.emitido_em %}
+                <p class="dossie-error" role="alert">{{ erros.emitido_em }}</p>
+              {% endif %}
+            </div>
+
+            <div class="dossie-field">
+              <label for="validade">Válido até (opcional)</label>
+              <input id="validade" name="validade"
+                     type="date"
+                     value="{{ dados.validade|default:'' }}">
+              {% if erros.validade %}
+                <p class="dossie-error" role="alert">{{ erros.validade }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <p class="dossie-help">Deixe vazio se o documento não vence.</p>
+
+          <div class="dossie-sheet-actions">
+            <button type="button" class="dossie-back" data-back>← VOLTAR</button>
+            <span>02 / 03</span>
+            <button type="button" class="dossie-next" data-next>
+              CONTINUAR <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ETAPA 03 -->
+        <section class="dossie-sheet" data-dossie-step="2">
+          <div class="dossie-sheet-meta">
+            <span>DOCUMENTO / 03</span>
+            <span>ARQUIVAMENTO</span>
+          </div>
+
+          <div class="dossie-sheet-title">
+            <span>SEÇÃO III / REFERÊNCIA DIGITAL</span>
+            <h3>Arquivamento<span>.</span></h3>
+            <p>Finalize o registro e confira os dados.</p>
+          </div>
+
+          <div class="dossie-field">
+            <label for="link">Link do documento (opcional)</label>
+            <input id="link" name="link" type="url" maxlength="500"
+                   value="{{ dados.link|default:'' }}"
+                   placeholder="https://...">
+
+            {% if erros.link %}
+              <p class="dossie-error" role="alert">{{ erros.link }}</p>
+            {% endif %}
+
+            <p class="dossie-help">
+              O INKA não guarda arquivos. Se quiser, cole o link do documento no
+              Google Drive ou em outro serviço; só a conta do estúdio vê esse link.
+            </p>
+          </div>
+
+          <div class="dossie-review">
+            <div class="dossie-review-top">
+              <span>RESUMO DO REGISTRO</span>
+              <span>INKA / 002</span>
+            </div>
+
+            <dl>
+              <div><dt>DOCUMENTO</dt><dd id="dossie-review-type">Não informado</dd></div>
+              <div><dt>EMISSÃO</dt><dd id="dossie-review-date">Não informada</dd></div>
+              <div><dt>VALIDADE</dt><dd id="dossie-review-expiry">Sem validade definida</dd></div>
+            </dl>
+          </div>
+
+          <div class="dossie-sheet-actions">
+            <button type="button" class="dossie-back" data-back>← VOLTAR</button>
+            <span>03 / 03</span>
+            <button type="submit" class="dossie-save" id="dossie-save">
+              {% if documento %}SALVAR ALTERAÇÕES{% else %}CADASTRAR DOCUMENTO{% endif %}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
     </form>
+  </section>
 
-    <a class="evo-voltar" href="{% url 'forum:estudio_documentos' estudio.id %}">← Voltar para os documentos</a>
-</section>
+  <footer class="dossie-footer">
+    <a href="{% url 'forum:estudio_documentos' estudio.id %}">
+      ← Voltar para os documentos
+    </a>
+    <span>INKA / DOCUMENT ARCHIVE</span>
+  </footer>
+
+  <div class="dossie-protocol" id="dossie-protocol"
+       role="status" aria-live="polite" hidden>
+    <div>
+      <span>INKA / PROTOCOLO Nº 002</span>
+      <strong>ENVIANDO REGISTRO</strong>
+      <small>ENCAMINHANDO AO ARQUIVO...</small>
+    </div>
+  </div>
+</main>
 {% endblock %}

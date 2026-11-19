@@ -1857,3 +1857,1070 @@ document.addEventListener('DOMContentLoaded', () => {
   rebuildThread();
   updateScroll();
 });
+
+(() => {
+  "use strict";
+
+  const root = document.getElementById("inka-document-archive");
+  if (!root) return;
+
+  const gallery = root.querySelector("[data-da-gallery]");
+  if (!gallery) return;
+
+  const cards = Array.from(
+    gallery.querySelectorAll("[data-da-file]")
+  );
+
+  const search = root.querySelector("[data-da-search]");
+  const filters = Array.from(
+    root.querySelectorAll("[data-da-filter]")
+  );
+  const sort = root.querySelector("[data-da-sort]");
+  const visible = root.querySelector("[data-da-visible]");
+  const empty = root.querySelector("[data-da-empty]");
+
+  let active = "all";
+
+  function statusGroup(value) {
+    const status = (value || "")
+      .toLocaleLowerCase("pt-BR")
+      .trim();
+
+    // Os códigos de situação vêm do Django.
+    if (/vencid|expir|atrasad|invalid|fora.do.prazo/.test(status)) {
+      return "expired";
+    }
+
+    if (/vencer|proxim|alert|penden|atenc|breve/.test(status)) {
+      return "warning";
+    }
+
+    if (/dia|valid|regular|vigent|ok/.test(status)) {
+      return "valid";
+    }
+
+    return "other";
+  }
+
+  function update() {
+    const term = (search?.value || "")
+      .trim()
+      .toLocaleLowerCase("pt-BR");
+
+    const ordered = [...cards].sort((a, b) => {
+      if (sort?.value === "name") {
+        return (a.dataset.name || "").localeCompare(
+          b.dataset.name || "",
+          "pt-BR"
+        );
+      }
+
+      if (sort?.value === "expiry") {
+        return (a.dataset.expiry || "9999").localeCompare(
+          b.dataset.expiry || "9999"
+        );
+      }
+
+      return Number(a.dataset.order) - Number(b.dataset.order);
+    });
+
+    let count = 0;
+
+    ordered.forEach(card => {
+      const matchesTerm =
+        !term || (card.dataset.name || "").includes(term);
+
+      const matchesStatus =
+        active === "all" ||
+        statusGroup(card.dataset.status) === active;
+
+      const show = matchesTerm && matchesStatus;
+
+      card.hidden = !show;
+
+      if (show) count++;
+
+      gallery.appendChild(card);
+    });
+
+    if (visible) {
+      visible.textContent = String(count);
+    }
+
+    if (empty) {
+      empty.hidden = count !== 0;
+    }
+  }
+
+  search?.addEventListener("input", update);
+  sort?.addEventListener("change", update);
+
+  filters.forEach(button => {
+    button.addEventListener("click", () => {
+      active = button.dataset.daFilter;
+
+      filters.forEach(item => {
+        const selected = item === button;
+
+        item.classList.toggle("is-active", selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
+
+      update();
+    });
+  });
+
+  update();
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
+    const root = document.getElementById("inka-document-press");
+    if (!root) return;
+
+    const form = document.getElementById("dp-form");
+    const stage = document.getElementById("dp-stage");
+    const machine = document.getElementById("dp-machine");
+    const submit = document.getElementById("dp-submit");
+
+    const tipo = document.getElementById("tipo");
+    const descricao = document.getElementById("descricao");
+    const emitido = document.getElementById("emitido_em");
+    const validade = document.getElementById("validade");
+    const link = document.getElementById("link");
+
+    const previewType = document.getElementById("dp-preview-type");
+    const previewDescription = document.getElementById("dp-preview-description");
+    const previewIssued = document.getElementById("dp-preview-issued");
+    const previewExpiry = document.getElementById("dp-preview-expiry");
+    const statusText = document.getElementById("dp-status-text");
+    const progress = document.getElementById("dp-progress");
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    let submitting = false;
+
+    function formatDate(value) {
+        if (!value) return "—";
+
+        const parts = value.split("-");
+        if (parts.length !== 3) return value;
+
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function updatePreview() {
+        const selected = tipo.options[tipo.selectedIndex];
+
+        previewType.textContent =
+            tipo.value && selected
+                ? selected.textContent.trim()
+                : "TIPO DE DOCUMENTO";
+
+        previewDescription.textContent =
+            descricao.value.trim() || "DESCRIÇÃO DO REGISTRO";
+
+        previewIssued.textContent =
+            emitido.value
+                ? formatDate(emitido.value)
+                : "00/00/0000";
+
+        previewExpiry.textContent =
+            formatDate(validade.value);
+
+        const requiredFields = [tipo, emitido];
+
+        const completedRequired = requiredFields.filter(
+            field => field.value.trim() !== ""
+        ).length;
+
+        const optionalFields = [descricao, validade, link];
+
+        const completedOptional = optionalFields.filter(
+            field => field.value.trim() !== ""
+        ).length;
+
+        // Indicador visual de preenchimento, não de validade legal.
+        const percentage = Math.round(
+            ((completedRequired + completedOptional) / 5) * 100
+        );
+
+        progress.textContent =
+            String(percentage).padStart(2, "0") + "%";
+
+        if (completedRequired === requiredFields.length) {
+            statusText.textContent = "REGISTRO PRONTO PARA REVISÃO";
+        } else if (completedRequired > 0 || completedOptional > 0) {
+            statusText.textContent = "REGISTRO EM PREPARAÇÃO";
+        } else {
+            statusText.textContent = "AGUARDANDO INFORMAÇÕES";
+        }
+    }
+
+    [tipo, descricao, emitido, validade, link].forEach(field => {
+        field.addEventListener("input", updatePreview);
+        field.addEventListener("change", updatePreview);
+    });
+
+    updatePreview();
+
+    /* INTERAÇÃO 3D COM O CURSOR */
+
+    if (stage && machine && !reducedMotion.matches) {
+        stage.addEventListener("pointermove", event => {
+            if (event.pointerType === "touch" || submitting) return;
+
+            const rect = stage.getBoundingClientRect();
+
+            const x =
+                ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+
+            const y =
+                ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+
+            const rotateY = -9 + x * 8;
+            const rotateX = 9 - y * 6;
+
+            machine.style.transform =
+                `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        stage.addEventListener("pointerleave", () => {
+            machine.style.transform =
+                "rotateX(9deg) rotateY(-9deg)";
+        });
+    }
+
+    /* PRENSA E ENVIO REAL DO FORMULÁRIO */
+
+    form.addEventListener("submit", event => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!form.checkValidity()) {
+            return;
+        }
+
+        if (reducedMotion.matches) {
+            return;
+        }
+
+        event.preventDefault();
+
+        submitting = true;
+
+        root.classList.add("is-printing");
+
+        statusText.textContent = "PROCESSANDO DOCUMENTO...";
+
+        submit.disabled = true;
+
+        const buttonLabel = submit.querySelector("span");
+        if (buttonLabel) {
+            buttonLabel.textContent = "Processando...";
+        }
+
+        // Envia após a animação.
+        // O Django continua validando e salvando os dados.
+        window.setTimeout(() => {
+            HTMLFormElement.prototype.submit.call(form);
+        }, 1550);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
+    const root = document.getElementById("inka-documento-oficial");
+    if (!root) return;
+
+    const openButton = document.getElementById("ido-open");
+    const workspace = document.getElementById("ido-workspace");
+    const form = document.getElementById("ido-form");
+    const submitButton = document.getElementById("ido-submit");
+    const document3D = document.getElementById("ido-document");
+
+    if (!openButton || !workspace || !form) return;
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const hasErrors = root.dataset.hasErrors === "true";
+
+    let opening = false;
+    let opened = false;
+    let submitting = false;
+
+    // Só esconde o formulário quando o JS está ativo.
+    root.classList.add("is-enhanced");
+
+    function showWorkspace(animate = true) {
+        if (opened) return;
+
+        opened = true;
+        root.classList.remove("is-opening");
+        root.classList.add("is-open");
+
+        openButton.setAttribute("aria-expanded", "true");
+
+        if (animate) {
+            requestAnimationFrame(() => {
+                workspace.scrollIntoView({
+                    behavior: reducedMotion ? "auto" : "smooth",
+                    block: "start"
+                });
+            });
+        }
+    }
+
+    function openDocument() {
+        if (opening || opened) return;
+
+        opening = true;
+        root.classList.add("is-opening");
+
+        openButton.disabled = true;
+
+        const label = openButton.querySelector("span");
+        if (label) label.textContent = "ABRINDO REGISTRO...";
+
+        window.setTimeout(() => {
+            showWorkspace();
+        }, reducedMotion ? 0 : 1250);
+    }
+
+    openButton.addEventListener("click", openDocument);
+
+    // Se o Django devolveu erros, o formulário já aparece aberto.
+    // Assim o usuário não precisa repetir a animação para corrigir.
+    if (hasErrors) {
+        showWorkspace(false);
+    }
+
+    // Interação 3D delicada antes da abertura.
+    if (document3D && !reducedMotion) {
+        const scene = document.getElementById("ido-scene");
+
+        scene.addEventListener("pointermove", event => {
+            if (opening || opened || event.pointerType === "touch") {
+                return;
+            }
+
+            const rect = scene.getBoundingClientRect();
+
+            const x =
+                ((event.clientX - rect.left) / rect.width - .5) * 2;
+
+            const y =
+                ((event.clientY - rect.top) / rect.height - .5) * 2;
+
+            document3D.style.transform = `
+                rotateX(${14 - y * 6}deg)
+                rotateY(${-12 + x * 10}deg)
+                rotateZ(-4deg)
+            `;
+        });
+
+        scene.addEventListener("pointerleave", () => {
+            if (opening || opened) return;
+            document3D.style.transform = "";
+        });
+
+        openButton.addEventListener("click", () => {
+            document3D.style.transform = "";
+        });
+    }
+
+    // Envio Django com animação de protocolo.
+    form.addEventListener("submit", event => {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!form.checkValidity()) {
+            return;
+        }
+
+        if (reducedMotion) {
+            return;
+        }
+
+        event.preventDefault();
+        submitting = true;
+
+        root.classList.add("is-submitting");
+
+        submitButton.disabled = true;
+
+        const label = submitButton.querySelector("span");
+        if (label) label.textContent = "ENVIANDO REGISTRO...";
+
+        // O input hidden "salvar" permanece no POST.
+        // O carimbo não indica sucesso confirmado pelo servidor.
+        window.setTimeout(() => {
+            HTMLFormElement.prototype.submit.call(form);
+        }, 1050);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
+    const root = document.getElementById("inka-casefile");
+    if (!root) return;
+
+    const board = document.getElementById("cf-board");
+    const svg = document.getElementById("cf-threads");
+    const form = document.getElementById("cf-form");
+    const submitButton = document.getElementById("cf-submit");
+
+    const countLabel = document.getElementById("cf-count");
+    const progressFill = document.getElementById("cf-progress-fill");
+
+    if (!board || !svg || !form) return;
+
+    const notes = Array.from(
+        root.querySelectorAll("[data-cf-step]")
+    );
+
+    const pins = Array.from(
+        root.querySelectorAll("[data-cf-pin]")
+    );
+
+    const fields = [
+        document.getElementById("tipo"),
+        document.getElementById("descricao"),
+        document.getElementById("emitido_em"),
+        document.getElementById("validade"),
+        document.getElementById("link")
+    ];
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    let drawFrame = null;
+    let firstDrawing = true;
+    let sending = false;
+
+    /* =====================================
+       POSIÇÃO REAL DOS ALFINETES
+       ===================================== */
+
+    function getPinPosition(pin) {
+        const boardRect = board.getBoundingClientRect();
+        const rect = pin.getBoundingClientRect();
+
+        return {
+            x: rect.left + rect.width / 2 - boardRect.left,
+            y: rect.top + rect.height / 2 - boardRect.top
+        };
+    }
+
+    /* =====================================
+       CAMINHO DO FIO ENTRE DOIS PONTOS
+       ===================================== */
+
+    function makeThreadPath(start, end) {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+
+        // Curva suave com leve tensão visual.
+        const controlX1 = start.x + dx * 0.28;
+        const controlY1 = start.y + dy * 0.22;
+
+        const controlX2 = end.x - dx * 0.28;
+        const controlY2 = end.y - dy * 0.22;
+
+        return [
+            `M ${start.x} ${start.y}`,
+            `C ${controlX1} ${controlY1},`,
+            `${controlX2} ${controlY2},`,
+            `${end.x} ${end.y}`
+        ].join(" ");
+    }
+
+    function createPath(className, d) {
+        const path = document.createElementNS(
+            SVG_NS,
+            "path"
+        );
+
+        path.setAttribute("d", d);
+        path.setAttribute("class", className);
+
+        return path;
+    }
+
+    /* =====================================
+       DESENHAR TODAS AS CONEXÕES
+       ===================================== */
+
+    function drawThreads() {
+        drawFrame = null;
+
+        const width = board.clientWidth;
+        const height = board.clientHeight;
+
+        if (!width || !height) return;
+
+        svg.setAttribute(
+            "viewBox",
+            `0 0 ${width} ${height}`
+        );
+
+        svg.setAttribute("width", width);
+        svg.setAttribute("height", height);
+
+        svg.replaceChildren();
+
+        const fragment = document.createDocumentFragment();
+        const animate = firstDrawing && !reducedMotion.matches;
+
+        for (let index = 0; index < pins.length - 1; index++) {
+            const start = getPinPosition(pins[index]);
+            const end = getPinPosition(pins[index + 1]);
+
+            const d = makeThreadPath(start, end);
+
+            const shadow = createPath(
+                "cf-thread-shadow",
+                d
+            );
+
+            const thread = createPath(
+                "cf-thread",
+                d
+            );
+
+            fragment.appendChild(shadow);
+            fragment.appendChild(thread);
+
+            if (animate) {
+                // A animação usa o comprimento real de cada fio.
+                const length = Math.hypot(
+                    end.x - start.x,
+                    end.y - start.y
+                ) * 1.6;
+
+                thread.style.setProperty(
+                    "--cf-wire-length",
+                    `${length}px`
+                );
+
+                thread.style.setProperty(
+                    "--cf-wire-delay",
+                    `${index * 0.21}s`
+                );
+            }
+        }
+
+        svg.appendChild(fragment);
+
+        if (animate) {
+            // Recalcula com o comprimento preciso de cada SVG.
+            svg.querySelectorAll(".cf-thread").forEach(
+                (path, index) => {
+                    const length = path.getTotalLength();
+
+                    path.style.setProperty(
+                        "--cf-wire-length",
+                        `${length}px`
+                    );
+
+                    path.style.setProperty(
+                        "--cf-wire-delay",
+                        `${index * 0.21}s`
+                    );
+                }
+            );
+
+            requestAnimationFrame(() => {
+                svg.querySelectorAll(".cf-thread").forEach(
+                    path => path.classList.add("is-drawn")
+                );
+            });
+        }
+
+        firstDrawing = false;
+    }
+
+    function scheduleDrawing() {
+        if (drawFrame !== null) return;
+
+        drawFrame = requestAnimationFrame(drawThreads);
+    }
+
+    /* =====================================
+       DETECTAR PREENCHIMENTO
+       ===================================== */
+
+    function updateProgress() {
+        let completed = 0;
+
+        fields.forEach((field, index) => {
+            if (!field) return;
+
+            const isFilled = field.value.trim() !== "";
+
+            if (isFilled) completed++;
+
+            const note = notes.find(
+                item => Number(item.dataset.cfStep) === index + 1
+            );
+
+            if (note) {
+                note.classList.toggle(
+                    "is-filled",
+                    isFilled
+                );
+            }
+        });
+
+        if (countLabel) {
+            countLabel.textContent =
+                `${completed}/${fields.length}`;
+        }
+
+        if (progressFill) {
+            progressFill.style.width =
+                `${completed / fields.length * 100}%`;
+        }
+    }
+
+    fields.forEach(field => {
+        if (!field) return;
+
+        field.addEventListener("input", updateProgress);
+        field.addEventListener("change", updateProgress);
+    });
+
+    /* =====================================
+       INICIAR E MANTER RESPONSIVO
+       ===================================== */
+
+    updateProgress();
+
+    scheduleDrawing();
+
+    window.addEventListener(
+        "resize",
+        scheduleDrawing,
+        { passive: true }
+    );
+
+    if ("ResizeObserver" in window) {
+        const resizeObserver = new ResizeObserver(
+            scheduleDrawing
+        );
+
+        resizeObserver.observe(board);
+
+        notes.forEach(note => {
+            resizeObserver.observe(note);
+        });
+    }
+
+    // Reposiciona os fios depois de carregar a tipografia.
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(scheduleDrawing);
+    }
+
+    // O hover desloca levemente o cartão.
+    // Atualizar as conexões mantém os fios presos aos alfinetes.
+    notes.forEach(note => {
+        note.addEventListener(
+            "pointerenter",
+            scheduleDrawing
+        );
+
+        note.addEventListener(
+            "pointerleave",
+            scheduleDrawing
+        );
+
+        note.addEventListener(
+            "transitionend",
+            scheduleDrawing
+        );
+    });
+
+    /* =====================================
+       ANIMAÇÃO DE ENVIO
+       ===================================== */
+
+    form.addEventListener("submit", event => {
+        if (sending) return;
+
+        // O navegador continua validando campos obrigatórios e URLs.
+        if (!form.checkValidity()) return;
+
+        // Respeita a preferência de movimento reduzido.
+        if (reducedMotion.matches) return;
+
+        event.preventDefault();
+        sending = true;
+
+        const finalNote = root.querySelector(
+            ".cf-note-submit"
+        );
+
+        if (finalNote) {
+            finalNote.classList.add("is-sending");
+        }
+
+        const buttonText = submitButton?.querySelector("span");
+
+        if (buttonText) {
+            buttonText.textContent = "ENVIANDO REGISTRO...";
+        }
+
+        // Aguarda somente a microanimação de protocolo.
+        // requestSubmit mantém o botão "salvar" no POST Django.
+        window.setTimeout(() => {
+            if (submitButton) {
+                form.requestSubmit(submitButton);
+            } else {
+                form.requestSubmit();
+            }
+        }, 550);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
+
+  const root = document.getElementById("dossie-inka");
+  if (!root) return;
+
+  const openButton = root.querySelector("#dossie-open");
+  const content = root.querySelector("#dossie-content");
+  const form = root.querySelector("#dossie-form");
+  const sheets = [...root.querySelectorAll("[data-dossie-step]")];
+  const points = [...root.querySelectorAll("[data-step-target]")];
+  const wire = root.querySelector("#dossie-wire");
+  const timeline = root.querySelector(".dossie-timeline");
+  const saveButton = root.querySelector("#dossie-save");
+  const protocol = root.querySelector("#dossie-protocol");
+
+  if (!openButton || !content || !form) return;
+
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  const inputs = {
+    tipo: root.querySelector("#tipo"),
+    descricao: root.querySelector("#descricao"),
+    emitido: root.querySelector("#emitido_em"),
+    validade: root.querySelector("#validade"),
+    link: root.querySelector("#link")
+  };
+
+  let current = 0;
+  let opened = false;
+  let opening = false;
+  let submitting = false;
+
+  function dateBR(value) {
+    if (!value) return "";
+    const parts = value.split("-");
+    return parts.length === 3
+      ? `${parts[2]}/${parts[1]}/${parts[0]}`
+      : value;
+  }
+
+  function updateReview() {
+    const selected = inputs.tipo.selectedOptions[0];
+    root.querySelector("#dossie-review-type").textContent =
+      inputs.tipo.value ? selected.textContent.trim() : "Não informado";
+
+    root.querySelector("#dossie-review-date").textContent =
+      dateBR(inputs.emitido.value) || "Não informada";
+
+    root.querySelector("#dossie-review-expiry").textContent =
+      dateBR(inputs.validade.value) || "Sem validade definida";
+  }
+
+  function fieldStep(field) {
+    const sheet = field?.closest("[data-dossie-step]");
+    return sheet ? Number(sheet.dataset.dossieStep) : 0;
+  }
+
+  function firstInvalidField() {
+    return [...form.querySelectorAll("input,select")]
+      .find(field => !field.checkValidity()) || null;
+  }
+
+  function checkStep(index) {
+    const sheet = sheets[index];
+    if (!sheet) return false;
+
+    const invalid = [...sheet.querySelectorAll("input,select")]
+      .find(field => !field.checkValidity());
+
+    if (invalid) {
+      invalid.reportValidity();
+      invalid.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  /* FIO SVG ENTRE OS TRÊS ALFINETES */
+
+  function drawWire() {
+    if (!wire || !timeline || points.length !== 3) return;
+
+    const rect = timeline.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const positions = points.map(point => {
+      const pinRect = point.querySelector("i").getBoundingClientRect();
+      return {
+        x: pinRect.left + pinRect.width / 2 - rect.left,
+        y: pinRect.top + pinRect.height / 2 - rect.top
+      };
+    });
+
+    wire.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+    wire.replaceChildren();
+
+    const ns = "http://www.w3.org/2000/svg";
+
+    const path = (a, b) =>
+      `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+
+    // Linha completa, discreta.
+    const base = document.createElementNS(ns, "path");
+    base.setAttribute("d", path(positions[0], positions[2]));
+    base.setAttribute("fill", "none");
+    base.setAttribute("stroke", "#5F7B44");
+    base.setAttribute("stroke-width", "2");
+    base.setAttribute("opacity", ".55");
+    wire.appendChild(base);
+
+    // Fio ativo, desenhado conforme o progresso.
+    const active = document.createElementNS(ns, "path");
+    active.setAttribute("d", path(positions[0], positions[2]));
+    active.setAttribute("fill", "none");
+    active.setAttribute("stroke", "#B9D188");
+    active.setAttribute("stroke-width", "2.5");
+    active.setAttribute("stroke-linecap", "round");
+
+    const length = active.getTotalLength();
+    active.style.strokeDasharray = `${length}`;
+    active.style.strokeDashoffset = `${
+      length * (1 - current / 2)
+    }`;
+    active.style.transition = prefersReducedMotion.matches
+      ? "none"
+      : "stroke-dashoffset .65s cubic-bezier(.2,.8,.2,1)";
+
+    wire.appendChild(active);
+  }
+
+  function advanceWire() {
+    const active = wire?.querySelectorAll("path")[1];
+    if (!active) return;
+
+    const length = active.getTotalLength();
+
+    active.style.strokeDashoffset =
+      `${length * (1 - current / 2)}`;
+  }
+
+  function showStep(index, scroll = true) {
+    current = Math.max(0, Math.min(index, sheets.length - 1));
+
+    sheets.forEach((sheet, i) => {
+      const active = i === current;
+      sheet.classList.toggle("is-active", active);
+      sheet.hidden = !active;
+    });
+
+    points.forEach((point, i) => {
+      const active = i === current;
+
+      point.classList.toggle("is-current", active);
+      point.classList.toggle("is-complete", i < current);
+
+      if (active) {
+        point.setAttribute("aria-current", "step");
+      } else {
+        point.removeAttribute("aria-current");
+      }
+    });
+
+    updateReview();
+    advanceWire();
+
+    if (scroll) {
+      content.scrollIntoView({
+        behavior: prefersReducedMotion.matches ? "auto" : "smooth",
+        block: "start"
+      });
+    }
+  }
+
+  function finishOpening(scroll = true) {
+    opened = true;
+    opening = false;
+
+    root.classList.remove("is-opening");
+    root.classList.add("is-open");
+
+    openButton.setAttribute("aria-expanded", "true");
+
+    drawWire();
+
+    if (scroll) {
+      content.scrollIntoView({
+        behavior: prefersReducedMotion.matches ? "auto" : "smooth",
+        block: "start"
+      });
+    }
+  }
+
+  function openDossier() {
+    if (opened || opening) return;
+
+    opening = true;
+    root.classList.add("is-opening");
+    openButton.disabled = true;
+
+    window.setTimeout(
+      () => finishOpening(),
+      prefersReducedMotion.matches ? 0 : 1150
+    );
+  }
+
+  openButton.addEventListener("click", openDossier);
+
+  /* ATIVAR A EXPERIÊNCIA SEM PREJUDICAR O HTML */
+
+  root.classList.add("is-enhanced");
+
+  // Esconde as folhas inativas somente com JS funcionando.
+  sheets.forEach((sheet, i) => {
+    sheet.hidden = i !== 0;
+  });
+
+  /* ERROS DO DJANGO: ABRE NA ETAPA CERTA */
+
+  const errorElement = form.querySelector(".dossie-error");
+
+  if (root.dataset.errors === "1" || errorElement) {
+    finishOpening(false);
+
+    const sheet = errorElement?.closest("[data-dossie-step]");
+    showStep(sheet ? Number(sheet.dataset.dossieStep) : 0, false);
+  } else {
+    showStep(0, false);
+  }
+
+  /* AVANÇAR E VOLTAR */
+
+  root.querySelectorAll("[data-next]").forEach(button => {
+    button.addEventListener("click", () => {
+      if (!checkStep(current)) return;
+      showStep(current + 1);
+    });
+  });
+
+  root.querySelectorAll("[data-back]").forEach(button => {
+    button.addEventListener("click", () => {
+      showStep(current - 1);
+    });
+  });
+
+  // Permite voltar livremente; para avançar,
+  // valida todas as etapas anteriores.
+  points.forEach(point => {
+    point.addEventListener("click", () => {
+      if (!opened) return;
+
+      const target = Number(point.dataset.stepTarget);
+
+      if (target > current) {
+        for (let i = 0; i < target; i++) {
+          showStep(i, false);
+
+          if (!checkStep(i)) return;
+        }
+      }
+
+      showStep(target);
+    });
+  });
+
+  Object.values(inputs).forEach(input => {
+    input?.addEventListener("input", updateReview);
+    input?.addEventListener("change", updateReview);
+  });
+
+  updateReview();
+
+  /* VALIDAR ANTES DO ENVIO */
+
+  saveButton?.addEventListener("click", event => {
+    if (submitting) {
+      event.preventDefault();
+      return;
+    }
+
+    const invalid = firstInvalidField();
+
+    if (invalid) {
+      event.preventDefault();
+      showStep(fieldStep(invalid), false);
+      invalid.reportValidity();
+      invalid.focus();
+    }
+  });
+
+  /* ENVIO COM ANIMAÇÃO */
+  form.addEventListener("submit", event => {
+    if (submitting) return;
+
+    const invalid = firstInvalidField();
+
+    if (invalid) {
+      event.preventDefault();
+      showStep(fieldStep(invalid), false);
+      invalid.reportValidity();
+      return;
+    }
+
+    // O HTML original continua enviando os dados ao Django.
+    // A animação apenas antecede o POST.
+    if (prefersReducedMotion.matches) return;
+
+    event.preventDefault();
+    submitting = true;
+
+    protocol.hidden = false;
+    saveButton.disabled = true;
+
+    window.setTimeout(() => {
+      // Preserva o input hidden "salvar" no POST.
+      HTMLFormElement.prototype.submit.call(form);
+    }, 650);
+  });
+
+  window.addEventListener("resize", drawWire, { passive: true });
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(drawWire);
+  }
+});
