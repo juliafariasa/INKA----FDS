@@ -1,500 +1,202 @@
 
 {% extends "forum/base.html" %}
+{% load static %}
 
 {% block titulo %}Minha Área - {{ estudio.nome }} - INKA{% endblock %}
 
+{% block head_extra %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/minha_area.css' %}">
+<script src="{% static 'js/minha_area.js' %}" defer></script>
+{% endblock %}
+
 {% block content %}
+<div class="inka-dashboard" id="inka-dashboard">
 
-<main class="inka-dashboard" id="inka-dashboard">
-
-    <!-- NAVEGAÇÃO DA PÁGINA -->
-    <nav class="inka-dashboard-nav" aria-label="Navegação da Minha Área">
-        <div class="inka-dashboard-nav-inner">
-            <a href="#inka-inicio" class="inka-dashboard-nav-link is-active" aria-current="location">
-                <span>00</span> Início
-            </a>
-            <a href="#inka-passos" class="inka-dashboard-nav-link">
-                <span>01</span> Próximos passos
-            </a>
-            <a href="#inka-indicadores" class="inka-dashboard-nav-link">
-                <span>02</span> Indicadores
-            </a>
-            <a href="#inka-modulos" class="inka-dashboard-nav-link">
-                <span>03</span> Módulos
-            </a>
-            <a href="#inka-registros" class="inka-dashboard-nav-link">
-                <span>04</span> Registros
-            </a>
-        </div>
-        <div class="inka-dashboard-nav-progress" aria-hidden="true">
-            <span></span>
-        </div>
-    </nav>
-
-    <!-- 00 / ABERTURA -->
-    <header class="inka-dashboard-hero" id="inka-inicio">
-
-        <div class="inka-dashboard-hero-top">
-            <span>INKA / MINHA ÁREA</span>
-            <span>PAINEL DO ESTÚDIO</span>
+    <!-- 00 / ASSINATURA DE ESTÚDIO -->
+    <header class="db-hero" id="db-inicio">
+        <div class="db-masthead">
+            <div class="db-brand" aria-label="INKA, gestão ESG para estúdios">
+                <span class="db-brand-name">INKA<span class="db-brand-dot">.</span></span>
+                <span class="db-brand-descriptor">GESTÃO ESG<br>PARA ESTÚDIOS</span>
+            </div>
+            <span class="db-masthead-index">PAINEL DO ESTÚDIO <span> / 001</span></span>
         </div>
 
-        <div class="inka-dashboard-hero-grid">
-
-            <div class="inka-dashboard-hero-content">
-                <span class="inka-dashboard-eyebrow">
-                    SEU ESPAÇO. SUA EVOLUÇÃO.
-                </span>
-
-                <h1>Olá, <em>{{ estudio.nome }}</em><span>.</span></h1>
-
-                <p class="inka-dashboard-location">
+        <div class="db-hero-layout">
+            <div class="db-hero-copy">
+                <span class="db-kicker"><span class="db-kicker-line"></span> SEU ESPAÇO. SUA EVOLUÇÃO.</span>
+                <h1>Olá, <span>{{ estudio.nome }}</span><i>.</i></h1>
+                <p class="db-hero-location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
                     {{ estudio.cidade }}
-                    {% if diagnostico %}
-                        <span aria-hidden="true">/</span>
-                        {% if diagnostico.selo %}
-                            Selo {{ diagnostico.selo }}
-                        {% else %}
-                            Sem selo
-                        {% endif %}
-                    {% else %}
-                        <span aria-hidden="true">/</span>
-                        Ainda sem diagnóstico
-                    {% endif %}
                 </p>
-
-                <p class="inka-dashboard-hero-description">
-                    Cada escolha deixa uma marca.
-                </p>
-
-                <a class="inka-dashboard-hero-cta" href="#inka-passos">
-                    Explorar minha área
-                    <span aria-hidden="true">↘</span>
-                </a>
+                <p class="db-hero-statement">Cada escolha deixa uma marca.</p>
+                <a href="#db-passos" class="db-hero-action">Explorar minha área <span aria-hidden="true">↘</span></a>
             </div>
 
-            <div class="inka-dashboard-hero-art" aria-label="Identidade visual ESG">
-                <div class="inka-dashboard-art-header">
-                    <span>ESTÚDIO / ESG</span>
-                    <span>INKA®</span>
+            <!-- O SELO É UM RECONHECIMENTO DO DIAGNÓSTICO, NÃO UM ORNAMENTO -->
+            <aside class="db-award {% if diagnostico and diagnostico.selo == 'Ouro' %}db-award--ouro{% endif %}" aria-label="Resultado do diagnóstico ESG">
+                <div class="db-award-top">
+                    <span>SELO ESG DO ESTÚDIO</span>
+                    <span>INKA / DIAGNÓSTICO</span>
                 </div>
-
-                <div class="inka-dashboard-art-center" aria-hidden="true">
-                    <span class="inka-dashboard-art-word">INKA</span>
-                    <div class="inka-dashboard-art-orbit"></div>
-                    <span class="inka-dashboard-art-cross cross-one">+</span>
-                    <span class="inka-dashboard-art-cross cross-two">+</span>
-                </div>
-
-                <div class="inka-dashboard-art-footer">
-                    <span>E / S / G</span>
-                    <span>PRÁTICAS QUE TRANSFORMAM</span>
-                </div>
-            </div>
-
+                {% if diagnostico and diagnostico.selo %}
+                    <div class="db-award-medal" aria-hidden="true">
+                        <svg class="db-award-laurel" viewBox="0 0 220 220" fill="none" aria-hidden="true">
+                            <circle cx="110" cy="110" r="87" stroke="currentColor" stroke-opacity=".34" stroke-width="1" />
+                            <circle cx="110" cy="110" r="78" stroke="currentColor" stroke-opacity=".75" stroke-width="1.4" />
+                            <path d="M77 163C48 146 42 110 56 82M143 163c29-17 35-53 21-81" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M67 152c-12-1-18-8-19-18 12 0 20 7 19 18ZM58 135c-12-4-15-13-12-22 11 4 17 12 12 22ZM55 116c-10-8-11-17-4-25 10 7 12 16 4 25ZM58 98c-8-10-5-19 3-25 8 10 6 18-3 25ZM153 152c12-1 18-8 19-18-12 0-20 7-19 18ZM162 135c12-4 15-13 12-22-11 4-17 12-12 22ZM165 116c10-8 11-17 4-25-10 7-12 16-4 25ZM162 98c8-10 5-19-3-25-8 10-6 18 3 25Z" stroke="currentColor" fill="currentColor" fill-opacity=".17" stroke-width="1.1"/>
+                        </svg>
+                        <div class="db-award-medal-center"><span>ESG</span><strong>{{ diagnostico.selo }}</strong></div>
+                    </div>
+                    <p class="db-award-status">Reconhecimento atual</p>
+                    <div class="db-award-score"><span>ÍNDICE DO DIAGNÓSTICO</span><strong>{{ diagnostico.indice|floatformat:0 }} <small>/ 100</small></strong></div>
+                {% elif diagnostico %}
+                    <div class="db-award-empty">
+                        <span class="db-award-empty-mark" aria-hidden="true">ESG</span>
+                        <strong>Sem selo</strong>
+                        <p>Índice {{ diagnostico.indice|floatformat:0 }}/100</p>
+                    </div>
+                    <p class="db-award-status">Resultado do diagnóstico</p>
+                {% else %}
+                    <div class="db-award-empty">
+                        <span class="db-award-empty-mark" aria-hidden="true">ESG</span>
+                        <strong>Ainda sem diagnóstico</strong>
+                        <p>Seu reconhecimento começa aqui.</p>
+                    </div>
+                    <a class="db-award-start" href="{% url 'forum:estudio_diagnostico' estudio.id %}">Fazer diagnóstico <span aria-hidden="true">↗</span></a>
+                {% endif %}
+            </aside>
         </div>
 
-        <!-- AÇÕES RÁPIDAS -->
         {% url 'forum:estudio_perfil' estudio.id as url_perfil_relativa %}
-
-        <div class="inka-dashboard-quick">
-
-            <div class="inka-dashboard-quick-heading">
-                <span>ACESSOS RÁPIDOS</span>
-                <span>IDENTIDADE DIGITAL</span>
+        <div class="db-quick">
+            <div class="db-quick-head"><span>ACESSOS RÁPIDOS</span><span>IDENTIDADE DIGITAL DO ESTÚDIO</span></div>
+            <div class="db-quick-list">
+                <a href="{{ url_perfil_relativa }}" class="db-quick-item"><span class="db-quick-count">01</span><span>Ver meu perfil público</span><span class="db-quick-arrow" aria-hidden="true">↗</span></a>
+                <a href="{% url 'forum:estudio_qrcode' estudio.id %}" class="db-quick-item"><span class="db-quick-count">02</span><span>QR Code da recepção</span><span class="db-quick-arrow" aria-hidden="true">↗</span></a>
+                <button type="button" class="db-quick-item db-copy" data-db-copy="{{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}"><span class="db-quick-count">03</span><span>Copiar link do perfil</span><span class="db-quick-arrow" aria-hidden="true">⧉</span></button>
             </div>
-
-            <div class="inka-dashboard-quick-grid">
-
-                <a href="{{ url_perfil_relativa }}" class="inka-dashboard-quick-link">
-                    <span class="inka-dashboard-quick-number">01</span>
-                    <span class="inka-dashboard-quick-name">Ver meu perfil público</span>
-                    <span class="inka-dashboard-quick-arrow" aria-hidden="true">↗</span>
-                </a>
-
-                <a href="{% url 'forum:estudio_qrcode' estudio.id %}" class="inka-dashboard-quick-link">
-                    <span class="inka-dashboard-quick-number">02</span>
-                    <span class="inka-dashboard-quick-name">QR Code da recepção</span>
-                    <span class="inka-dashboard-quick-arrow" aria-hidden="true">↗</span>
-                </a>
-
-                <button type="button"
-                        class="inka-dashboard-quick-link inka-dashboard-copy"
-                        data-copy="{{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}">
-                    <span class="inka-dashboard-quick-number">03</span>
-                    <span class="inka-dashboard-quick-name">Copiar link do perfil</span>
-                    <span class="inka-dashboard-quick-arrow" aria-hidden="true">⧉</span>
-                </button>
-
-            </div>
-
-            <p class="inka-dashboard-bio">
-                Link para a bio do Instagram:
-                <a href="{{ url_perfil_relativa }}">
-                    {{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}
-                </a>
-            </p>
-
-            <p class="inka-dashboard-copy-feedback" role="status" aria-live="polite"></p>
+            <p class="db-profile-url">Link para a bio do Instagram: <a href="{{ url_perfil_relativa }}">{{ request.scheme }}://{{ request.get_host }}{{ url_perfil_relativa }}</a></p>
+            <p class="db-copy-feedback" role="status" aria-live="polite"></p>
         </div>
-
     </header>
 
+    <!-- Navegação por capítulos; não compete com o menu global -->
+    <nav class="db-chapters" aria-label="Seções da Minha Área">
+        <div class="db-chapters-links">
+            <a href="#db-inicio" class="db-chapter is-active" aria-current="location"><span>00</span> Início</a>
+            <a href="#db-passos" class="db-chapter"><span>01</span> Próximos passos</a>
+            <a href="#db-indicadores" class="db-chapter"><span>02</span> Indicadores</a>
+            <a href="#db-modulos" class="db-chapter"><span>03</span> Módulos</a>
+            <a href="#db-registros" class="db-chapter"><span>04</span> Registros</a>
+        </div>
+        <span class="db-chapters-progress" aria-hidden="true"><span></span></span>
+    </nav>
 
     <!-- 01 / PRÓXIMOS PASSOS -->
-    <section class="inka-dashboard-section" id="inka-passos">
-
-        <div class="inka-dashboard-section-heading">
-            <div>
-                <span class="inka-dashboard-section-label">01 / PRÓXIMOS PASSOS</span>
-                <h2>O que fazer agora<span>.</span></h2>
-            </div>
-            <span class="inka-dashboard-section-note">CONTINUE SUA EVOLUÇÃO</span>
-        </div>
-
+    <section class="db-section" id="db-passos">
+        <div class="db-section-head"><div><span class="db-section-index">01 / PRÓXIMOS PASSOS</span><h2>O que fazer agora<span>.</span></h2></div><p>A PRÓXIMA MARCA COMEÇA AQUI</p></div>
         {% if pendencias %}
-            <ol class="inka-dashboard-tasks">
+            <ol class="db-tasks">
                 {% for item in pendencias %}
-                    <li class="inka-dashboard-task {% if item.destaque %}is-featured{% endif %}">
-                        <span class="inka-dashboard-task-number">
-                            {{ forloop.counter|stringformat:"02d" }}
-                        </span>
-                        <p>{{ item.texto }}</p>
-                        <a href="{{ item.url }}">
-                            {{ item.acao }}
-                            <span aria-hidden="true">↗</span>
-                        </a>
-                    </li>
+                    <li class="db-task {% if item.destaque %}db-task--important{% endif %}"><span class="db-task-number">{{ forloop.counter|stringformat:"02d" }}</span><p>{{ item.texto }}</p><a href="{{ item.url }}">{{ item.acao }} <span aria-hidden="true">↗</span></a></li>
                 {% endfor %}
             </ol>
         {% else %}
-            <div class="inka-dashboard-empty">
-                <span aria-hidden="true">✓</span>
-                <p>Tudo em dia por aqui.</p>
-            </div>
+            <div class="db-tasks-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/><circle cx="12" cy="12" r="10"/></svg><p>Tudo em dia por aqui.</p></div>
         {% endif %}
-
     </section>
 
-
-    <!-- 02 / INDICADORES -->
-    <section class="inka-dashboard-section" id="inka-indicadores">
-
-        <div class="inka-dashboard-section-heading">
-            <div>
-                <span class="inka-dashboard-section-label">02 / INDICADORES</span>
-                <h2>Como o estúdio está<span>.</span></h2>
-            </div>
-            <span class="inka-dashboard-section-note">DADOS DO SEU ESTÚDIO</span>
-        </div>
-
-        <div class="inka-dashboard-stats">
-
-            <!-- DIAGNÓSTICO -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Notas do diagnóstico</span>
-                    <span>01</span>
-                </div>
-
+    <!-- 02 / PAINEL DE INDICADORES, COM ÍCONES SEMÂNTICOS -->
+    <section class="db-section" id="db-indicadores">
+        <div class="db-section-head"><div><span class="db-section-index">02 / INDICADORES</span><h2>Como o estúdio está<span>.</span></h2></div><p>SEIS FORMAS DE ACOMPANHAR SUA EVOLUÇÃO</p></div>
+        <div class="db-stats">
+            <article class="db-stat db-stat--diagnostico">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V12M10 20V6M16 20V10M22 20V4"/><path d="M2 20h20"/></svg></div><span class="db-stat-index">01 / ESG</span></div>
+                <h3>Notas do diagnóstico</h3>
                 {% if diagnostico %}
-                    <strong class="inka-dashboard-stat-value">
-                        {{ diagnostico.indice|floatformat:0 }}<small>/100</small>
-                    </strong>
-
-                    <div class="inka-dashboard-meter"
-                         role="progressbar"
-                         aria-label="Índice do diagnóstico"
-                         aria-valuemin="0"
-                         aria-valuemax="100"
-                         aria-valuenow="{{ diagnostico.indice|floatformat:0 }}">
-                        <span data-progress="{{ diagnostico.indice|floatformat:0 }}"></span>
-                    </div>
-
-                    <p class="inka-dashboard-stat-detail">
-                        E {{ diagnostico.nota_e|floatformat:1 }} ·
-                        S {{ diagnostico.nota_s|floatformat:1 }} ·
-                        G {{ diagnostico.nota_g|floatformat:1 }}
-                    </p>
+                    <strong class="db-stat-number">{{ diagnostico.indice|floatformat:0 }}<small>/100</small></strong>
+                    <div class="db-meter" role="progressbar" aria-label="Índice do diagnóstico" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ diagnostico.indice|floatformat:'0u' }}"><span data-db-progress="{{ diagnostico.indice|floatformat:'0u' }}"></span></div>
+                    <p class="db-stat-caption">E {{ diagnostico.nota_e|floatformat:1 }} · S {{ diagnostico.nota_s|floatformat:1 }} · G {{ diagnostico.nota_g|floatformat:1 }}</p>
                 {% else %}
-                    <strong class="inka-dashboard-stat-value">—</strong>
-                    <p class="inka-dashboard-stat-detail">Faça o diagnóstico</p>
+                    <strong class="db-stat-number">—</strong><p class="db-stat-caption">Faça o diagnóstico</p>
                 {% endif %}
             </article>
 
-            <!-- CHECKLIST -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Último checklist</span>
-                    <span>02</span>
-                </div>
-
+            <article class="db-stat db-stat--checklist">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 4V2h6v2M8 13l2.5 2.5L16 10"/></svg></div><span class="db-stat-index">02 / ROTINA</span></div>
+                <h3>Último checklist</h3>
                 {% if checklist %}
-                    <strong class="inka-dashboard-stat-value">
-                        {{ checklist.percentual }}<small>%</small>
-                    </strong>
-
-                    <div class="inka-dashboard-meter"
-                         role="progressbar"
-                         aria-label="Percentual do último checklist"
-                         aria-valuemin="0"
-                         aria-valuemax="100"
-                         aria-valuenow="{{ checklist.percentual }}">
-                        <span data-progress="{{ checklist.percentual }}"></span>
-                    </div>
-
-                    <p class="inka-dashboard-stat-detail">
-                        em {{ checklist.data|date:"d/m/Y" }}
-                    </p>
+                    <strong class="db-stat-number">{{ checklist.percentual }}<small>%</small></strong>
+                    <div class="db-meter" role="progressbar" aria-label="Percentual do último checklist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ checklist.percentual|floatformat:'0u' }}"><span data-db-progress="{{ checklist.percentual|floatformat:'0u' }}"></span></div>
+                    <p class="db-stat-caption">em {{ checklist.data|date:"d/m/Y" }}</p>
                 {% else %}
-                    <strong class="inka-dashboard-stat-value">—</strong>
-                    <p class="inka-dashboard-stat-detail">Nenhuma verificação</p>
+                    <strong class="db-stat-number">—</strong><p class="db-stat-caption">Nenhuma verificação</p>
                 {% endif %}
             </article>
 
-            <!-- RESÍDUOS -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Resíduos por mês</span>
-                    <span>03</span>
-                </div>
-
+            <article class="db-stat db-stat--residuos">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></div><span class="db-stat-index">03 / AMBIENTAL</span></div>
+                <h3>Resíduos por mês</h3>
                 {% if calculo %}
-                    <strong class="inka-dashboard-stat-value">
-                        {{ calculo.total }}<small> g</small>
-                    </strong>
-                    <p class="inka-dashboard-stat-detail">
-                        {% if variacao_residuos %}
-                            {{ variacao_residuos.situacao }}
-                            {% if variacao_residuos.situacao != 'Igual' %}
-                                {{ variacao_residuos.diferenca }} g
-                            {% endif %}
-                            em relação ao anterior
-                        {% else %}
-                            Primeiro cálculo
-                        {% endif %}
-                    </p>
+                    <strong class="db-stat-number">{{ calculo.total }}<small>g</small></strong>
+                    <p class="db-stat-caption">{% if variacao_residuos %}{{ variacao_residuos.situacao }}{% if variacao_residuos.situacao != 'Igual' %} {{ variacao_residuos.diferenca }} g{% endif %} em relação ao anterior{% else %}Primeiro cálculo{% endif %}</p>
                 {% else %}
-                    <strong class="inka-dashboard-stat-value">—</strong>
-                    <p class="inka-dashboard-stat-detail">Nenhum cálculo</p>
+                    <strong class="db-stat-number">—</strong><p class="db-stat-caption">Nenhum cálculo</p>
                 {% endif %}
             </article>
 
-            <!-- AULAS -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Aulas concluídas</span>
-                    <span>04</span>
-                </div>
-                <strong class="inka-dashboard-stat-value">
-                    {{ aulas_concluidas }}<small>/{{ total_aulas }}</small>
-                </strong>
-                <p class="inka-dashboard-stat-detail">aulas disponíveis</p>
+            <article class="db-stat db-stat--aulas">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M7 5l3 5M14 5l3 5M10 13l5 2.5-5 2.5z"/></svg></div><span class="db-stat-index">04 / EDUCAÇÃO</span></div>
+                <h3>Aulas concluídas</h3>
+                <strong class="db-stat-number">{{ aulas_concluidas|default:"0" }}<small>/{{ total_aulas|default:"0" }}</small></strong>
+                <p class="db-stat-caption">aulas disponíveis</p>
             </article>
 
-            <!-- METAS -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Metas</span>
-                    <span>05</span>
-                </div>
-                <strong class="inka-dashboard-stat-value">
-                    {{ metas_em_andamento }}
-                </strong>
-                <p class="inka-dashboard-stat-detail">
-                    em andamento · {{ metas_atingidas }} atingida(s)
-                </p>
+            <article class="db-stat db-stat--metas">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></div><span class="db-stat-index">05 / OBJETIVOS</span></div>
+                <h3>Metas</h3>
+                <strong class="db-stat-number">{{ metas_em_andamento|default:"0" }}</strong>
+                <p class="db-stat-caption">em andamento · {{ metas_atingidas|default:"0" }} atingida(s)</p>
             </article>
 
-            <!-- CAMPANHAS -->
-            <article class="inka-dashboard-stat">
-                <div class="inka-dashboard-stat-head">
-                    <span>Campanhas sociais</span>
-                    <span>06</span>
-                </div>
-                <strong class="inka-dashboard-stat-value">
-                    {{ total_campanhas }}
-                </strong>
-                <p class="inka-dashboard-stat-detail">
-                    com participação do estúdio
-                </p>
+            <article class="db-stat db-stat--campanhas">
+                <div class="db-stat-top"><div class="db-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 9.4c0 4-8.5 9.2-8.5 9.2S3.5 13.4 3.5 9.4a4.5 4.5 0 0 1 8.5-2 4.5 4.5 0 0 1 8.5 2Z"/><path d="M3 21h6l3-2.5M21 21h-6l-3-2.5"/></svg></div><span class="db-stat-index">06 / SOCIAL</span></div>
+                <h3>Campanhas sociais</h3>
+                <strong class="db-stat-number">{{ total_campanhas|default:"0" }}</strong>
+                <p class="db-stat-caption">com participação do estúdio</p>
             </article>
-
         </div>
     </section>
 
-
-    <!-- 03 / MÓDULOS -->
-    <section class="inka-dashboard-section" id="inka-modulos">
-
-        <div class="inka-dashboard-section-heading">
-            <div>
-                <span class="inka-dashboard-section-label">03 / MÓDULOS</span>
-                <h2>Tudo o que o estúdio pode fazer<span>.</span></h2>
-            </div>
-            <span class="inka-dashboard-section-note">EXPLORE SUAS FERRAMENTAS</span>
-        </div>
-
-        <div class="inka-dashboard-modules">
-
-            <!-- AMBIENTAL -->
-            <article class="inka-dashboard-module">
-                <div class="inka-dashboard-module-top">
-                    <span class="inka-dashboard-module-letter">E</span>
-                    <span class="inka-dashboard-module-index">01 / ESG</span>
-                </div>
-
-                <h3>Ambiental</h3>
-
-                <div class="inka-dashboard-module-links">
-                    <a href="{% url 'forum:estudio_residuos' estudio.id %}">
-                        Calculadora de resíduos <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:descarte' %}">
-                        Descarte de resíduos <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:estudio_estoque' estudio.id %}">
-                        Estoque <span aria-hidden="true">↗</span>
-                    </a>
-                </div>
-            </article>
-
-            <!-- SOCIAL -->
-            <article class="inka-dashboard-module">
-                <div class="inka-dashboard-module-top">
-                    <span class="inka-dashboard-module-letter">S</span>
-                    <span class="inka-dashboard-module-index">02 / ESG</span>
-                </div>
-
-                <h3>Social</h3>
-
-                <div class="inka-dashboard-module-links">
-                    <a href="{% url 'forum:estudio_aulas' estudio.id %}">
-                        Aulas <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:campanhas' %}">
-                        Campanhas sociais <span aria-hidden="true">↗</span>
-                    </a>
-                </div>
-            </article>
-
-            <!-- GOVERNANÇA -->
-            <article class="inka-dashboard-module">
-                <div class="inka-dashboard-module-top">
-                    <span class="inka-dashboard-module-letter">G</span>
-                    <span class="inka-dashboard-module-index">03 / ESG</span>
-                </div>
-
-                <h3>Governança</h3>
-
-                <div class="inka-dashboard-module-links">
-                    <a href="{% url 'forum:estudio_diagnostico' estudio.id %}">
-                        Diagnóstico ESG <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:estudio_evolucao' estudio.id %}">
-                        Painel de evolução <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:estudio_documentos' estudio.id %}">
-                        Documentos e licenças <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:estudio_qrcode' estudio.id %}">
-                        QR Code <span aria-hidden="true">↗</span>
-                    </a>
-                </div>
-            </article>
-
-            <!-- CONTA -->
-            <article class="inka-dashboard-module inka-dashboard-module-account">
-                <div class="inka-dashboard-module-top">
-                    <span class="inka-dashboard-module-letter">@</span>
-                    <span class="inka-dashboard-module-index">04 / CONTA</span>
-                </div>
-
-                <h3>Conta</h3>
-
-                <div class="inka-dashboard-module-links">
-                    <a href="{% url 'forum:minha_area_dados' %}">
-                        Dados do estúdio <span aria-hidden="true">↗</span>
-                    </a>
-                    <a href="{% url 'forum:alterar_senha' %}">
-                        Alterar senha <span aria-hidden="true">↗</span>
-                    </a>
-
-                    <form method="post" action="{% url 'forum:sair' %}">
-                        {% csrf_token %}
-                        <button type="submit">
-                            Sair <span aria-hidden="true">↗</span>
-                        </button>
-                    </form>
-                </div>
-            </article>
-
+    <!-- 03 / MÓDULOS ESG -->
+    <section class="db-section" id="db-modulos">
+        <div class="db-section-head"><div><span class="db-section-index">03 / MÓDULOS</span><h2>Tudo o que o estúdio pode fazer<span>.</span></h2></div><p>SUAS FERRAMENTAS, ORGANIZADAS POR IMPACTO</p></div>
+        <div class="db-modules">
+            <article class="db-module"><div class="db-module-head"><span class="db-module-letter">E</span><div><span>01 / ESG</span><h3>Ambiental</h3></div></div><div class="db-module-links"><a href="{% url 'forum:estudio_residuos' estudio.id %}">Calculadora de resíduos <span aria-hidden="true">↗</span></a><a href="{% url 'forum:descarte' %}">Descarte de resíduos <span aria-hidden="true">↗</span></a><a href="{% url 'forum:estudio_estoque' estudio.id %}">Estoque <span aria-hidden="true">↗</span></a></div></article>
+            <article class="db-module"><div class="db-module-head"><span class="db-module-letter">S</span><div><span>02 / ESG</span><h3>Social</h3></div></div><div class="db-module-links"><a href="{% url 'forum:estudio_aulas' estudio.id %}">Aulas <span aria-hidden="true">↗</span></a><a href="{% url 'forum:campanhas' %}">Campanhas sociais <span aria-hidden="true">↗</span></a></div></article>
+            <article class="db-module"><div class="db-module-head"><span class="db-module-letter">G</span><div><span>03 / ESG</span><h3>Governança</h3></div></div><div class="db-module-links"><a href="{% url 'forum:estudio_diagnostico' estudio.id %}">Diagnóstico ESG <span aria-hidden="true">↗</span></a><a href="{% url 'forum:estudio_evolucao' estudio.id %}">Painel de evolução <span aria-hidden="true">↗</span></a><a href="{% url 'forum:estudio_documentos' estudio.id %}">Documentos e licenças <span aria-hidden="true">↗</span></a><a href="{% url 'forum:estudio_qrcode' estudio.id %}">QR Code <span aria-hidden="true">↗</span></a></div></article>
+            <article class="db-module db-module--account"><div class="db-module-head"><span class="db-module-letter">@</span><div><span>04 / PERFIL</span><h3>Conta</h3></div></div><div class="db-module-links"><a href="{% url 'forum:minha_area_dados' %}">Dados do estúdio <span aria-hidden="true">↗</span></a><a href="{% url 'forum:alterar_senha' %}">Alterar senha <span aria-hidden="true">↗</span></a><form method="post" action="{% url 'forum:sair' %}">{% csrf_token %}<button type="submit">Sair <span aria-hidden="true">↗</span></button></form></div></article>
         </div>
     </section>
 
-
-    <!-- 04 / REGISTROS -->
-    <section class="inka-dashboard-section" id="inka-registros">
-
-        <div class="inka-dashboard-section-heading">
-            <div>
-                <span class="inka-dashboard-section-label">04 / HISTÓRICO</span>
-                <h2>Últimos registros<span>.</span></h2>
-            </div>
-            <span class="inka-dashboard-section-note">DIÁRIO DO ESTÚDIO</span>
-        </div>
-
-        <div class="inka-dashboard-history">
-
-            <div class="inka-dashboard-history-header">
-                <span>INKA / REGISTROS</span>
-                <span>ARQUIVO DE ATIVIDADES</span>
-            </div>
-
+    <!-- 04 / DIÁRIO -->
+    <section class="db-section" id="db-registros">
+        <div class="db-section-head"><div><span class="db-section-index">04 / HISTÓRICO</span><h2>Últimos registros<span>.</span></h2></div><p>O QUE MUDA FICA REGISTRADO</p></div>
+        <div class="db-history"><div class="db-history-head"><span>INKA / DIÁRIO DO ESTÚDIO</span><span>ARQUIVO DE ATIVIDADES</span></div>
             {% if ultimos_registros %}
-                <ol class="inka-dashboard-timeline">
-                    {% for evento in ultimos_registros %}
-                        <li>
-                            <time datetime="{{ evento.quando|date:'c' }}">
-                                {{ evento.quando|date:"d/m/Y" }}
-                            </time>
-
-                            <div>
-                                <span class="inka-dashboard-event-type">
-                                    {{ evento.tipo }}
-                                </span>
-                                <p>{{ evento.texto }}</p>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ol>
+                <ol class="db-timeline">{% for evento in ultimos_registros %}<li><time datetime="{{ evento.quando|date:'c' }}">{{ evento.quando|date:"d/m/Y" }}</time><div><span class="db-event-label">{{ evento.tipo }}</span><p>{{ evento.texto }}</p></div></li>{% endfor %}</ol>
             {% else %}
-                <p class="inka-dashboard-history-empty">
-                    Nenhum registro recente.
-                </p>
+                <p class="db-history-empty">Nenhum registro recente.</p>
             {% endif %}
-
-            <a class="inka-dashboard-history-more"
-               href="{% url 'forum:estudio_evolucao' estudio.id %}#diario">
-                Ver o diário completo <span aria-hidden="true">↗</span>
-            </a>
-
+            <a class="db-history-more" href="{% url 'forum:estudio_evolucao' estudio.id %}#diario">Ver o diário completo <span aria-hidden="true">↗</span></a>
         </div>
-
     </section>
 
-    <footer class="inka-dashboard-footer">
-        <span>INKA / ÁREA DO ESTÚDIO</span>
-        <span>PRÁTICAS QUE DEIXAM MARCAS</span>
-    </footer>
-
-    <button type="button"
-            class="inka-dashboard-backtop"
-            aria-label="Voltar ao início"
-            title="Voltar ao início">
-        ↑
-    </button>
-
-</main>
-
+    <footer class="db-footer"><span>INKA / ÁREA DO ESTÚDIO</span><span>CADA ESCOLHA DEIXA UMA MARCA</span></footer>
+    <button type="button" class="db-back-top" aria-label="Voltar ao início" title="Voltar ao início">↑</button>
+</div>
 {% endblock %}

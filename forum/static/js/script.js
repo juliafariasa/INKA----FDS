@@ -1415,3 +1415,131 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+/* INKA / MINHA ÁREA · EDIÇÃO 02
+   JS exclusivo deste dashboard. Sem bibliotecas externas.
+*/
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.getElementById('inka-dashboard');
+  if (!root) return;
+
+  const prefersLessMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const canPoint = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const chapters = root.querySelector('.db-chapters');
+  const navLinks = Array.from(root.querySelectorAll('.db-chapter'));
+  const progress = root.querySelector('.db-chapters-progress > span');
+  const backTop = root.querySelector('.db-back-top');
+  const sections = navLinks.map((link) => {
+    const selector = link.getAttribute('href');
+    return { link, element: selector ? root.querySelector(selector) : null };
+  }).filter((item) => item.element);
+
+  const motion = () => prefersLessMotion.matches ? 'auto' : 'smooth';
+
+  function navigateTo(element) {
+    const stickyTop = chapters ? (Number.parseFloat(getComputedStyle(chapters).top) || 0) : 0;
+    const stickyHeight = chapters ? chapters.getBoundingClientRect().height : 0;
+    const target = window.scrollY + element.getBoundingClientRect().top - stickyTop - stickyHeight - 15;
+    window.scrollTo({ top: Math.max(0, target), behavior: motion() });
+  }
+
+  root.querySelectorAll('a[href^="#db-"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      const id = link.getAttribute('href');
+      const destination = id && root.querySelector(id);
+      if (!destination) return;
+      event.preventDefault();
+      navigateTo(destination);
+    });
+  });
+
+  let scrollFrame = null;
+  function syncScroll() {
+    const top = window.scrollY;
+    const maximum = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+    if (progress) progress.style.width = (maximum ? Math.min(100, top / maximum * 100) : 100) + '%';
+    if (backTop) backTop.classList.toggle('is-visible', top > 540);
+
+    const stickyTop = chapters ? (Number.parseFloat(getComputedStyle(chapters).top) || 0) : 0;
+    const chapterRect = chapters ? chapters.getBoundingClientRect() : null;
+    const pinned = chapterRect && chapterRect.top <= stickyTop + 2;
+    const reference = pinned ? chapterRect.bottom + 34 : stickyTop + (chapterRect ? chapterRect.height : 0) + 34;
+    let active = sections[0];
+    sections.forEach((item) => { if (item.element.getBoundingClientRect().top <= reference) active = item; });
+    if (active) navLinks.forEach((link) => {
+      const selected = link === active.link;
+      link.classList.toggle('is-active', selected);
+      if (selected) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    scrollFrame = null;
+  }
+  const scheduleScroll = () => {
+    if (scrollFrame !== null) return;
+    scrollFrame = requestAnimationFrame(syncScroll);
+  };
+  window.addEventListener('scroll', scheduleScroll, { passive: true });
+  window.addEventListener('resize', scheduleScroll);
+  syncScroll();
+
+  if (backTop) backTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: motion() }));
+
+  // Barras numéricas só ganham movimento quando entram na área visível.
+  const meters = root.querySelectorAll('[data-db-progress]');
+  const setMeter = (meter) => {
+    const parsed = Number.parseFloat(String(meter.dataset.dbProgress || 0).replace(',', '.'));
+    meter.style.width = `${Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : 0}%`;
+  };
+  if ('IntersectionObserver' in window && !prefersLessMotion.matches) {
+    const meterObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      setMeter(entry.target);
+      meterObserver.unobserve(entry.target);
+    }), { threshold: .1 });
+    meters.forEach((meter) => meterObserver.observe(meter));
+  } else meters.forEach(setMeter);
+
+  // Nenhuma seção/card é ocultada por JS: conteúdo sempre visível.
+
+  // Luz do cursor APENAS dentro dos módulos, nunca na página toda.
+  if (canPoint.matches && !prefersLessMotion.matches) {
+    root.querySelectorAll('.db-module').forEach((module) => {
+      module.addEventListener('pointermove', (event) => {
+        const rect = module.getBoundingClientRect();
+        module.style.setProperty('--db-cx', `${event.clientX - rect.left}px`);
+        module.style.setProperty('--db-cy', `${event.clientY - rect.top}px`);
+      }, { passive: true });
+      module.addEventListener('pointerleave', () => {
+        module.style.removeProperty('--db-cx');
+        module.style.removeProperty('--db-cy');
+      });
+    });
+  }
+
+  // Copiar link com fallback para ambientes locais não seguros.
+  const copy = root.querySelector('.db-copy');
+  const feedback = root.querySelector('.db-copy-feedback');
+  if (copy) copy.addEventListener('click', async () => {
+    const value = copy.dataset.dbCopy;
+    if (!value) return;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = value;
+        input.setAttribute('readonly', '');
+        input.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(input);
+        input.select();
+        let done;
+        try { done = document.execCommand('copy'); }
+        finally { input.remove(); }
+        if (!done) throw new Error('clipboard blocked');
+      }
+      if (feedback) feedback.textContent = 'Link copiado com sucesso!';
+    } catch (error) {
+      if (feedback) feedback.textContent = 'Não foi possível copiar. Use o link exibido acima.';
+    }
+  });
+});
