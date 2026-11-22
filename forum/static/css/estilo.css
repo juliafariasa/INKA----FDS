@@ -106,58 +106,6 @@ body {
     translate: 0 0;
 }
 
-/* Transição entre páginas (View Transitions entre documentos). O topo, o
-   botão do menu e o fundo gráfico ficam parados; só o conteúdo troca: sai
-   subindo de leve e o novo entra como tinta assentando no papel. Navegador
-   sem suporte troca de página normalmente; com movimento reduzido, não há
-   transição. */
-@media (prefers-reduced-motion: no-preference) {
-    @view-transition {
-        navigation: auto;
-    }
-
-    .topo {
-        view-transition-name: inka-topo;
-    }
-
-    .menu-botao {
-        view-transition-name: inka-menu-botao;
-    }
-
-    .inka-fundo-grafico {
-        view-transition-name: inka-fundo;
-    }
-
-    ::view-transition-group(inka-topo),
-    ::view-transition-group(inka-menu-botao),
-    ::view-transition-group(inka-fundo) {
-        animation-duration: 0.4s;
-    }
-
-    ::view-transition-old(root) {
-        animation: inka-pagina-sai 0.22s var(--inka-curva) both;
-    }
-
-    ::view-transition-new(root) {
-        animation: inka-pagina-entra 0.48s var(--inka-curva-saida) 0.06s both;
-    }
-}
-
-@keyframes inka-pagina-sai {
-    to {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-}
-
-@keyframes inka-pagina-entra {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-        filter: blur(3px);
-    }
-}
-
 /* Traço de progresso: uma linha fina que se desenha da esquerda para a
    direita, como a agulha puxando o traço. Anima só transform e opacity. */
 .inka-progresso {
@@ -250,9 +198,14 @@ input.is-enviando {
    !important garante a transição mesmo sobre componentes que declaram a
    própria transition com seletor de id.
    ========================================================= */
+/* Blocos: papel assentando. Chega um pouco abaixo e levemente girado e
+   encosta com desaceleração longa. Sem filter: ele achataria o 3D do
+   cofre e das outras cenas que já estão animando por dentro. */
 .inka-entra {
     opacity: 0 !important;
-    translate: 0 22px;
+    translate: 0 34px;
+    rotate: 0.6deg;
+    transform-origin: 50% 0;
     transition: none !important;
 }
 
@@ -260,12 +213,32 @@ input.is-enviando {
 .inka-entra.inka-entrou {
     opacity: 1 !important;
     translate: 0 0;
+    rotate: 0deg;
     transition:
-        opacity 0.7s var(--inka-curva-saida) var(--inka-atraso, 0ms),
-        translate 0.9s var(--inka-curva-saida) var(--inka-atraso, 0ms) !important;
+        opacity 0.55s ease var(--inka-atraso, 0ms),
+        translate 1s cubic-bezier(0.16, 1, 0.3, 1) var(--inka-atraso, 0ms),
+        rotate 1.1s cubic-bezier(0.16, 1, 0.3, 1) var(--inka-atraso, 0ms) !important;
 }
 
+/* Texto do topo: escrito a tinta, da esquerda para a direita, com um leve
+   desfoque que some quando o traço "seca". */
+.inka-entra.inka-tinta {
+    translate: -12px 0;
+    rotate: 0deg;
+    clip-path: inset(-25% 100% -25% 0);
+    filter: blur(3px);
+}
 
+.inka-entra.inka-tinta.inka-entrou {
+    translate: 0 0;
+    clip-path: inset(-25% -25% -25% 0);
+    filter: blur(0);
+    transition:
+        opacity 0.4s ease var(--inka-atraso, 0ms),
+        clip-path 0.95s cubic-bezier(0.65, 0, 0.35, 1) var(--inka-atraso, 0ms),
+        translate 1s cubic-bezier(0.16, 1, 0.3, 1) var(--inka-atraso, 0ms),
+        filter 0.9s ease var(--inka-atraso, 0ms) !important;
+}
 
 /* =========================================================
    PÁGINAS-EXPERIÊNCIA SEM MOLDURA DUPLA
@@ -615,6 +588,80 @@ body.menu-aberto .menu-links a:nth-child(9) { transition-delay: 0.4s; }
 
 .form-sair {
     margin: 0;
+}
+
+/* =========================================================
+   MENU · ESTÊNCIL
+   No hover/foco o nome vira contorno, como o decalque que o tatuador passa
+   na pele antes da agulha, e uma legenda curta se desenha embaixo. Tudo em
+   CSS: o HTML dos links continua igual (os testes conferem a marcação).
+   A linha do item ativo passa para um gradiente de fundo e o ::after fica
+   com a legenda, escolhida pelo endereço do link.
+   ========================================================= */
+.menu-links a {
+    position: relative;
+    padding-bottom: 24px;
+    -webkit-text-stroke: 1px transparent;
+    transition: opacity 0.4s ease, translate 0.4s ease, color 0.35s var(--inka-curva-saida),
+                -webkit-text-stroke-color 0.35s var(--inka-curva-saida);
+}
+
+.menu-links a::before {
+    -webkit-text-stroke: 0;
+}
+
+.menu-links a.ativo {
+    background: linear-gradient(90deg, var(--inka-verde), transparent) right 0 top 50% / 30% 1px no-repeat;
+}
+
+.menu-links a.ativo::after,
+.menu-links a::after {
+    position: absolute;
+    bottom: 8px;
+    left: 42px;
+    flex: none;
+    width: auto;
+    height: auto;
+    background: none;
+    color: var(--inka-suave);
+    -webkit-text-stroke: 0;
+    font-size: 10px;
+    font-stretch: expanded;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    white-space: nowrap;
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+    transition: clip-path 0.5s var(--inka-curva-saida), opacity 0.3s;
+}
+
+.menu-links a[href="/"]::after { content: "Tinta, caneta e propósito"; }
+.menu-links a[href="/quem-somos/"]::after { content: "A equipe por trás do traço"; }
+.menu-links a[href="/sobre-o-projeto/"]::after { content: "Ideias recortadas e coladas"; }
+.menu-links a[href="/fale-conosco/"]::after { content: "A máquina de escrever"; }
+.menu-links a[href="/estudios/"]::after { content: "Quem já assumiu o compromisso"; }
+.menu-links a[href="/campanhas/"]::after { content: "Ação social"; }
+.menu-links a[href="/minha-area/"]::after { content: "Seu painel ESG"; }
+.menu-links a[href="/descarte/"]::after { content: "Ciclo responsável"; }
+.menu-links a[href="/painel/"]::after { content: "Bastidores do INKA"; }
+
+body.menu-aberto .menu-links a:hover,
+body.menu-aberto .menu-links a:focus-visible {
+    color: transparent;
+    -webkit-text-stroke-color: var(--inka-verde-claro);
+}
+
+body.menu-aberto .menu-links a:hover::after,
+body.menu-aberto .menu-links a:focus-visible::after,
+body.menu-aberto .menu-links a.ativo::after {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+}
+
+body.menu-aberto .menu-links a:hover::before,
+body.menu-aberto .menu-links a:focus-visible::before {
+    color: var(--inka-verde-claro);
 }
 
 /* "Sair" é um formulário POST (protegido contra CSRF) com cara de link. */
@@ -1653,6 +1700,113 @@ body.tema-inka .landing-anotacao {
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.3;
+}
+
+/* =========================================================
+   HERO · CHEGADA COREOGRAFADA (coreografarHero, script.js)
+   0,0 s  a caneta pousa com peso (passa um pouco do ponto e assenta)
+   0,4 s  a tinta escorre da ponta e se espalha pelas faixas (no JS)
+   1,0 s  o logo se enche de tinta de baixo para cima
+   2,1 s  o botão e o convite chegam; por fim a anotação e a seta
+   Usa translate/rotate/scale individuais para não brigar com transform.
+   ========================================================= */
+.hero-coreo .landing-caneta {
+    opacity: 0;
+    translate: 70px -110px;
+    rotate: 22deg;
+}
+
+.hero-coreo .landing-cena::after {
+    opacity: 0;
+    scale: 0.2;
+}
+
+.hero-coreo .landing-logo {
+    clip-path: inset(100% 0 0 0);
+    filter: blur(10px) brightness(1.8);
+}
+
+.hero-coreo .landing-botao-desenhar,
+.hero-coreo .landing-convite {
+    opacity: 0;
+    translate: 0 16px;
+}
+
+.hero-coreo .landing-anotacao {
+    clip-path: inset(0 100% 0 0);
+}
+
+.hero-coreo .landing-seta path {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+}
+
+.hero-coreo.hero-revelado .landing-caneta {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    transition:
+        opacity 0.3s ease,
+        translate 0.95s cubic-bezier(0.2, 1.3, 0.35, 1),
+        rotate 1.25s cubic-bezier(0.2, 1.55, 0.35, 1);
+}
+
+.hero-coreo.hero-revelado .landing-cena::after {
+    opacity: 1;
+    scale: 1;
+    transition: opacity 0.6s ease 0.4s, scale 0.9s cubic-bezier(0.2, 1.4, 0.35, 1) 0.4s;
+}
+
+.hero-coreo.hero-revelado .landing-logo {
+    clip-path: inset(0 0 0 0);
+    filter: blur(0) brightness(1);
+    transition:
+        clip-path 1.3s cubic-bezier(0.7, 0, 0.2, 1) 1s,
+        filter 1.6s cubic-bezier(0.22, 1, 0.36, 1) 1s;
+}
+
+.hero-coreo.hero-revelado .landing-botao-desenhar {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 0.6s ease 2.1s, translate 0.8s var(--inka-curva-saida) 2.1s;
+}
+
+.hero-coreo.hero-revelado .landing-convite {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 0.6s ease 2.3s, translate 0.8s var(--inka-curva-saida) 2.3s;
+}
+
+.hero-coreo.hero-revelado .landing-anotacao {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 1s cubic-bezier(0.65, 0, 0.35, 1) 2.55s;
+}
+
+.hero-coreo.hero-revelado .landing-seta path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.9s cubic-bezier(0.65, 0, 0.35, 1) 2.95s;
+}
+
+/* Ao rolar, a cena do hero recua: perde escala, desce e esmaece, como uma
+   folha que fica para trás enquanto a próxima seção sobe. Só onde há
+   animação ligada à rolagem; nos demais navegadores o hero fica parado. */
+@supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+        body.pagina-inicial .landing-cena {
+            animation: inka-hero-recua linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 85vh;
+        }
+    }
+}
+
+@keyframes inka-hero-recua {
+    to {
+        opacity: 0.2;
+        scale: 0.88;
+        translate: 0 9vh;
+        filter: blur(2px);
+    }
 }
 
 /* A posição parte da ponta medida no PNG (25,60% / 58,98%), que encosta na tinta. */
@@ -14282,5 +14436,238 @@ body .painel-menu a.ativo {
 
 #conteudo a.inka-voltar > span {
     color: inherit;
+}
+
+
+/* =========================================================
+   SOBRE O PROJETO · COLAGEM QUE SE ORGANIZA NA ROLAGEM
+   Os blocos chegam como recortes de papel: soltos, girados, com a sombra
+   longa de quem ainda está no ar. Conforme a seção entra na tela eles
+   assentam no grid e a sombra encurta, como papel encostando na mesa.
+   Tudo ligado à rolagem (animation-timeline: view()), sem JavaScript; no
+   navegador sem suporte ou com movimento reduzido, a página fica como
+   antes, já organizada.
+   ========================================================= */
+
+/* Os recortes e o letreiro se movem para fora da coluna durante a chegada:
+   as seções cortam o excesso para não criar rolagem lateral. */
+body.pagina-sobre .landing-secao {
+    overflow-x: clip;
+    overflow-clip-margin: 40px;
+}
+
+/* O desafio vira um papel colado com fita, levemente torto. */
+body.pagina-sobre .landing-desafio {
+    position: relative;
+    rotate: -1.2deg;
+    box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--inka-preto) 90%, transparent);
+}
+
+body.pagina-sobre .landing-desafio::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    width: 92px;
+    height: 24px;
+    background-color: color-mix(in srgb, var(--inka-claro) 16%, transparent);
+    border-left: 1px dashed color-mix(in srgb, var(--inka-claro) 22%, transparent);
+    border-right: 1px dashed color-mix(in srgb, var(--inka-claro) 22%, transparent);
+    translate: -50% 0;
+    rotate: 3deg;
+    pointer-events: none;
+}
+
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+
+        /* Recortes dos objetivos e da proposta: cada um vem de um canto. */
+        body.pagina-sobre :is(.sobre-objetivos li, #proposta .landing-bloco) {
+            --solto-x: -40px;
+            --solto-y: 90px;
+            --solto-r: -7deg;
+            animation: sobre-recorte-assenta linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 38%;
+        }
+
+        body.pagina-sobre :is(.sobre-objetivos li, #proposta .landing-bloco):nth-child(3n+2) {
+            --solto-x: 30px;
+            --solto-y: 130px;
+            --solto-r: 5deg;
+        }
+
+        body.pagina-sobre :is(.sobre-objetivos li, #proposta .landing-bloco):nth-child(3n) {
+            --solto-x: 60px;
+            --solto-y: 70px;
+            --solto-r: 9deg;
+        }
+
+        /* O número vazado entra por último, carimbado sobre o recorte. */
+        body.pagina-sobre .sobre-objetivos .landing-numero {
+            animation: sobre-numero-carimba linear both;
+            animation-timeline: view();
+            animation-range: entry 30% cover 42%;
+        }
+
+        /* O papel do desafio cai da mão e fica colado, torto. */
+        body.pagina-sobre .landing-desafio {
+            animation: sobre-papel-cola linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 40%;
+        }
+
+        /* Etapas: cada círculo numerado é carimbado na sua vez e o traço
+           até a próxima se desenha logo depois. */
+        body.pagina-sobre .landing-etapa::before {
+            animation: sobre-etapa-carimba linear both;
+            animation-timeline: view();
+            animation-range: entry 40% cover 45%;
+        }
+
+        body.pagina-sobre .landing-etapa::after {
+            transform-origin: left top;
+            animation: sobre-etapa-traco linear both;
+            animation-timeline: view();
+            animation-range: cover 30% cover 55%;
+        }
+
+        body.pagina-sobre .landing-etapa :is(h3, p) {
+            animation: sobre-texto-tinta linear both;
+            animation-timeline: view();
+            animation-range: entry 50% cover 40%;
+        }
+
+        /* Tecnologias: os nomes correm em sentidos opostos, como um
+           letreiro de revista que se alinha quando chega ao centro. */
+        body.pagina-sobre .sobre-ficha li:nth-child(odd) h3 {
+            --corre: -18vw;
+            animation: sobre-letreiro linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 50%;
+        }
+
+        body.pagina-sobre .sobre-ficha li:nth-child(even) h3 {
+            --corre: 18vw;
+            animation: sobre-letreiro linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 50%;
+        }
+
+        /* Títulos de seção: tira de papel que se desenrola da esquerda. */
+        body.pagina-sobre .landing-secao:not(.sobre-capa) > h2 {
+            animation: sobre-titulo-desenrola linear both;
+            animation-timeline: view();
+            animation-range: entry 10% cover 30%;
+        }
+    }
+}
+
+@keyframes sobre-recorte-assenta {
+    from {
+        opacity: 0;
+        translate: var(--solto-x) var(--solto-y);
+        rotate: var(--solto-r);
+        scale: 0.92;
+        filter: drop-shadow(0 34px 26px color-mix(in srgb, var(--inka-preto) 85%, transparent));
+    }
+    60% {
+        opacity: 1;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+        rotate: 0deg;
+        scale: 1;
+        filter: drop-shadow(0 0 0 transparent);
+    }
+}
+
+@keyframes sobre-numero-carimba {
+    from {
+        opacity: 0;
+        scale: 1.6;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes sobre-papel-cola {
+    from {
+        opacity: 0;
+        translate: 0 -70px;
+        rotate: 6deg;
+        scale: 1.06;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+        rotate: -1.2deg;
+        scale: 1;
+    }
+}
+
+@keyframes sobre-etapa-carimba {
+    from {
+        opacity: 0;
+        scale: 1.9;
+        rotate: -25deg;
+    }
+    70% {
+        opacity: 1;
+        scale: 0.94;
+    }
+    to {
+        opacity: 1;
+        scale: 1;
+        rotate: 0deg;
+    }
+}
+
+@keyframes sobre-etapa-traco {
+    from { scale: 0 1; }
+    to { scale: 1 1; }
+}
+
+@media (max-width: 1100px) {
+    @keyframes sobre-etapa-traco {
+        from { scale: 1 0; }
+        to { scale: 1 1; }
+    }
+}
+
+@keyframes sobre-texto-tinta {
+    from {
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+    }
+    to {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes sobre-letreiro {
+    from {
+        opacity: 0;
+        translate: var(--corre) 0;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@keyframes sobre-titulo-desenrola {
+    from {
+        clip-path: inset(0 100% 0 0);
+        translate: -24px 0;
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+        translate: 0 0;
+    }
 }
 

@@ -9,19 +9,6 @@
     <link rel="icon" type="image/png" href="{% static 'images/logo-inka.png' %}">
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
     <script src="{% static 'js/script.js' %}" defer></script>
-    {# Sob automação (Selenium nos testes E2E) a transição entre páginas é pulada: #}
-    {# durante os ~0,5 s dela a página nova não recebe cliques. Fica inline porque #}
-    {# o evento pagereveal acontece antes de um script "defer" rodar. #}
-    <script>
-        if (navigator.webdriver) {
-            window.addEventListener('pagereveal', function (e) {
-                if (e.viewTransition) {
-                    e.viewTransition.ready.catch(function () {});
-                    e.viewTransition.skipTransition();
-                }
-            });
-        }
-    </script>
     {% block head_extra %}{% endblock %}
 </head>
 <body class="{% block classe_body %}{% endblock %}">

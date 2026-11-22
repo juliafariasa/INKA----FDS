@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
     iniciarMenu();
     iniciarEnvioDeFormularios();
     iniciarCoreografia();
-    iniciarLuzDoCursor();
     desenharTintaDecorativa();
+    coreografarHero();
     iniciarDesenho();
     iniciarAnimacaoCaneta();
     iniciarFormularioContato();
@@ -219,9 +219,9 @@ function iniciarCoreografia() {
     var terminar = function (el) {
         var atraso = parseFloat(el.style.getPropertyValue('--inka-atraso')) || 0;
         setTimeout(function () {
-            el.classList.remove('inka-entra', 'inka-entrou');
+            el.classList.remove('inka-entra', 'inka-entrou', 'inka-tinta');
             el.style.removeProperty('--inka-atraso');
-        }, atraso + 1000);
+        }, atraso + 1300);
     };
     var revelar = function (el) {
         void el.offsetWidth; // garante que o estado inicial foi aplicado
@@ -234,8 +234,8 @@ function iniciarCoreografia() {
     if (copia) {
         var itens = filhosVisiveis(copia);
         itens.forEach(function (el, indice) {
-            el.classList.add('inka-entra');
-            el.style.setProperty('--inka-atraso', (90 + indice * 85) + 'ms');
+            el.classList.add('inka-entra', 'inka-tinta');
+            el.style.setProperty('--inka-atraso', (90 + indice * 110) + 'ms');
         });
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
@@ -281,50 +281,6 @@ function iniciarCoreografia() {
     blocos.forEach(function (bloco) {
         bloco.classList.add('inka-entra');
         observador.observe(bloco);
-    });
-}
-
-// Luz que acompanha o ponteiro nos painéis de abertura das experiências:
-// um halo verde muito sutil, como luz rasante sobre papel. Só com mouse.
-function iniciarLuzDoCursor() {
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches ||
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return;
-    }
-
-    var paineis = document.querySelectorAll(
-        '.db-hero, .ifs-hero, .da-hero, .aulas-hero, .inka-descarte-hero, .diagnostico-painel'
-    );
-    paineis.forEach(function (painel) {
-        if (getComputedStyle(painel).position === 'static') {
-            painel.style.position = 'relative';
-        }
-        var luz = document.createElement('span');
-        luz.className = 'inka-luz';
-        luz.setAttribute('aria-hidden', 'true');
-        painel.appendChild(luz);
-
-        var quadro = 0;
-        var x = 0;
-        var y = 0;
-        painel.addEventListener('pointermove', function (evento) {
-            var caixa = painel.getBoundingClientRect();
-            x = evento.clientX - caixa.left;
-            y = evento.clientY - caixa.top;
-            if (!quadro) {
-                quadro = requestAnimationFrame(function () {
-                    quadro = 0;
-                    luz.style.setProperty('--luz-x', x + 'px');
-                    luz.style.setProperty('--luz-y', y + 'px');
-                });
-            }
-        });
-        painel.addEventListener('pointerenter', function () {
-            luz.classList.add('acesa');
-        });
-        painel.addEventListener('pointerleave', function () {
-            luz.classList.remove('acesa');
-        });
     });
 }
 
@@ -475,7 +431,7 @@ function desenharTintaDecorativa() {
         svg.appendChild(elemento);
     };
 
-    faixas.forEach(function (faixa) {
+    faixas.forEach(function (faixa, indiceFaixa) {
         var pontos = suavizarGuia(faixa.guia, 14);
         for (var fio = 0; fio < faixa.fios; fio++) {
             var deslocamento = faixa.fios === 1 ? 0 :
@@ -505,6 +461,8 @@ function desenharTintaDecorativa() {
             }).join('');
 
             criar('path', {
+                'data-faixa': indiceFaixa,
+                'data-fio': fio,
                 d: caminho,
                 stroke: sortear() > 0.5 ? corClara : corMedia,
                 'stroke-width': (0.45 + sortear() * 0.75).toFixed(2),
@@ -527,6 +485,83 @@ function desenharTintaDecorativa() {
             });
         }
     });
+}
+
+// Chegada da home, como uma sessão de tatuagem em miniatura: a caneta pousa,
+// a tinta escorre da ponta dela pelo primeiro fio e se espalha pelas faixas,
+// o logo se enche de tinta de baixo para cima e só então o convite aparece.
+// Fora isso fica tudo como antes: sem JavaScript, com movimento reduzido ou
+// sob automação de testes, o hero já abre pronto.
+function coreografarHero() {
+    var hero = document.getElementById('hero-desenho');
+    var svg = document.getElementById('tinta-decorativa');
+    if (!hero || !svg || navigator.webdriver ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    hero.classList.add('hero-coreo');
+
+    var fios = Array.prototype.slice.call(svg.querySelectorAll('path'));
+    var respingos = Array.prototype.slice.call(svg.querySelectorAll('circle'));
+    var finais = [];
+    var transicoes = [];
+
+    fios.forEach(function (fio) {
+        var faixa = Number(fio.getAttribute('data-faixa')) || 0;
+        var indice = Number(fio.getAttribute('data-fio')) || 0;
+        // O primeiro fio sai da caneta; as faixas largas vêm logo atrás,
+        // em ondas, cada fio um pouco depois do vizinho.
+        var atraso = faixa === 0 ? 420 + indice * 60 : 900 + faixa * 150 + indice * 32;
+        var duracao = faixa === 0 ? 650 : 1300 + (indice % 3) * 180;
+        var tracejado = fio.getAttribute('stroke-dasharray') !== 'none';
+        var opacidade = fio.getAttribute('opacity');
+
+        if (tracejado) {
+            fio.style.opacity = '0';
+            transicoes.push([fio, 'opacity ' + duracao + 'ms ease ' + (atraso + duracao * 0.4) + 'ms']);
+            finais.push(function () { fio.style.opacity = opacidade; });
+        } else {
+            var comprimento = Math.ceil(fio.getTotalLength());
+            fio.style.strokeDasharray = comprimento;
+            fio.style.strokeDashoffset = comprimento;
+            transicoes.push([fio, 'stroke-dashoffset ' + duracao +
+                'ms cubic-bezier(0.55, 0, 0.2, 1) ' + atraso + 'ms']);
+            finais.push(function () { fio.style.strokeDashoffset = '0'; });
+        }
+    });
+
+    respingos.forEach(function (gota, indice) {
+        gota.style.transformBox = 'fill-box';
+        gota.style.transformOrigin = 'center';
+        gota.style.transform = 'scale(0)';
+        transicoes.push([gota, 'transform 420ms cubic-bezier(0.34, 1.7, 0.64, 1) ' +
+            (1900 + (indice % 9) * 45) + 'ms']);
+        finais.push(function () { gota.style.transform = 'scale(1)'; });
+    });
+
+    // O estado inicial (tinta recolhida) é aplicado sem transição; só depois
+    // as transições entram e os valores finais são definidos.
+    void svg.getBoundingClientRect();
+    requestAnimationFrame(function () {
+        transicoes.forEach(function (par) { par[0].style.transition = par[1]; });
+        requestAnimationFrame(function () {
+            hero.classList.add('hero-revelado');
+            finais.forEach(function (aplicar) { aplicar(); });
+        });
+    });
+
+    // Terminada a chegada, devolve os fios ao estado original.
+    setTimeout(function () {
+        fios.concat(respingos).forEach(function (el) {
+            el.style.removeProperty('stroke-dasharray');
+            el.style.removeProperty('stroke-dashoffset');
+            el.style.removeProperty('transition');
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('transform');
+        });
+        hero.classList.remove('hero-coreo', 'hero-revelado');
+    }, 4200);
 }
 
 // Lê uma cor da paleta definida em :root no estilo.css.
