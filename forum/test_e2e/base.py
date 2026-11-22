@@ -82,6 +82,16 @@ class BaseE2E(StaticLiveServerTestCase):
         self.pausar()  # pausa ANTES do clique, para ver o que vai ser clicado
         elemento.click()
 
+    def clicar_link(self, texto):
+        """Clica no link cujo texto é este, ignorando o ícone ao lado.
+
+        Os links da Minha Área terminam com <span aria-hidden>↗</span>, e o
+        LINK_TEXT do Selenium exigiria 'Aulas ↗'. Aqui vale só o primeiro
+        trecho de texto do link, antes do ícone, e como está no HTML: o
+        LINK_TEXT lê o texto da tela, que o CSS às vezes põe em maiúsculas.
+        """
+        self.clicar(By.XPATH, f'//a[normalize-space(text())="{texto}"]')
+
     def abrir_menu(self):
         """Abre o menu lateral (os links ficam escondidos com ele fechado)."""
         self.clicar(By.CSS_SELECTOR, '.menu-botao')
@@ -98,15 +108,16 @@ class BaseE2E(StaticLiveServerTestCase):
             campo.send_keys(texto)
 
     def esperar_titulo(self, texto):
-        """Espera o título da página (h2) com este texto.
+        """Espera o título da página (h1 ou h2) com este texto.
 
         Procura pelo texto do HTML, e não pelo que aparece na tela: o CSS
         mostra vários títulos em maiúsculas, e o .text do Selenium devolveria
         'ESTOQUE DE TINTA VERDE'.
         """
-        self.espera.until(EC.visibility_of_element_located(
-            (By.XPATH, f'//h2[contains(normalize-space(), "{texto}")]')
-        ))
+        self.espera.until(EC.visibility_of_element_located((
+            By.XPATH,
+            f'//*[self::h1 or self::h2][contains(normalize-space(), "{texto}")]',
+        )))
 
     def esperar_pagina(self, texto):
         """Espera a página cujo título da aba do navegador contém o texto."""

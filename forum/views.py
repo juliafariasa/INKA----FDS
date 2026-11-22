@@ -147,11 +147,17 @@ class EntrarView(View):
         'de novo.'
     )
 
+    TEMPLATE = 'forum/entrar.html'
+
     def get(self, request):
         if request.user.is_authenticated:
             return redirect(reverse('forum:minha_area'))
         contexto = {'email': '', 'proxima': request.GET.get('next', '')}
-        return render(request, 'forum/entrar.html', contexto)
+        return render(request, self.TEMPLATE, contexto)
+
+    def pode_entrar(self, usuario):
+        """Quem pode usar esta tela de login (a da equipe restringe)."""
+        return True
 
     def post(self, request):
         email = request.POST.get('email', '').strip().lower()
@@ -175,9 +181,9 @@ class EntrarView(View):
         nome_de_usuario = conta.get_username() if conta else email
         usuario = authenticate(request, username=nome_de_usuario,
                                password=senha)
-        if usuario is None:
+        if usuario is None or not self.pode_entrar(usuario):
             # A mensagem não diz se o erro foi no e-mail ou na senha, para
-            # não revelar quais e-mails têm conta.
+            # não revelar quais e-mails têm conta (nem quais são da equipe).
             messages.error(request, self.MENSAGEM_ERRO)
             return self.responder_erro(request, email, proxima)
 
@@ -214,7 +220,7 @@ class EntrarView(View):
 
     def responder_erro(self, request, email, proxima):
         contexto = {'email': email, 'proxima': proxima}
-        return render(request, 'forum/entrar.html', contexto)
+        return render(request, self.TEMPLATE, contexto)
 
 
 class SairView(View):

@@ -48,7 +48,7 @@ class AulasTest(BaseE2E):
 
     def ir_para_as_aulas(self):
         # O módulo na Minha Área se chama só "Aulas": há outras categorias.
-        self.clicar(By.LINK_TEXT, 'Aulas')
+        self.clicar_link('Aulas')
         self.esperar_pagina('Aulas de inclusão')
 
     def cartao_da_aula(self, titulo):
@@ -67,6 +67,29 @@ class AulasTest(BaseE2E):
         self.pausar()
         cartao.click()
         self.esperar_titulo(titulo)
+
+    def assistir_ate_o_fim(self, video):
+        """Dá play e espera o vídeo (12 s) terminar.
+
+        O play é dado por script, sem clique, e o Chrome trata isso como
+        autoplay: às vezes pausa o vídeo no meio. E às vezes o servidor dos
+        testes não entrega o arquivo. A cada leitura: recarrega se nada
+        chegou em 5 s e retoma se pausou antes do fim. O aula.js continua
+        contando, porque a retomada parte do ponto já assistido.
+        """
+        self.navegador.execute_script(
+            'arguments[0].scrollIntoView({block: "center"});', video
+        )
+        WebDriverWait(self.navegador, 60).until(lambda d: d.execute_script(
+            'const v = arguments[0]; v.muted = true;'
+            'if (v.ended) { return true; }'
+            'v.inicioEspera = v.inicioEspera || Date.now();'
+            'if (v.readyState === 0 && Date.now() - v.inicioEspera > 5000) {'
+            '    v.inicioEspera = Date.now(); v.load();'
+            '}'
+            'if (v.paused) { v.play().catch(() => {}); }'
+            'return false;', video
+        ))
 
     def test_aulas_listar_assistir_e_concluir_sem_assistir(self):
         # DADO que estou logado
@@ -90,13 +113,8 @@ class AulasTest(BaseE2E):
         ))
         self.narrar('O vídeo da aula abre na página. Dando play e assistindo '
                     'até o final')
-        self.navegador.execute_script(
-            'arguments[0].muted = true; arguments[0].play();', video
-        )
-        # Espera o vídeo terminar (12 s) e o aula.js registrar o progresso
-        WebDriverWait(self.navegador, 40).until(
-            lambda d: d.execute_script('return arguments[0].ended;', video)
-        )
+        self.assistir_ate_o_fim(video)
+        # Espera o aula.js registrar o progresso
         WebDriverWait(self.navegador, 10).until(
             lambda d: int(d.find_element(By.ID, 'campo-segundos')
                           .get_attribute('value')) >= 7

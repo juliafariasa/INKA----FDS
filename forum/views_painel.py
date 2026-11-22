@@ -8,6 +8,7 @@ import csv
 from urllib.parse import quote
 
 from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
 from django.db.models import Count, F, Prefetch, Q
 from django.http import Http404, HttpResponse
@@ -51,7 +52,7 @@ from .validacoes import (
     validar_conteudo_descarte,
     validar_empresa_descarte,
 )
-from .views import LoginObrigatorioMixin
+from .views import EntrarView, LoginObrigatorioMixin
 
 ROTULOS_SELO = {
     'ouro': 'Ouro', 'prata': 'Prata', 'bronze': 'Bronze',
@@ -70,6 +71,30 @@ class EquipeObrigatoriaMixin(LoginObrigatorioMixin):
         if request.user.is_authenticated and not request.user.is_staff:
             raise Http404
         return super().dispatch(request, *args, **kwargs)
+
+    def sem_login(self, request):
+        # Sem login, vai para o acesso da equipe, e não para o dos estúdios.
+        return redirect_to_login(request.get_full_path(),
+                                 reverse('forum:painel_entrar'))
+
+
+class PainelEntrarView(EntrarView):
+    """Login só da equipe: mesmo limite de tentativas do login dos estúdios.
+
+    Uma conta de estúdio com a senha certa recebe o mesmo erro de senha
+    errada, para a tela não confirmar quais contas são da equipe.
+    """
+
+    TEMPLATE = 'forum/painel_entrar.html'
+
+    def get(self, request):
+        if request.user.is_authenticated and request.user.is_staff:
+            return redirect(reverse('forum:painel'))
+        contexto = {'email': '', 'proxima': request.GET.get('next', '')}
+        return render(request, self.TEMPLATE, contexto)
+
+    def pode_entrar(self, usuario):
+        return usuario.is_staff
 
 
 def percentual(parte, total):

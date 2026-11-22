@@ -132,6 +132,12 @@
                 Entrar
             </a>
 
+            {# Atalho da equipe: login próprio, separado do dos estúdios. #}
+            <a class="link-conta{% if pagina == 'painel_entrar' %} ativo{% endif %}"
+               href="{% url 'forum:painel_entrar' %}">
+                Painel da equipe
+            </a>
+
         {% endif %}
 
     </div>

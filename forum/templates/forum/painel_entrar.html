@@ -1,0 +1,31 @@
+{% extends "forum/base.html" %}
+
+{% block titulo %}Acesso da equipe - INKA{% endblock %}
+
+{% block classe_body %}pagina-acesso{% endblock %}
+
+{% block content %}
+<h2>Acesso da equipe INKA</h2>
+
+<p>
+    Área exclusiva dos administradores do INKA. Entre com o e-mail e a senha
+    da sua conta da equipe.
+</p>
+
+<form method="post" action="{% url 'forum:painel_entrar' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ proxima }}">
+
+    <label for="email">E-mail</label>
+    <input type="email" id="email" name="email" maxlength="150"
+           autocomplete="username" value="{{ email }}" required>
+
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha"
+           autocomplete="current-password" required>
+
+    <input type="submit" name="entrar" value="Entrar no painel">
+</form>
+
+<p>É de um estúdio? <a href="{% url 'forum:entrar' %}">Entrar na área do estúdio</a></p>
+{% endblock %}

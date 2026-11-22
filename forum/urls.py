@@ -103,6 +103,8 @@ urlpatterns = [
          views.CampanhaSairView.as_view(), name='estudio_campanha_sair'),
     path('campanhas/', views.CampanhasView.as_view(), name='campanhas'),
     path('painel/', views_painel.PainelView.as_view(), name='painel'),
+    path('painel/entrar/', views_painel.PainelEntrarView.as_view(),
+         name='painel_entrar'),
     path('painel/estudios/', views_painel.PainelEstudiosView.as_view(),
          name='painel_estudios'),
     path('painel/estudios/<int:estudio_id>/',

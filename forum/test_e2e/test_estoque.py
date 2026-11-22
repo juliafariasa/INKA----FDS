@@ -20,7 +20,7 @@ class EstoqueTest(BaseE2E):
 
     def ir_para_o_estoque(self):
         self.entrar()
-        self.clicar(By.LINK_TEXT, 'Estoque')
+        self.clicar_link('Estoque')
         self.esperar_titulo('Estoque de Tinta Verde')
 
     def preencher_item(self, nome, tipo, quantidade, fornecedor):
@@ -56,8 +56,18 @@ class EstoqueTest(BaseE2E):
         self.navegador.execute_script(
             'arguments[0].scrollIntoView({block: "center"});', gaveta
         )
+        puxador = gaveta.find_element(By.CSS_SELECTOR, '.vault-drawer-pull')
+        # A classe is-open entra antes de a porta sair da frente (e, na volta
+        # de um cadastro, já vem pronta). Espera o puxador ser o elemento de
+        # cima no centro dele, o mesmo teste que o Chrome faz ao clicar.
+        self.espera.until(lambda d: d.execute_script(
+            'const r = arguments[0].getBoundingClientRect();'
+            'const topo = document.elementFromPoint('
+            '    r.left + r.width / 2, r.top + r.height / 2);'
+            'return arguments[0].contains(topo);', puxador
+        ))
         self.pausar()
-        gaveta.find_element(By.CSS_SELECTOR, '.vault-drawer-pull').click()
+        puxador.click()
         self.espera.until(EC.visibility_of(
             gaveta.find_element(By.CSS_SELECTOR, '.vault-info-actions')
         ))

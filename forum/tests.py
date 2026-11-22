@@ -3436,11 +3436,12 @@ class PainelEquipeTest(TestCase):
 
     # Acesso
 
-    def test_sem_login_vai_para_o_login(self):
+    def test_sem_login_vai_para_o_acesso_da_equipe(self):
         for url in self.urls_do_painel():
             resposta = self.client.get(url)
-            self.assertRedirects(resposta,
-                                 f'{reverse("forum:entrar")}?next={url}')
+            self.assertRedirects(
+                resposta, f'{reverse("forum:painel_entrar")}?next={url}'
+            )
 
     def test_conta_de_estudio_recebe_404(self):
         self.client.force_login(self.dono)
@@ -3471,6 +3472,43 @@ class PainelEquipeTest(TestCase):
         resposta = self.client.post(reverse('forum:entrar'), {
             'email': 'ana@inka.example', 'senha': 'Painel-Da-Equipe-2026',
         })
+        self.assertRedirects(resposta, reverse('forum:painel'))
+
+    def test_menu_deslogado_leva_ao_acesso_da_equipe(self):
+        resposta = self.client.get(reverse('forum:index'))
+        self.assertContains(resposta,
+                            f'href="{reverse("forum:painel_entrar")}"')
+
+    def test_acesso_da_equipe_tem_pagina_propria(self):
+        resposta = self.client.get(reverse('forum:painel_entrar'))
+        self.assertTemplateUsed(resposta, 'forum/painel_entrar.html')
+        self.assertContains(resposta, 'Acesso da equipe INKA')
+
+    def test_acesso_da_equipe_entra_e_volta_ao_endereco_pedido(self):
+        get_user_model().objects.create_user(
+            username='ana@inka.example', email='ana@inka.example',
+            password='Painel-Da-Equipe-2026', is_staff=True,
+        )
+        url_estudios = reverse('forum:painel_estudios')
+        resposta = self.client.post(reverse('forum:painel_entrar'), {
+            'email': 'ana@inka.example', 'senha': 'Painel-Da-Equipe-2026',
+            'next': url_estudios,
+        })
+        self.assertRedirects(resposta, url_estudios)
+
+    def test_acesso_da_equipe_recusa_conta_de_estudio(self):
+        self.dono.set_password('Senha-Do-Estudio-2026')
+        self.dono.save()
+        resposta = self.client.post(reverse('forum:painel_entrar'), {
+            'email': self.dono.email, 'senha': 'Senha-Do-Estudio-2026',
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'E-mail ou senha incorretos.')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_acesso_da_equipe_logada_vai_direto_ao_painel(self):
+        self.client.force_login(self.equipe)
+        resposta = self.client.get(reverse('forum:painel_entrar'))
         self.assertRedirects(resposta, reverse('forum:painel'))
 
     def test_minha_area_leva_a_equipe_sem_estudio_ao_painel(self):
@@ -3820,8 +3858,10 @@ class PainelConteudoTest(TestCase):
 
         self.client.logout()
         for url in urls:
-            self.assertRedirects(self.client.get(url),
-                                 f'{reverse("forum:entrar")}?next={url}')
+            self.assertRedirects(
+                self.client.get(url),
+                f'{reverse("forum:painel_entrar")}?next={url}',
+            )
 
     def test_acoes_so_aceitam_post(self):
         contato = Contato.objects.create(

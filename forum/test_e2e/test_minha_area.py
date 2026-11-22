@@ -29,36 +29,36 @@ class MinhaAreaTest(BaseE2E):
         # DADO que entrei com a conta do estúdio
         self.entrar()
         self.espera.until(EC.text_to_be_present_in_element(
-            (By.ID, 'proximos-passos'), PENDENCIA_CHECKLIST
+            (By.ID, 'db-passos'), PENDENCIA_CHECKLIST
         ))
         self.narrar('Depois de entrar, o estúdio cai na Minha Área, com a '
                     'lista do que fazer')
 
         # QUANDO clico na pendência do checklist
-        self.clicar(By.LINK_TEXT, 'Fazer o checklist')
+        self.clicar_link('Fazer o checklist')
         self.esperar_titulo('Evolução de Tinta Verde')
         self.narrar('O link leva direto ao checklist do painel de evolução')
 
         # E marco as práticas que o estúdio cumpre hoje
         caixas = self.navegador.find_elements(
-            By.CSS_SELECTOR, '.evo-checklist input[type="checkbox"]'
+            By.CSS_SELECTOR, '.ifs-stencil input[type="checkbox"]'
         )
         for caixa in caixas[:3]:
             self.navegador.execute_script('arguments[0].click();', caixa)
-        self.clicar(By.CSS_SELECTOR, 'input[name="salvar_checklist"]')
+        self.clicar(By.CSS_SELECTOR, '[name="salvar_checklist"]')
         self.esperar_mensagem('Checklist de hoje salvo: 3 de '
                               f'{ItemChecklist.objects.filter(ativo=True).count()}'
                               ' práticas cumpridas.')
         self.assertEqual(Checklist.objects.get().cumpridos, 3)
 
         # ENTÃO, de volta à Minha Área, a pendência não aparece mais
-        self.clicar(By.PARTIAL_LINK_TEXT, 'Voltar para a Minha Área')
+        self.clicar_link('← Voltar para a Minha Área')
         self.espera.until(EC.url_contains(reverse('forum:minha_area')))
-        proximos = self.navegador.find_element(By.ID, 'proximos-passos')
+        proximos = self.navegador.find_element(By.ID, 'db-passos')
         self.assertNotIn(PENDENCIA_CHECKLIST, proximos.text)
         percentual = round(3 / len(caixas) * 100)
         indicadores = self.navegador.find_element(
-            By.CSS_SELECTOR, '.evo-indicadores'
+            By.CSS_SELECTOR, '.db-stat--checklist'
         ).text
         self.assertIn(f'{percentual}%', indicadores.replace('\n', ''))
         self.narrar('A pendência sumiu e o indicador do checklist foi '
